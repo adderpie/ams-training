@@ -1,269 +1,467 @@
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en-GB" data-theme="dark">
 <head>
 <base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#0d0f0d">
+<meta name="theme-color" content="#1A1C1A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Training</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="AMS Training">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap">
 <style>
+/* tokens:start */
+/* AMS Johnston Coaching client app: design tokens. Source of truth for every colour, size, radius, elevation and
+   motion value in the app. Index.html uses these custom properties and never raw values.
+   Brand (July 2026): forest #1F7A36, emerald #2BA84A, charcoal #222222, off-white #F2F2F2, burgundy #6B2D34.
+   Type: Montserrat (brand header face from the sheet design language), Arial fallback. Numbers always tabular.
+   Contrast: every pair below checked with design/contrast.js (WCAG AA 4.5:1 text, 3:1 large). */
+
 :root {
-  --bg: #0d0f0d;
-  --surface: #161916;
-  --surface-2: #1e221e;
-  --line: #2a2f2a;
-  --text: #f2f2f2;
-  --muted: #a3aba3;
-  --green: #2ba84a;
-  --green-deep: #1f7a36;
-  --green-ink: #062611;
-  --wine: #6b2d34;
-  --wine-text: #f0b9bf;
-  --warn: #e8c15a;
-  --r: 14px;
-  --pad: 18px;
-  --ease: cubic-bezier(.16, 1, .3, 1);
+  /* Brand */
+  --forest: #1F7A36;
+  --emerald: #2BA84A;
+  --charcoal: #222222;
+  --offwhite: #F2F2F2;
+  --burgundy: #6B2D34;
+
+  /* Light theme (default) */
+  --canvas: var(--offwhite);        /* page */
+  --surface: #FFFFFF;               /* cards, inputs */
+  --surface-2: #E6EAE6;             /* pressed, strips, track */
+  --line: #D6DBD6;                  /* hairlines */
+  --ink: var(--charcoal);           /* text 14.6:1 on canvas */
+  --ink-muted: #5E665E;             /* secondary text 5.3:1 */
+  --ink-faint: #9AA29A;             /* placeholders, disabled (not for reading) */
+  --accent: var(--forest);          /* working colour: links, selected, text accents 4.8:1 */
+  --accent-strong: var(--emerald);  /* fills, rings, progress; never text on light */
+  --on-accent: var(--offwhite);     /* text on forest 4.8:1 */
+  --on-accent-strong: #062611;      /* text on emerald 5.3:1 */
+  --coach: var(--burgundy);         /* Adam's voice, alerts, warnings 9.2:1 */
+  --on-coach: var(--offwhite);
+  --warn: #8A5A00;                  /* pending sync, amber on light 5.6:1 */
+  --focus: var(--emerald);
+
+  /* Type: Montserrat, one family, weight does the work */
+  --font: "Montserrat", Arial, Helvetica, sans-serif;
+  --fs-12: 12px;  /* meta */
+  --fs-14: 14px;  /* labels, secondary */
+  --fs-16: 16px;  /* body, inputs */
+  --fs-20: 20px;  /* card titles */
+  --fs-24: 24px;  /* screen titles */
+  --fs-32: 32px;  /* key numbers */
+  --fs-44: 44px;  /* hero numbers */
+  --fs-64: 64px;  /* the one big number */
+  --lh-tight: 1.1;
+  --lh-body: 1.45;
+  --w-regular: 500;
+  --w-bold: 700;
+  --w-black: 800;
+  --track-tight: -0.02em;
+
+  /* 8pt spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --gutter: 16px;                   /* side gutter at 375px */
+  --tap: 48px;                      /* minimum hit target */
+
+  /* Radius: hierarchy, not one value everywhere */
+  --r-chip: 6px;                    /* chips, small inputs */
+  --r-card: 12px;                   /* cards, number fields */
+  --r-sheet: 20px;                  /* bottom sheets, top corners */
+  --r-pill: 999px;                  /* buttons, toggles */
+
+  /* Elevation: light uses one hairline and one sheet shadow; nothing else floats */
+  --elev-0: none;
+  --elev-1: 0 0 0 1px var(--line);
+  --elev-2: 0 8px 24px rgba(34, 34, 34, 0.12);   /* bottom sheets and the dock only */
+
+  /* Depth and light: one gradient (emerald to forest, never purple) for the rings, one glow for the ring and the primary action.
+     The gradient never sits under text: dark ink on the forest end is 3.0:1. */
+  --accent-grad: linear-gradient(135deg, #2BA84A 0%, #1F7A36 100%);
+  --glow: 0 0 28px rgba(43, 168, 74, 0.45);
+  --glow-soft: 0 0 60px rgba(43, 168, 74, 0.18);
+
+  /* Motion: one easing family, four durations */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-micro: 160ms;                 /* taps, ticks, toggles, chips */
+  --t-screen: 300ms;                /* screen and sheet transitions */
+  --t-draw: 600ms;                  /* chart draw-in, ring fill */
+  --t-hero: 1100ms;                 /* the ring and number on Today, the success moment */
 }
+
+/* Dark theme: charcoal is the canvas, emerald becomes readable text, burgundy needs a tint */
+:root[data-theme="dark"], [data-theme="dark"] {
+  --canvas: #1A1C1A;
+  --surface: var(--charcoal);       /* 14.6:1 with off-white */
+  --surface-2: #282B28;            /* kept dark enough for emerald text 4.7:1 */
+  --line: #3A3E3A;
+  --ink: var(--offwhite);
+  --ink-muted: #A9B0A9;             /* 7.4:1 */
+  --ink-faint: #6E756E;
+  --accent: var(--emerald);         /* 5.3:1 on charcoal, usable as text */
+  --accent-strong: var(--emerald);
+  --on-accent: #062611;
+  --on-accent-strong: #062611;
+  --coach: #E8A9B1;                 /* burgundy tint 8.9:1; raw #6B2D34 fails on dark */
+  --on-coach: var(--charcoal);
+  --warn: #E8C15A;                  /* 9.3:1 */
+  --elev-1: 0 0 0 1px var(--line);
+  --elev-2: 0 -1px 0 var(--line);   /* no shadows in the dark: tone does the lifting */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-micro: 0ms; --t-screen: 0ms; --t-draw: 0ms; --t-hero: 0ms; }
+}
+/* tokens:end */
+
+/* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: var(--bg); color: var(--text); }
-/* App-style scrolling: the page itself never scrolls; body is a full-screen panel that does. So the phone's
-   browser bar never slides in and out (that caused the flash on scroll-up), there's no rubber-band past the
-   ends, and the scroll bar can be hidden (iPhones ignore that on a normal page, but obey it on a panel). */
+html, body { margin: 0; background: var(--canvas); color: var(--ink); }
+/* App-style scrolling: the page never scrolls; body is a full-screen panel that does. The phone's browser bar never
+   slides in and out (that caused a flash on scroll-up), no rubber-band past the ends, scroll bars hidden. */
 html { height: 100%; overflow: hidden; }
 body { position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-* { scrollbar-width: none; } /* every scrolling box, on every phone */
+* { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
-body {
-  font: 16px/1.4 Arial, Helvetica, sans-serif;
-  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
-  font-variant-numeric: tabular-nums;
-}
-::selection { background: var(--green); color: var(--green-ink); }
-button, input { font: inherit; color: inherit; }
+body { font: var(--w-regular) var(--fs-16)/var(--lh-body) var(--font); font-variant-numeric: tabular-nums; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+::selection { background: var(--accent-strong); color: var(--on-accent-strong); }
+button, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; border: 0; background: none; padding: 0; }
-:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 8px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-chip); }
 a { color: inherit; }
-.wrap { max-width: 520px; margin: 0 auto; padding: 0 var(--pad); }
 [hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 var(--gutter); }
+#app { padding-top: var(--s-3); padding-bottom: calc(110px + env(safe-area-inset-bottom)); min-height: 100vh; }
+#app.in-session { padding-bottom: calc(180px + env(safe-area-inset-bottom)); }
 
-/* Top bar */
-.bar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.bar .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; }
-.bar-title { flex: 1; min-width: 0; }
-.bar-title b { display: block; font-size: 17px; }
-.bar-title span { font-size: 13px; color: var(--muted); }
-.icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
-.left { font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px; background: var(--green-deep); color: #fff; white-space: nowrap; }
-.left.zero { background: var(--surface-2); color: var(--muted); }
+/* ---------- motion: one easing, three durations, every tap answers ---------- */
+.screen { animation: screen-in var(--t-screen) var(--ease) both; }
+.screen.sub { animation-name: sheet-in; }
+@keyframes screen-in { from { opacity: 0; transform: translateX(22px); } }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(28px) scale(.985); } }
+@keyframes pop { from { transform: scale(.6); opacity: .4; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes halo { from { r: 5; opacity: .7; } to { r: 18; opacity: 0; } }
+@keyframes glowpulse { 0%, 100% { filter: drop-shadow(0 0 10px rgba(43, 168, 74, .35)); } 50% { filter: drop-shadow(0 0 26px rgba(43, 168, 74, .65)); } }
+/* ambient light: a soft emerald wash behind the Today hero, nowhere else */
+#app.today-bg { background: radial-gradient(70% 36% at 50% -4%, rgba(43, 168, 74, .16), transparent 72%); }
+button, .press { transition: transform var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
+button:active, .press:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-/* Sync line */
-.sync { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; padding: 10px 0 0; min-height: 28px; }
-.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-.sync.pending::before { background: var(--warn); }
-.sync.error { color: var(--warn); }
-.sync.error::before { background: var(--warn); }
+/* ---------- type ---------- */
+h1.t { font-size: var(--fs-24); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); margin: 0; }
+h1.t.l { font-size: var(--fs-32); }
+.meta { font-size: var(--fs-14); color: var(--ink-muted); margin: 0; }
+.meta b { color: var(--ink); font-weight: var(--w-bold); }
+.sec { font-size: var(--fs-14); font-weight: var(--w-bold); margin: var(--s-5) 0 var(--s-2); }
+.big { font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; }
+.big small, .n small { font-size: var(--fs-14); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; margin-left: 4px; }
+.on { color: var(--accent); }
+.warn-text { color: var(--warn); }
+.coach-text { color: var(--coach); }
 
-/* Home */
-.week { padding: 30px 0 8px; }
-.week h1 { font-size: clamp(44px, 14vw, 64px); line-height: .95; margin: 0; letter-spacing: -.03em; }
-.week p { margin: 10px 0 0; color: var(--muted); }
-.week h1.date { font-size: clamp(34px, 10vw, 46px); }
-.days { list-style: none; margin: 26px 0 40px; padding: 0; display: grid; gap: 10px; }
-.day { width: 100%; text-align: left; display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); transition: transform .2s var(--ease), border-color .2s; }
-.day:active { transform: scale(.985); }
-.day .n { font-size: 13px; font-weight: 700; color: var(--green); width: 26px; }
-.day b { font-size: 20px; display: block; }
-.day span { font-size: 14px; color: var(--muted); }
-.day .grow { flex: 1; }
-.day.has-done { border-color: var(--green-deep); }
-.day .tick { color: var(--green); }
+/* ---------- top of a sub screen ---------- */
+.top { display: flex; align-items: center; gap: var(--s-3); min-height: var(--tap); margin-bottom: var(--s-3); }
+.top .back { width: var(--tap); height: var(--tap); display: grid; place-items: center; border-radius: var(--r-pill); background: var(--surface); margin-left: -8px; }
+.top .back:active { background: var(--surface-2); }
+.top .title { flex: 1; min-width: 0; }
+.top .title b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.top .title span { font-size: var(--fs-14); color: var(--ink-muted); }
+.top .pill { font-size: var(--fs-12); font-weight: var(--w-bold); padding: 6px 12px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink-muted); white-space: nowrap; }
+.top .pill.go { background: var(--accent); color: var(--on-accent); }
 
-/* Daily check in card */
-.ci { margin: 22px 0 0; padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
-.ci-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.ci-head h2 { font-size: 18px; margin: 0; }
-.ci-head input { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color-scheme: dark; font-size: 15px; }
-.ci-row { display: flex; gap: 10px; margin-top: 14px; }
-.ci-row label { flex: 1; position: relative; display: block; }
-.ci-row label span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
-.ci-row input { width: 100%; height: 58px; padding: 0 56px 0 16px; font-size: 26px; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
-.ci-row input::placeholder { color: #5f675f; font-weight: 400; }
-.ci-row input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
-.ci-row .btn.primary { flex: none; min-width: 104px; }
-.ci-status { margin: 10px 0 0; font-size: 14px; color: var(--green); min-height: 20px; }
-.ci-status.warn { color: var(--warn); }
-.ci-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 14px; }
-.ci-week button { padding: 7px 0 8px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); text-align: center; font-size: 13px; line-height: 1.3; }
-.ci-week button small { display: block; font-size: 11px; color: var(--muted); }
-.ci-week button.is-today { border-color: var(--green-deep); }
-.ci-week button.is-sel { border-color: var(--green); box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 30%, transparent); }
-.ci-week button:disabled { opacity: .4; cursor: default; }
-.entry { display: grid; gap: 10px; margin-top: 14px; }
-.entry label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; }
-.entry label > span { font-weight: 700; }
-.entry .box { position: relative; }
-.entry .box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-style: normal; pointer-events: none; }
-.entry input, .entry textarea { width: 100%; height: 54px; padding: 0 58px 0 14px; font-size: 22px; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
-.entry textarea { height: 140px; padding: 12px 14px; font-size: 16px; font-weight: 400; line-height: 1.4; resize: none; }
-.entry input:focus, .entry textarea:focus { outline: none; border-color: var(--green); }
-.entry small { display: block; margin: 6px 0 0 102px; color: var(--muted); font-size: 13px; }
-.entry.solo label { grid-template-columns: 1fr; }
-.entry.solo small { margin-left: 0; }
-.entry .btn { width: 100%; }
-.sw { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); text-align: left; font-size: 17px; }
-.sw .knob { flex: none; width: 52px; height: 30px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); position: relative; transition: background .2s; }
-.sw .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--muted); transition: transform .2s var(--ease), background .2s; }
-.sw.on { border-color: var(--green-deep); }
-.sw.on .knob { background: var(--green-deep); }
-.sw.on .knob::after { transform: translateX(22px); background: #fff; }
-.sec { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px; }
-.sec + .days { margin-top: 0; }
-.days + .sec { margin-top: 6px; }
-.tasks { margin: 0 0 10px; padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); display: grid; gap: 8px; }
-.tasks h3 { margin: 0 0 2px; font-size: 16px; display: flex; justify-content: space-between; }
-.tasks h3 span { color: var(--muted); font-weight: 400; font-size: 14px; }
-a.day { text-decoration: none; }
-.meal { margin-top: 14px; padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
-.meal h2 { margin: 0 0 8px; font-size: 18px; }
-.meal ul, .shop { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.meal li, .shop li { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
-.meal li span, .shop li span { color: var(--muted); text-align: right; white-space: nowrap; }
-.meal .tot { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
-.shop li { padding: 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); align-items: center; }
-.shop li.got { opacity: .45; }
+/* ---------- buttons ---------- */
+.btn { display: flex; align-items: center; justify-content: center; gap: var(--s-2); height: 52px; border-radius: var(--r-pill); font-weight: var(--w-bold); font-size: var(--fs-16); width: 100%; background: var(--surface-2); color: var(--ink); position: relative; overflow: hidden; }
+.btn.strong { background: var(--accent-strong); color: var(--on-accent-strong); box-shadow: var(--glow-soft); }
+.btn.strong:active { box-shadow: var(--glow); }
+.btn.quiet { background: var(--surface); color: var(--ink-muted); }
+.btn.coach { background: var(--coach); color: var(--on-coach); }
+.btn:disabled { opacity: .5; cursor: default; transform: none; }
+.btn.auto { width: auto; padding: 0 20px; height: 44px; }
+/* save button states: idle, saving (bar sweeps), saved (tick draws), failed (shake). One element morphs, nothing jumps. */
+.btn .st { display: none; align-items: center; gap: 8px; }
+.btn[data-state="idle"] .st-idle, .btn[data-state="saving"] .st-saving, .btn[data-state="saved"] .st-saved, .btn[data-state="failed"] .st-failed { display: inline-flex; }
+.btn[data-state="saving"]::after { content: ""; position: absolute; left: 0; bottom: 0; height: 3px; width: 40%; background: var(--on-accent-strong); opacity: .5; animation: sweep 900ms var(--ease) infinite; }
+@keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+.btn[data-state="saved"] { background: var(--accent); color: var(--on-accent); }
+.btn[data-state="failed"] { background: var(--coach); color: var(--on-coach); animation: shake var(--t-screen) var(--ease); }
+@keyframes shake { 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+.tickdraw { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw var(--t-draw) var(--ease) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* ---------- surfaces, rows, lists ---------- */
+.card { background: var(--surface); border-radius: var(--r-card); padding: var(--s-4); }
+.list { background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 52px; padding: var(--s-2) var(--s-4); width: 100%; text-align: left; }
+.row + .row { border-top: 1px solid var(--line); }
+.row .l { font-weight: var(--w-bold); flex: 1; min-width: 0; }
+.row .l span { display: block; font-weight: var(--w-regular); color: var(--ink-muted); font-size: var(--fs-14); }
+.row .v { font-weight: var(--w-bold); text-align: right; white-space: nowrap; font-size: var(--fs-20); letter-spacing: var(--track-tight); }
+.row .v.on { color: var(--accent); }
+.row .v small { font-weight: var(--w-regular); color: var(--ink-muted); font-size: var(--fs-14); margin-left: 4px; letter-spacing: 0; }
+.row .v.empty { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-16); }
+button.row:active { background: var(--surface-2); transform: none; }
+.two { display: grid; grid-template-columns: 1fr 1fr; }
+.two .row:nth-child(odd) { border-right: 1px solid var(--line); }
+.two .row:nth-child(-n+2) { border-top: 0; }
+.two .row { display: block; min-height: 0; padding: var(--s-3) var(--s-4); }
+.two .row b { display: block; font-size: var(--fs-12); color: var(--ink-muted); font-weight: var(--w-bold); }
+.two .row .n { font-size: var(--fs-24); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1.2; }
+.two .row .n.empty { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-16); }
+.two .row.wide { grid-column: 1 / -1; border-right: 0; }
+.tick { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-strong); color: var(--on-accent-strong); display: inline-grid; place-items: center; flex: none; transition: background-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
+.tick svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.tick.off { background: transparent; box-shadow: inset 0 0 0 2px var(--line); }
+.tick.off svg { opacity: 0; }
+.tick:not(.off) svg { stroke-dasharray: 24; animation: draw var(--t-micro) var(--ease) forwards; }
+.tick.pop { animation: pop var(--t-screen) var(--ease); }
+.linkrow { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--tap); font-weight: var(--w-bold); width: 100%; text-align: left; text-decoration: none; }
+.linkrow + .linkrow { border-top: 1px solid var(--line); }
+.linkrow span { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-14); text-align: right; }
+.linkrow svg { color: var(--ink-muted); }
+
+/* ---------- hero ring ---------- */
+.hero { display: flex; align-items: center; gap: var(--s-4); margin-top: var(--s-4); }
+.ring { width: 112px; height: 112px; flex: none; }
+.ring circle { fill: none; stroke-width: 10; }
+.ring .track { stroke: var(--surface-2); }
+.ring .bar { stroke: url(#ringGrad); stroke-linecap: round; transition: stroke-dashoffset var(--t-draw) var(--ease); }
+.ring.big { width: 140px; height: 140px; }
+.ring.hero { width: 156px; height: 156px; filter: drop-shadow(var(--glow)); animation: glowpulse 3.2s var(--ease) infinite; }
+.ring.hero .bar { transition-duration: var(--t-hero); stroke-width: 11; }
+.ring.hero .track { stroke: var(--surface-2); }
+.hero .n { font-size: var(--fs-44); }
+.hero .n { font-size: var(--fs-32); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; }
+.hero .n .of { font-size: var(--fs-16); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; }
+
+/* ---------- week strip ---------- */
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--s-3); }
+.strip button { display: grid; justify-items: center; gap: 6px; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); padding: 4px 0; border-radius: var(--r-chip); }
+.strip button span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); font-size: var(--fs-12); transition: box-shadow var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease); }
+.strip button span.done { background: var(--accent-strong); color: var(--on-accent-strong); box-shadow: none; }
+.strip button span.today { box-shadow: inset 0 0 0 2px var(--accent); }
+.strip button span.sel { box-shadow: 0 0 0 3px var(--focus); }
+.strip button:disabled { opacity: .35; cursor: default; }
+.strip button:disabled span { box-shadow: inset 0 0 0 2px var(--line); }
+.earlier { margin-top: var(--s-2); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-14); color: var(--ink-muted); }
+.earlier input { height: 36px; padding: 0 10px; border-radius: var(--r-chip); background: var(--surface); border: 0; color: var(--ink); color-scheme: dark; font-size: var(--fs-14); }
+
+/* ---------- fields ---------- */
+.form { display: grid; gap: var(--s-4); margin-top: var(--s-4); }
+.field > span { display: block; font-size: var(--fs-14); font-weight: var(--w-bold); margin-bottom: var(--s-1); }
+.field .box { position: relative; }
+.field input, .field textarea { width: 100%; height: 56px; padding: 0 60px 0 var(--s-4); font-size: var(--fs-24); font-weight: var(--w-bold); border-radius: var(--r-card); border: 0; background: var(--surface); color: var(--ink); caret-color: var(--accent); box-shadow: var(--elev-1); transition: box-shadow var(--t-micro) var(--ease); }
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-16); }
+.field input:focus, .field textarea:focus { outline: none; box-shadow: 0 0 0 2px var(--focus); }
+.field textarea { height: 120px; padding: var(--s-3) var(--s-4); font-size: var(--fs-16); font-weight: var(--w-regular); line-height: var(--lh-body); resize: none; }
+.field .unit { position: absolute; right: var(--s-4); top: 50%; transform: translateY(-50%); color: var(--ink-muted); font-size: var(--fs-14); pointer-events: none; }
+.field small { display: block; margin-top: var(--s-1); font-size: var(--fs-12); color: var(--ink-muted); }
+.field small.warn { color: var(--warn); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.scale.ten { grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.scale button { height: var(--tap); border-radius: var(--r-chip); display: grid; place-items: center; background: var(--surface); box-shadow: var(--elev-1); font-weight: var(--w-bold); font-size: var(--fs-16); }
+.scale.ten button { font-size: var(--fs-14); }
+.scale button.sel { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.scale-ends { display: flex; justify-content: space-between; font-size: var(--fs-12); color: var(--ink-muted); margin-top: 4px; }
+.hab { display: flex; align-items: center; gap: var(--s-3); min-height: var(--tap); width: 100%; text-align: left; padding: 0 var(--s-4); }
+.hab + .hab { border-top: 1px solid var(--line); }
+.hab span { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { min-height: 40px; padding: 8px 14px; border-radius: var(--r-pill); display: grid; place-items: center; font-size: var(--fs-14); font-weight: var(--w-bold); background: var(--surface); box-shadow: var(--elev-1); text-align: center; }
+.chips button.sel { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.yn { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.yn button { height: 44px; border-radius: var(--r-chip); display: grid; place-items: center; font-weight: var(--w-bold); background: var(--surface); box-shadow: var(--elev-1); }
+.yn button.sel { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.sw { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: 0 var(--s-4); min-height: 52px; text-align: left; }
+.sw .knob { flex: none; width: 52px; height: 30px; border-radius: var(--r-pill); background: var(--surface-2); position: relative; transition: background-color var(--t-micro) var(--ease); }
+.sw .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--ink-muted); transition: transform var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease); }
+.sw.on .knob { background: var(--accent-strong); }
+.sw.on .knob::after { transform: translateX(22px); background: var(--on-accent-strong); }
+.q { margin: 0 0 var(--s-4); }
+.q p { margin: 0 0 var(--s-2); font-weight: var(--w-bold); font-size: var(--fs-14); }
+.q p small { display: block; font-weight: var(--w-regular); color: var(--ink-muted); font-size: var(--fs-12); }
+.coach { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--coach); color: var(--on-coach); font-size: var(--fs-14); margin-top: var(--s-3); }
+.coach b { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--on-coach); color: var(--coach); display: grid; place-items: center; font-weight: var(--w-black); font-size: 12px; }
+.note { padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); color: var(--ink-muted); font-size: var(--fs-14); margin-top: var(--s-3); }
+.note.warn { color: var(--warn); }
+.note a { color: var(--ink); font-weight: var(--w-bold); }
+
+/* ---------- sync line ---------- */
+.sync { display: flex; align-items: center; gap: 8px; font-size: var(--fs-12); color: var(--ink-muted); margin-top: var(--s-3); min-height: 20px; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-strong); flex: none; }
+.sync.pending { color: var(--warn); } .sync.pending::before { background: var(--warn); }
+.sync.error { color: var(--warn); } .sync.error::before { background: var(--warn); }
+
+/* ---------- chart ---------- */
+.chart { width: 100%; height: auto; display: block; margin-top: var(--s-3); }
+.chart .axis { stroke: var(--line); stroke-width: 1; }
+.chart .goal { stroke: var(--coach); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart .line { stroke: var(--accent-strong); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--t-draw) var(--ease) forwards; }
+.chart .trend { stroke: var(--ink-muted); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+.chart .dot { fill: var(--accent-strong); }
+.chart .area { fill: url(#areaGrad); opacity: 0; animation: fadein var(--t-draw) var(--ease) var(--t-draw) forwards; }
+@keyframes fadein { to { opacity: 1; } }
+.chart .line { filter: drop-shadow(0 0 7px rgba(43, 168, 74, .55)); }
+.chart .halo { fill: none; stroke: var(--accent-strong); stroke-width: 2; animation: halo 1.8s var(--ease) infinite; }
+.chart text { font-family: var(--font); font-size: 11px; fill: var(--ink-muted); font-weight: var(--w-bold); }
+
+/* ---------- workout: sessions, set table, overview, done ---------- */
+.session { margin-top: var(--s-4); background: var(--surface); border-radius: var(--r-card); padding: var(--s-4); display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.session .meta { margin-top: 2px; }
+.days { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
+.day { width: 100%; text-align: left; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-card); background: var(--surface); }
+.day .num { font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--accent); width: 24px; }
+.day b { font-size: var(--fs-20); display: block; letter-spacing: var(--track-tight); }
+.day span { font-size: var(--fs-14); color: var(--ink-muted); }
+.day .grow { flex: 1; min-width: 0; }
+.ex h1 { font-size: var(--fs-32); line-height: var(--lh-tight); margin: 0; letter-spacing: var(--track-tight); font-weight: var(--w-black); text-wrap: balance; }
+.target { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: var(--s-3) 0 0; padding: 0; list-style: none; }
+.target li { font-size: var(--fs-14); color: var(--ink-muted); }
+.target b { color: var(--ink); font-size: var(--fs-20); margin-right: 4px; }
+.video { margin-top: var(--s-3); display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-pill); background: var(--surface); text-decoration: none; font-weight: var(--w-bold); font-size: var(--fs-14); }
+.video svg { color: var(--accent); }
+.sets { margin-top: var(--s-4); background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
+.sets .hd, .set { display: grid; grid-template-columns: 32px 1fr 84px 84px; align-items: center; gap: 8px; padding: 8px var(--s-3); }
+.sets .hd { font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); padding-top: var(--s-3); }
+.set { border-top: 1px solid var(--line); }
+.set .no { font-weight: var(--w-bold); color: var(--ink-muted); }
+.set.beaten .no { color: var(--accent); }
+.set.beaten { box-shadow: inset 3px 0 0 var(--accent-strong); }
+.set.flash { animation: setflash var(--t-draw) var(--ease); }
+@keyframes setflash { 0% { background: rgba(43, 168, 74, .25); } 100% { background: transparent; } }
+.set .last { font-size: var(--fs-14); line-height: 1.2; text-align: left; width: 100%; padding: 6px 0; border-radius: var(--r-chip); }
+.set .last small { display: block; font-size: var(--fs-12); color: var(--ink-muted); }
+.set .last.none { color: var(--ink-muted); }
+.set .last:not(.none):active { background: var(--surface-2); }
+.set input { width: 100%; height: 48px; padding: 0 4px; text-align: center; font-size: var(--fs-20); font-weight: var(--w-bold); border-radius: var(--r-chip); border: 0; background: var(--canvas); color: var(--ink); caret-color: var(--accent); }
+.set input::placeholder { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-14); }
+.set input:focus { outline: none; box-shadow: 0 0 0 2px var(--focus); }
+.comment { margin-top: var(--s-3); }
+.comment input { width: 100%; height: 48px; padding: 0 var(--s-4); border-radius: var(--r-card); border: 0; background: var(--surface); color: var(--ink); }
+.comment input::placeholder { color: var(--ink-muted); }
+.hint { color: var(--warn); font-size: var(--fs-14); margin: var(--s-3) 0 0; }
+.actbar { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 6; padding: var(--s-3) 0; background: linear-gradient(to top, var(--canvas) 70%, transparent); }
+.actbar .wrap { display: flex; gap: var(--s-2); }
+.actbar .btn.quiet { width: auto; padding: 0 20px; }
+.ov ol { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
+.ov .item { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); }
+.ov .item .info { flex: 1; min-width: 0; }
+.ov .item b { display: block; }
+.ov .item span { font-size: var(--fs-14); color: var(--ink-muted); }
+.ov .item.is-done { opacity: .6; }
+.ov .item.is-skipped b { text-decoration: line-through; color: var(--ink-muted); }
+.ov .item.is-current { box-shadow: 0 0 0 2px var(--accent); }
+.chip { height: 36px; padding: 0 12px; border-radius: var(--r-pill); font-size: var(--fs-14); font-weight: var(--w-bold); background: var(--surface-2); }
+.chip.go { color: var(--accent); }
+.chip.skip { color: var(--coach); }
+.fin { padding-top: var(--s-5); }
+.fin ul { list-style: none; padding: 0; margin: var(--s-4) 0; }
+.fin li { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--surface); font-size: var(--fs-14); animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms + 200ms); }
+.fin li + li { border-top: 1px solid var(--line); }
+.fin li:first-child { border-radius: var(--r-card) var(--r-card) 0 0; } .fin li:last-child { border-radius: 0 0 var(--r-card) var(--r-card); }
+.fin li span { color: var(--ink-muted); text-align: right; }
+.fin li.up span { color: var(--accent); font-weight: var(--w-bold); }
+
+/* ---------- plan ---------- */
+details.meal { background: var(--surface); border-radius: var(--r-card); margin-top: var(--s-2); }
+details.meal summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); min-height: 52px; cursor: pointer; font-weight: var(--w-bold); }
+details.meal summary::-webkit-details-marker { display: none; }
+details.meal summary span { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-14); white-space: nowrap; }
+details.meal ul { list-style: none; margin: 0; padding: 0 var(--s-4) var(--s-3); display: grid; gap: 6px; }
+details.meal li { display: flex; justify-content: space-between; gap: var(--s-3); font-size: var(--fs-14); }
+details.meal li span { color: var(--ink-muted); white-space: nowrap; }
+details.meal p { margin: 0; padding: 0 var(--s-4) var(--s-3); font-size: var(--fs-14); color: var(--ink-muted); white-space: pre-line; }
+details.meal p b { color: var(--ink); display: block; }
+.shop { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
+.shop li button { width: 100%; display: flex; justify-content: space-between; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; }
+.shop li.got button { opacity: .45; }
 .shop li.got b { text-decoration: line-through; }
-.shop button { all: unset; display: contents; cursor: pointer; }
-.howto { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
-.howto summary { cursor: pointer; font-weight: 700; }
-.howto p { margin: 10px 0 0; font-size: 14px; color: var(--muted); white-space: pre-line; }
-.howto b { color: var(--text); }
-.supp p { margin: 10px 0 0; white-space: pre-line; }
-.supp p b { display: block; font-size: 13px; color: var(--muted); font-weight: 400; margin-bottom: 2px; }
-.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
-.thumbs figure { margin: 0; position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 3 / 4; background: var(--bg); }
+.shop li span { color: var(--ink-muted); white-space: nowrap; }
+.stepper { display: flex; align-items: center; gap: var(--s-2); }
+.stepper button { width: 40px; height: 40px; border-radius: var(--r-pill); background: var(--surface-2); font-size: var(--fs-20); display: grid; place-items: center; }
+.stepper b { width: 28px; text-align: center; }
+
+/* ---------- photos ---------- */
+.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: var(--s-3); }
+.thumbs figure { margin: 0; position: relative; border-radius: var(--r-card); overflow: hidden; aspect-ratio: 3 / 4; background: var(--surface); }
 .thumbs img { width: 100%; height: 100%; object-fit: cover; }
-.thumbs figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 6px; font-size: 12px; background: rgba(0, 0, 0, .65); }
-.pick { display: flex; align-items: center; justify-content: center; gap: 8px; height: 58px; border-radius: 14px; background: var(--green); color: var(--green-ink); font-weight: 700; font-size: 17px; cursor: pointer; margin-top: 14px; }
+.thumbs figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 6px; font-size: var(--fs-12); background: rgba(34, 34, 34, .8); color: var(--ink); }
+.pick { display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: var(--r-pill); background: var(--accent-strong); color: var(--on-accent-strong); font-weight: var(--w-bold); cursor: pointer; margin-top: var(--s-3); }
 .pick input { display: none; }
-.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
-.scale button { height: 60px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); font-size: 24px; font-weight: 700; transition: transform .15s var(--ease), background .2s; }
-.scale button:active { transform: scale(.95); }
-.scale button.is-sel { background: var(--green); border-color: var(--green); color: var(--green-ink); }
-.scale-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: var(--muted); }
-.ci-lines { margin: 14px 0 0; display: grid; gap: 4px; font-size: 15px; }
-.ci-lines p { margin: 0; }
-.ci-lines .muted { color: var(--muted); font-size: 13px; }
-.ci-lines .num { font-weight: 700; }
 
-/* Exercise */
-.ex { padding: 22px 0 140px; animation: rise .45s var(--ease) both; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } }
-.ex h1 { font-size: clamp(30px, 9vw, 40px); line-height: 1.05; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
-.target { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 14px 0 0; padding: 0; list-style: none; }
-.target li { font-size: 15px; color: var(--muted); }
-.target b { color: var(--text); font-size: 22px; margin-right: 4px; }
-.video { margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; font-weight: 700; }
-.video svg { color: var(--green); }
+/* ---------- dock ---------- */
+.dock { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; bottom: 0; z-index: 7; border-radius: var(--r-sheet) var(--r-sheet) 0 0; height: calc(84px + env(safe-area-inset-bottom)); padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; align-items: flex-start; background: var(--surface); box-shadow: var(--elev-2); }
+.dock button { color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); display: grid; justify-items: center; gap: 4px; min-width: var(--tap); padding: 6px 12px; border-radius: var(--r-card); position: relative; }
+.dock button.on { color: var(--accent); }
+.dock button.on::before { content: ""; position: absolute; inset: 0; border-radius: var(--r-card); background: rgba(43, 168, 74, .12); box-shadow: var(--glow-soft); animation: pop var(--t-screen) var(--ease); }
+.dock button svg { position: relative; }
+.dock button:active { transform: none; background: var(--surface-2); }
 
-.beat { margin-top: 26px; }
-.beat h2 { font-size: 15px; margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; }
-.beat h2 span { color: var(--muted); font-weight: 400; }
-.prev-note { margin: -2px 0 12px; font-size: 14px; color: var(--muted); font-style: italic; }
-.sets { display: grid; gap: 8px; }
-.set { display: grid; grid-template-columns: 34px 1fr 82px 82px; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
-.set .no { font-weight: 700; color: var(--muted); }
-.set .last { font-size: 15px; line-height: 1.2; }
-.set .last small { display: block; font-size: 12px; color: var(--muted); }
-.set .last.none { color: var(--muted); }
-.set label { position: relative; display: block; }
-.set label span { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); pointer-events: none; }
-.set input { width: 100%; height: 58px; padding: 16px 4px 0; text-align: center; font-size: 22px; font-weight: 700; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
-.set input::placeholder { color: #5f675f; font-weight: 400; }
-.set input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
-.set.beaten { border-color: var(--green-deep); }
-.set.beaten .no { color: var(--green); }
-.note { margin-top: 14px; }
-.note input { width: 100%; height: 50px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
-.note input::placeholder { color: #8a928a; }
-.hint { color: var(--warn); font-size: 14px; margin: 12px 0 0; }
-
-.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: linear-gradient(to top, var(--bg) 70%, transparent); padding: 18px 0 calc(14px + env(safe-area-inset-bottom)); }
-.dock .wrap { display: flex; gap: 10px; }
-.btn { height: 58px; border-radius: 14px; font-weight: 700; font-size: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; transition: transform .15s var(--ease), background .2s; }
-.btn:active { transform: scale(.97); }
-.btn.primary { flex: 1; background: var(--green); color: var(--green-ink); box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .8); }
-.btn.ghost { background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
-
-/* Overview */
-.ov { padding: 22px 0 120px; }
-.ov h1 { font-size: 30px; margin: 0; }
-.ov p.lead { color: var(--muted); margin: 6px 0 20px; }
-.ov ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.row { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
-.row .info { flex: 1; min-width: 0; }
-.row b { display: block; font-size: 16px; }
-.row span { font-size: 13px; color: var(--muted); }
-.row.is-done { opacity: .62; }
-.row.is-skipped b { text-decoration: line-through; color: var(--muted); }
-.row.is-current { border-color: var(--green); }
-.state { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); flex: none; }
-.is-done .state { background: var(--green); border-color: var(--green); color: var(--green-ink); }
-.is-done .state svg { width: 16px; height: 16px; stroke-width: 3; }
-.is-current .state { border-color: var(--green); }
-.chip { height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 700; background: var(--surface-2); border: 1px solid var(--line); }
-.chip.go { color: var(--green); }
-.chip.skip { color: var(--wine-text); }
-
-/* Done */
-.fin { padding: 48px 0 60px; text-align: left; }
-.fin .mark { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: var(--green-ink); animation: pop .6s var(--ease) both; }
-.fin .mark svg { width: 38px; height: 38px; stroke-width: 3; }
-@keyframes pop { from { transform: scale(.4); opacity: 0; } }
-.fin h1 { font-size: 40px; line-height: 1; margin: 24px 0 10px; letter-spacing: -.02em; }
-.fin p { color: var(--muted); margin: 0 0 8px; font-size: 17px; }
-.fin ul { list-style: none; padding: 0; margin: 22px 0 28px; display: grid; gap: 6px; }
-.fin li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: 12px; font-size: 15px; }
-.fin li span { color: var(--muted); text-align: right; }
-.fin li.up span { color: var(--green); font-weight: 700; }
-
-.loading, .err { padding: 80px 0; color: var(--muted); }
-.err b { color: var(--text); display: block; font-size: 20px; margin-bottom: 8px; }
-@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+/* success moment: one full-screen beat after a save, a session, a milestone. Tap or wait to dismiss. */
+.moment { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; padding: var(--gutter); background: rgba(26, 28, 26, .94); animation: fadein var(--t-screen) var(--ease) both; cursor: pointer; }
+.moment.out { animation: fadeout var(--t-screen) var(--ease) forwards; }
+@keyframes fadeout { to { opacity: 0; } }
+.moment .in { display: grid; justify-items: center; text-align: center; gap: var(--s-3); animation: pop var(--t-draw) var(--ease) both; }
+.moment .huge { font-size: var(--fs-64); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; color: var(--accent); }
+.moment .huge small { display: block; font-size: var(--fs-16); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; margin-top: var(--s-2); }
+.moment .line { color: var(--ink); font-weight: var(--w-bold); font-size: var(--fs-20); }
+.moment .sub { color: var(--ink-muted); font-size: var(--fs-14); }
+.moment .ring.hero { width: 200px; height: 200px; }
+.moment .tick { width: 56px; height: 56px; }
+.moment .tick svg { width: 28px; height: 28px; }
+/* loading: a shimmer of the Today layout, not a sentence */
+.skel { display: grid; gap: var(--s-4); padding-top: var(--s-4); }
+.skel i { display: block; border-radius: var(--r-card); background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+.loading, .err { padding: 80px 0; color: var(--ink-muted); }
+.err b { color: var(--ink); display: block; font-size: var(--fs-20); margin-bottom: 8px; }
+.toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--accent); color: var(--on-accent); padding: 10px 16px; border-radius: var(--r-pill); font-weight: var(--w-bold); font-size: var(--fs-14); z-index: 8; animation: screen-in var(--t-screen) var(--ease) both; }
 </style>
 </head>
 <body data-saved-to="<?= savedTo ?>">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-bar" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-6M22 20H2"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--emerald)"/><stop offset="1" style="stop-color:var(--forest)"/></linearGradient>
+  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--emerald);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--emerald);stop-opacity:0"/></linearGradient>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
 </svg>
 
-<header class="bar" id="bar" hidden>
-  <div class="wrap">
-    <button class="icon-btn" id="barBack" aria-label="Back"><svg class="i"><use href="#i-back"/></svg></button>
-    <div class="bar-title"><b id="barDay"></b><span id="barWeek"></span></div>
-    <span class="left" id="barLeft" aria-live="polite"></span>
-    <button class="icon-btn" id="barList" aria-label="See the whole day"><svg class="i"><use href="#i-list"/></svg></button>
-  </div>
-</header>
+<main class="wrap" id="app"><div class="skel" aria-label="Loading"><i style="height:40px;width:55%"></i><i style="height:16px;width:70%"></i><i style="height:156px;width:156px;border-radius:50%"></i><i style="height:240px"></i><i style="height:52px;border-radius:999px"></i></div></main>
 
-<main class="wrap" id="app"><p class="loading">Loading your plan…</p></main>
-
-<div class="dock" id="dock" hidden>
+<div class="actbar" id="actbar" hidden>
   <div class="wrap">
-    <button class="btn ghost" id="skipBtn">Skip</button>
-    <button class="btn primary" id="doneBtn"><svg class="i"><use href="#i-check"/></svg><span>Complete</span></button>
+    <button class="btn quiet" id="skipBtn">Skip</button>
+    <button class="btn strong" id="doneBtn"><svg class="i"><use href="#i-check"/></svg><span>Complete</span></button>
   </div>
 </div>
+<nav class="dock" id="dock" hidden aria-label="Sections">
+  <button data-tab="today" class="on"><svg class="i"><use href="#i-home"/></svg>Today</button>
+  <button data-tab="workout"><svg class="i"><use href="#i-bar"/></svg>Workout</button>
+  <button data-tab="plan"><svg class="i"><use href="#i-plan"/></svg>Plan</button>
+  <button data-tab="progress"><svg class="i"><use href="#i-chart"/></svg>Progress</button>
+</nav>
 
 <script>
 // Served two ways: by Apps Script (template tags filled in) or as a plain page on GitHub Pages, where the link
@@ -271,37 +469,28 @@ a.day { text-decoration: none; }
 var Q = new URLSearchParams(location.search);
 var KEY = '<?= key ?>'; if (KEY.charAt(0) === '<') KEY = Q.get('k') || '';
 var SCRIPT = /^[\w-]{20,}$/.test(Q.get('s') || '') ? Q.get('s') : '';
-var SAVED_TO = document.body.dataset.savedTo.charAt(0) === '<' ? 'Adam\'s sheet' : document.body.dataset.savedTo; // unfilled template tag gets the default (getData sends the real one)
+var SAVED_TO = document.body.dataset.savedTo.charAt(0) === '<' ? 'Adam\'s sheet' : document.body.dataset.savedTo;
 var LS = (function () {
   try { localStorage.setItem('cw:t', '1'); localStorage.removeItem('cw:t'); return localStorage; }
   catch (e) { var m = {}; return { getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; } }; }
 })();
-// On GitHub Pages every client's link shares one origin: keep each script's saves apart.
 var NS = SCRIPT ? SCRIPT.slice(-10) + '|' : '';
 function load(k, d) { try { var v = LS.getItem(NS + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
 function store(k, v) { try { LS.setItem(NS + k, JSON.stringify(v)); } catch (e) {} }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
 function $(id) { return document.getElementById(id); }
 function icon(n) { return '<svg class="i"><use href="#i-' + n + '"/></svg>'; }
+var MESSAGE_ADAM = '<a href="mailto:adam@adamjohnston.uk">Message Adam</a>';
 
-/* ---------- backend: Apps Script in production, mock when opened as a plain file ---------- */
-var api = (typeof google !== 'undefined' && google.script) ? {
-  getData: function () { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).getData(KEY); }); },
-  save: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveExercise(KEY, p); }); },
-  saveCheckIn: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveCheckIn(KEY, p); }); },
-  getPlan: function () { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).getPlan(KEY); }); },
-  saveTask: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveTask(KEY, p); }); },
-  saveMeasurement: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveMeasurement(KEY, p); }); },
-  uploadPhoto: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).uploadPhoto(KEY, p); }); }
-} : SCRIPT ? {
-  getData: function () { return post('getData'); },
-  save: function (p) { return post('saveExercise', p); },
-  saveCheckIn: function (p) { return post('saveCheckIn', p); },
-  getPlan: function () { return post('getPlan'); },
-  saveTask: function (p) { return post('saveTask', p); },
-  saveMeasurement: function (p) { return post('saveMeasurement', p); },
-  uploadPhoto: function (p) { return post('uploadPhoto', p); }
-} : mockApi();
+/* ---------- backend: Apps Script in production, JSON API on the hosted page, mock when opened as a plain file ---------- */
+function gs(fn) { return function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](KEY, p); }); }; }
+var FNS = { getData: 'getData', save: 'saveExercise', saveCheckIn: 'saveCheckIn', getPlan: 'getPlan', saveTask: 'saveTask', saveMeasurement: 'saveMeasurement',
+  uploadPhoto: 'uploadPhoto', getWeeklyForm: 'getWeeklyForm', saveWeeklyCheckIn: 'saveWeeklyCheckIn' };
+var api = {};
+Object.keys(FNS).forEach(function (k) {
+  api[k] = (typeof google !== 'undefined' && google.script) ? gs(FNS[k]) : SCRIPT ? function (p) { return post(FNS[k], p); } : null;
+});
+if (!api.getData) api = mockApi();
 function post(fn, p) { // text/plain body: no CORS preflight, Apps Script answers with JSON {ok, result|error}
   return fetch('https://script.google.com/macros/s/' + SCRIPT + '/exec', { method: 'POST', body: JSON.stringify({ fn: fn, k: KEY, p: p }) })
     .then(function (r) { return r.json(); })
@@ -311,9 +500,10 @@ function post(fn, p) { // text/plain body: no CORS preflight, Apps Script answer
 /* ---------- state ---------- */
 var data = load('cw:data', null);
 var queue = load('cw:q', []);
-var view = { screen: '', day: null };
+var view = { screen: '', tab: 'today', day: null };
 var sess = null;
 var syncState = { busy: false, error: '' };
+var plan = load('cw:plan', null);
 
 function dayByName(n) { return data.days.filter(function (d) { return d.name === n; })[0]; }
 function exByName(day, n) { return day.exercises.filter(function (x) { return x.name === n; })[0]; }
@@ -324,18 +514,16 @@ function prevOf(x) {
   return null;
 }
 function sessKey(day) { return 'cw:s:' + data.week + ':' + day; }
-
 function openSession(dayName) {
   var day = dayByName(dayName);
   var s = load(sessKey(dayName), null);
   if (!s) {
     s = { order: day.exercises.map(function (x) { return x.name; }), done: [], skipped: [], drafts: {} };
-    day.exercises.forEach(function (x) { // already logged this week in the sheet: show as done, prefilled
+    day.exercises.forEach(function (x) {
       var cur = x.history[data.week];
       if (hasNums(cur)) { s.done.push(x.name); s.drafts[x.name] = { kg: cur.kg.slice(), reps: cur.reps.slice(), comment: cur.comment }; }
     });
   }
-  // plan edited in the sheet since: drop gone exercises, append new ones
   var names = day.exercises.map(function (x) { return x.name; });
   s.order = s.order.filter(function (n) { return names.indexOf(n) > -1; }).concat(names.filter(function (n) { return s.order.indexOf(n) < 0; }));
   sess = s; sess.day = dayName;
@@ -345,12 +533,19 @@ function openSession(dayName) {
 function saveSess() { store(sessKey(sess.day), sess); }
 function remaining() { return sess.order.filter(function (n) { return sess.done.indexOf(n) < 0 && sess.skipped.indexOf(n) < 0; }); }
 function draft(name) { return sess.drafts[name] || (sess.drafts[name] = { kg: ['', '', '', ''], reps: ['', '', '', ''], comment: '' }); }
+function dayDone(d) {
+  var s = load(sessKey(d.name), null);
+  return d.exercises.length && d.exercises.every(function (x) {
+    return hasNums(x.history[data.week]) || (s && (s.done.indexOf(x.name) > -1 || s.skipped.indexOf(x.name) > -1));
+  });
+}
 
-/* ---------- save queue: nothing is lost if the signal drops ---------- */
+/* ---------- save queue: nothing is lost if the signal drops. Same keys and payloads as before. ---------- */
 function qKey(q) {
   if (q.type === 'ci') return 'ci|' + q.date + '|' + q.field;
   if (q.type === 'task') return 'task|' + q.week + '|' + q.idx;
   if (q.type === 'ms') return 'ms|' + q.week;
+  if (q.type === 'wc') return 'wc|' + q.week;
   return q.day + '|' + q.exercise + '|' + q.week;
 }
 function enqueue(p) {
@@ -361,15 +556,17 @@ function flush() {
   if (syncState.busy || !queue.length) return renderSync();
   syncState.busy = true; renderSync();
   var p = queue[0];
-  var call = p.type === 'ci' ? api.saveCheckIn(p) : p.type === 'task' ? api.saveTask(p) : p.type === 'ms' ? api.saveMeasurement(p) : api.save(p);
+  var call = p.type === 'ci' ? api.saveCheckIn(p) : p.type === 'task' ? api.saveTask(p) : p.type === 'ms' ? api.saveMeasurement(p) : p.type === 'wc' ? api.saveWeeklyCheckIn(p) : api.save(p);
   call.then(function (res) {
     queue.shift(); store('cw:q', queue); syncState.error = '';
     if (p.type === 'ci') return checkInSaved(p, res || {});
     if (p.type === 'task' || p.type === 'ms') return otherSaved(p, res || {});
-    var x = data && dayByName(p.day) && exByName(dayByName(p.day), p.exercise); // keep local history in step
+    if (p.type === 'wc') return weeklySaved(p, res || {});
+    var x = data && dayByName(p.day) && exByName(dayByName(p.day), p.exercise);
     if (x && !p.skip) { x.history[p.week] = { kg: p.kg, reps: p.reps, comment: p.comment }; store('cw:data', data); }
   }, function (err) {
     syncState.error = (err && err.message) || 'No connection';
+    if (p.type === 'ci') setSaveState('failed');
   }).then(function () {
     syncState.busy = false;
     if (queue.length && !syncState.error) flush(); else renderSync();
@@ -377,179 +574,56 @@ function flush() {
 }
 setInterval(function () { if (queue.length) { syncState.error = ''; flush(); } }, 30000);
 window.addEventListener('online', function () { syncState.error = ''; flush(); });
-
 function renderSync() {
   var el = $('sync'); if (!el) return;
   el.className = 'sync' + (syncState.error ? ' error' : queue.length ? ' pending' : '');
   el.textContent = syncState.error && !queue.length ? 'Offline. Showing what you last loaded.'
-    : syncState.error
-    ? queue.length + ' not saved yet. Keep going, it will retry. (' + syncState.error + ')'
+    : syncState.error ? 'Saved on your phone, will send when you are back online (' + queue.length + ' waiting).'
     : queue.length ? 'Saving to ' + SAVED_TO + '…' : 'Everything saved to ' + SAVED_TO;
 }
 
-/* ---------- screens ---------- */
-// Screens: hub (menu, only when the sheet has check in) > weight | home (workout days) > ex / ov / fin.
-function startScreen() { return data.checkIn ? 'hub' : 'home'; }
-function show(screen, day) {
-  if (screen.indexOf('scale:') === 0) { view.field = screen.slice(6); screen = 'scale'; }
-  if (/^[fg]:/.test(screen)) { view.field = screen; screen = 'entry'; }
-  if (screen.indexOf('supp:') === 0) { view.supp = +screen.slice(5); screen = 'supp'; }
-  view.screen = screen; if (day) view.day = day;
-  var inDay = screen === 'ex' || screen === 'ov' || screen === 'fin';
-  var menuChild = !inDay && screen !== startScreen(); // weight, or workouts opened from the menu
-  $('bar').hidden = !inDay && !menuChild; $('dock').hidden = screen !== 'ex';
-  $('barLeft').hidden = $('barList').hidden = menuChild;
-  if (menuChild) {
-    $('barDay').textContent = screen === 'weight' ? 'Weight' : screen === 'scale' ? fieldById(view.field).label : screen === 'entry' ? entryTitle()
-      : screen === 'home' ? 'Workouts' : PAGE_TITLES[screen] || '';
-    $('barWeek').textContent = screen === 'home' || screen === 'measure' || screen === 'photos' ? 'Week ' + data.week : fmtDate(localIso());
-  }
-  if (inDay) {
-    $('barDay').textContent = sess.day;
-    $('barWeek').textContent = 'Week ' + data.week;
-    var n = remaining().length;
-    $('barLeft').textContent = n ? n + (n === 1 ? ' exercise left' : ' exercises left') : 'All done';
-    $('barLeft').className = 'left' + (n ? '' : ' zero');
-    $('barList').hidden = screen === 'ov';
-  }
-  ({ hub: renderHub, weight: renderWeight, scale: renderScale, entry: renderEntry, meal: renderMeal, shop: renderShop,
-    supps: renderSupps, supp: renderSupp, measure: renderMeasure, photos: renderPhotos, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
-  document.body.scrollTop = 0;
+/* ---------- dates and small helpers ---------- */
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function localIso() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function dateOf(iso) { return new Date(iso + 'T12:00:00'); }
+function fmtDate(iso) { return iso ? dateOf(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : ''; }
+function shortDate(iso) { return dateOf(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+function weekday(iso) { return dateOf(iso).toLocaleDateString('en-GB', { weekday: 'long' }); }
+function fmtNum(v) { var n = Number(String(v).replace(/,/g, '')); return v === '' || isNaN(n) ? String(v) : n.toLocaleString('en-GB'); }
+function num(v) { return Number(String(v == null ? '' : v).replace(/,/g, '')) || 0; }
+function addDaysIso(iso, n) { var d = dateOf(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function countUp(el, from, to, suffix) { // numbers that change count, they do not jump (300 ms)
+  var t0 = performance.now(), dur = reduced() ? 0 : 300;
+  function step(t) { var k = dur ? Math.min(1, (t - t0) / dur) : 1, e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e) + (suffix || ''); if (k < 1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
 }
+function reduced() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function buzz(p) { try { if (navigator.vibrate && !reduced()) navigator.vibrate(p); } catch (e) {} }
+// One full-screen beat. o = {ring: 0..1, huge, small, line, sub, tick}. Dismissed by a tap or after `hold` ms.
+function moment(o, hold) {
+  var el = document.createElement('div'); el.className = 'moment';
+  el.innerHTML = '<div class="in">' + (o.tick ? '<i class="tick pop"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>' : '') +
+    (o.ring !== undefined ? ringSvg(o.ring, 'hero') : '') +
+    (o.huge !== undefined ? '<div class="huge"><span id="momentN">' + esc(o.huge) + '</span>' + (o.small ? '<small>' + esc(o.small) + '</small>' : '') + '</div>' : '') +
+    (o.line ? '<div class="line">' + esc(o.line) + '</div>' : '') + (o.sub ? '<div class="sub">' + esc(o.sub) + '</div>' : '') + '</div>';
+  document.body.appendChild(el);
+  startRings();
+  if (typeof o.huge === 'number' && $('momentN')) countUp($('momentN'), o.from || 0, o.huge);
+  var gone = false, close = function () { if (gone) return; gone = true; el.classList.add('out'); setTimeout(function () { el.remove(); }, reduced() ? 0 : 320); if (o.then) o.then(); };
+  el.addEventListener('click', close);
+  setTimeout(close, reduced() ? 600 : (hold || 1900));
+}
+var MILESTONES = [7, 14, 30, 60, 100];
+function milestoneCheck(st) {
+  var hit = MILESTONES.filter(function (m) { return st.n === m && !load('cw:ms:' + m, false); })[0]; if (!hit) return false;
+  store('cw:ms:' + hit, true); buzz([30, 40, 60]);
+  var nxt = MILESTONES.filter(function (m) { return m > hit; })[0];
+  moment({ huge: hit, from: Math.max(0, hit - 6), small: 'days in a row', line: 'That is a run.', sub: nxt ? 'Next milestone at ' + nxt + ' days.' : 'Nobody beats that.' }, 2600);
+  return true;
+}
+function toast(msg) { var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2200); }
 
-function fmtDate(iso) {
-  if (!iso) return '';
-  var d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-}
-
-function renderHome() {
-  var html = '<section class="week"><h1>Week ' + data.week + '</h1><p>' +
-    (data.weekStart ? 'Week starting ' + esc(fmtDate(data.weekStart)) + '. ' : '') + 'Which session are you doing?</p>' +
-    (!data.days.length ? '<p class="hint">Week ' + data.week + ' isn\'t in your plan yet. Message Adam to add it.</p>' : '') +
-    '</section><p class="sync" id="sync"></p><ul class="days">';
-  data.days.forEach(function (d, i) {
-    var s = load(sessKey(d.name), null);
-    var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
-    var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
-    var sub = doneN ? doneN + ' of ' + d.exercises.length + ' done this week'
-      : d.exercises.length + ' exercises · ' + (last ? 'last logged week ' + last : 'not logged yet');
-    html += '<li><button class="day' + (doneN ? ' has-done' : '') + '" data-day="' + esc(d.name) + '">' +
-      '<span class="n">' + (i + 1) + '</span><span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
-      (doneN === d.exercises.length ? '<span class="tick">' + icon('check') + '</span>' : icon('chev')) + '</button></li>';
-  });
-  $('app').innerHTML = html + '</ul>';
-  renderSync();
-}
-
-function dayDone(d) { // every exercise logged (in the sheet or this session) or skipped
-  var s = load(sessKey(d.name), null);
-  return d.exercises.length && d.exercises.every(function (x) {
-    return hasNums(x.history[data.week]) || (s && (s.done.indexOf(x.name) > -1 || s.skipped.indexOf(x.name) > -1));
-  });
-}
-
-// Menu: one tile per daily check in field, then Workouts. A new field kind = one more tile here.
-// Menu: one tile per daily check in item, in the sheet's order, then Workouts. The day counts as done when the
-// core items are in (weight, steps, nutrition, hunger, energy, habits); cardio, IG Post and comments are extras.
-var CORE = { weight: 1, steps: 1, nutrition: 1, hunger: 1, energy: 1, habits: 1 };
-function hubTiles(t) {
-  var tiles = [], seen = {};
-  data.checkIn.fields.forEach(function (f) {
-    var v = t ? t.values[f.id] || '' : '';
-    if (f.kind === 'training' || seen[f.group || f.id]) return;
-    seen[f.group || f.id] = 1;
-    if (f.group) {
-      var g = groupFields(f.group), have = g.filter(function (x) { return t && t.values[x.id]; });
-      return tiles.push({ key: f.group, go: 'g:' + f.group, name: 'Nutrition', done: have.length === g.length,
-        sub: !have.length ? 'Not logged yet today' : have.length < g.length ? have.length + ' of ' + g.length + ' logged today'
-          : fmtNum(t.values.calories) + ' kcal, ' + fmtNum(t.values.protein) + 'g protein' });
-    }
-    var tile = { key: f.id === 'bodyweight' ? 'weight' : f.id, name: f.label, done: !!v, sub: v ? v + (f.unit ? ' ' + f.unit : '') + ' today' : 'Not logged yet today' };
-    if (f.kind === 'weight') { tile.go = 'weight'; tile.sub = v ? v + ' ' + f.unit + ' logged today' : tile.sub; }
-    else if (f.kind === 'scale') { tile.go = 'scale:' + f.id; tile.sub = v ? v + ' out of 5 today' : tile.sub; }
-    else {
-      tile.go = 'f:' + f.id;
-      if (f.kind === 'number') tile.sub = v ? fmtNum(v) + ' ' + f.unit + ' today' : tile.sub;
-      if (f.kind === 'toggle') { tile.done = v === 'TRUE'; tile.sub = tile.done ? 'Done today' : 'Not yet today'; }
-      if (f.kind === 'text') tile.sub = v ? 'Note added today' : 'Anything Adam should know';
-      if (f.kind === 'habits') {
-        var hk = data.checkIn.habits && data.checkIn.habits.days[localIso()];
-        tile.done = v === 'Yes';
-        tile.sub = !hk ? 'Not set up for today yet' : hk.filter(Boolean).length + ' of ' + hk.length + ' done today';
-      }
-    }
-    tiles.push(tile);
-  });
-  return tiles;
-}
-function renderHub() {
-  var today = localIso(), t = ciDay(today), tiles = hubTiles(t);
-  var core = tiles.filter(function (x) { return CORE[x.key]; }), doneN = core.filter(function (x) { return x.done; }).length;
-  var trained = t && /^train/i.test(t.values.training || '');
-  var sessions = data.days.filter(dayDone).length;
-  tiles.push({ go: 'home', name: 'Workouts', done: trained,
-    sub: (trained ? 'Trained today · ' : '') + 'Week ' + data.week + ' · ' + sessions + ' of ' + data.days.length + ' sessions done' });
-  var html = '<section class="week"><h1 class="date">' + esc(new Date(today + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })) + '</h1>' +
-    '<p>' + (doneN === core.length ? 'Check in done for today.' : doneN + ' of ' + core.length + ' check ins done today.') + '</p></section>' +
-    '<p class="sync" id="sync"></p><ul class="days">';
-  var ft = data.features || {}, sections = ft.tasks || ft.plan || ft.supps || ft.measure || ft.photos || data.checkInForm;
-  if (sections) html = html.replace('<ul class="days">', tasksCard() + '<h2 class="sec">Today</h2><ul class="days">');
-  html += tiles.map(tileHtml).join('') + '</ul>';
-  if (sections) {
-    var mine = [ft.plan && { go: 'meal', name: 'Meal plan', sub: 'Your meals for the day' }, ft.plan && { go: 'shop', name: 'Shopping list', sub: 'Pick your days, tick items off' },
-      ft.supps && { go: 'supps', name: 'Supplements', sub: 'What to take and when' }].filter(Boolean);
-    var m = data.measurements, mdone = m && m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; });
-    var weekly = [ft.measure && m && { go: 'measure', name: 'Measurements', done: mdone, sub: mdone ? 'Logged for week ' + m.thisWeek.week : 'Week ' + (m.thisWeek ? m.thisWeek.week : data.week) + (m.thisWeek && m.thisWeek.date ? ' · ' + m.thisWeek.date : '') },
-      ft.photos && { go: 'photos', name: 'Progress photos', sub: 'Upload this week\'s photos' }].filter(Boolean);
-    if (mine.length) html += '<h2 class="sec">Your plan</h2><ul class="days">' + mine.map(tileHtml).join('') + '</ul>';
-    if (weekly.length || data.checkInForm) html += '<h2 class="sec">Weekly</h2><ul class="days">' + weekly.map(tileHtml).join('') +
-      (data.checkInForm ? '<li><a class="day" href="' + esc(data.checkInForm) + '" target="_blank" rel="noopener"><span class="grow"><b>Weekly check in form</b><span>Opens your form</span></span>' + icon('chev') + '</a></li>' : '') + '</ul>';
-  }
-  $('app').innerHTML = html;
-  renderSync();
-}
-function tileHtml(x) {
-  return '<li><button class="day' + (x.done ? ' has-done' : '') + '" data-go="' + x.go + '"><span class="grow"><b>' + esc(x.name) + '</b><span>' + esc(x.sub) + '</span></span>' +
-    (x.done ? '<span class="tick">' + icon('check') + '</span>' : icon('chev')) + '</button></li>';
-}
-// This week's one-off tasks. A ticked task stays on screen (so it can be unticked) until the app is next opened.
-var tickedNow = {};
-function tasksCard() {
-  var t = data.tasks; if (!t || !(data.features || {}).tasks) return '';
-  var show = t.tasks.filter(function (x) { return !x.done || tickedNow[t.week + '|' + x.idx]; });
-  if (!show.length) return '';
-  var left = t.tasks.filter(function (x) { return !x.done; }).length;
-  return '<section class="tasks"><h3>This week\'s tasks<span>' + (left ? left + ' to do' : 'All done') + '</span></h3>' + show.map(function (x) {
-    return '<button class="sw' + (x.done ? ' on' : '') + '" data-task="' + x.idx + '" role="switch" aria-checked="' + x.done + '"><span>' + esc(x.text) + '</span><span class="knob"></span></button>';
-  }).join('') + '</section>';
-}
-function taskToggle(idx) {
-  var t = data.tasks, x = t.tasks.filter(function (y) { return y.idx === idx; })[0]; if (!x) return;
-  x.done = !x.done; tickedNow[t.week + '|' + idx] = 1; store('cw:data', data);
-  enqueue({ type: 'task', week: t.week, idx: idx, text: x.text, value: x.done });
-  renderHub();
-}
-function otherSaved(p, res) {
-  if (res.ok) {
-    if (p.type === 'task' && res.tasks) data.tasks = res.tasks;
-    if (p.type === 'ms' && res.measurements) { data.measurements = res.measurements; msMsg = 'Saved to ' + SAVED_TO + '.'; }
-  } else if (p.type === 'task') {
-    var x = data.tasks && data.tasks.tasks.filter(function (y) { return y.idx === p.idx; })[0]; if (x) x.done = !p.value;
-    syncState.error = res.error || 'That task did not save';
-  } else { msMsg = res.error || 'That did not save. Try again.'; }
-  store('cw:data', data);
-  if (view.screen === 'hub') renderHub(); else if (view.screen === 'measure' && !(document.activeElement && document.activeElement.dataset.cm)) renderMeasure();
-}
-
-function renderWeight() {
-  $('app').innerHTML = '<section class="ci" id="ci" aria-label="Weight"></section><p class="sync" id="sync"></p>';
-  renderCheckIn();
-  renderSync();
-}
-
-/* ---------- daily check in card (only when the sheet has it switched on: data.checkIn) ---------- */
-// Copies of parseWeight/weightWarning in Logic.js (server checks again): instant feedback, works offline.
+/* ---------- check in helpers (copies of Logic.js checks: instant feedback, works offline; the server checks again) ---------- */
 var WEIGHT_RANGE = { kg: [30, 300], lbs: [66, 661], lb: [66, 661] };
 function parseWeight(input, unit) {
   var range = WEIGHT_RANGE[String(unit).toLowerCase()];
@@ -565,151 +639,252 @@ function weightWarning(value, prev) {
   var pct = Math.abs(value - prev) / prev * 100;
   return pct > 3 ? 'That is ' + pct.toFixed(1) + '% away from your last weigh-in (' + prev + '). Tap Save again if it is right.' : '';
 }
-function pad2(n) { return (n < 10 ? '0' : '') + n; }
-function localIso() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
-function shortDate(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
-
-var ciState = { date: '', confirm: '', msg: '', warn: false };
-function weightField() { return data.checkIn.fields.filter(function (f) { return f.kind === 'weight'; })[0]; }
-function ciDay(date) { return data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null; }
-function ciPrev(date, id) { // last reading before this date, for the jump check
-  var p = null;
-  data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; });
-  return p;
+var NUM_MAX = { steps: 100000, calories: 10000, protein: 1000, carbs: 1500, fats: 600, cardio: 600 };
+function parseNumberField(input, f) {
+  var s = String(input).replace(/[,\s]/g, '').replace(/(kcal|cals?|g|mins?|steps)$/i, '');
+  if (!/^\d+(\.\d+)?$/.test(s)) return { error: 'Type ' + f.label.toLowerCase() + ' as a number.' };
+  var v = Math.round(Number(s));
+  if (v > (NUM_MAX[f.id] || 1e9)) return { error: v + ' ' + f.unit + ' looks too high. Check the number.' };
+  return { value: v };
 }
-
-function renderCheckIn() {
-  var el = $('ci'), c = data.checkIn; if (!el || !c) return;
-  var today = localIso();
-  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
-  var f = weightField(), day = ciDay(ciState.date), have = day ? day.values[f.id] : '';
-  var isToday = ciState.date === today;
-  var html = '<div class="ci-head"><h2>' + (isToday ? 'Today\'s weight' : 'Weight for ' + esc(shortDate(ciState.date))) + '</h2>' +
-    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>' +
-    '<div class="ci-row"><label><input id="ciVal" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="' + esc(have) + '" placeholder="0.0" aria-label="Weight in ' + esc(f.unit) + '">' +
-    '<span>' + esc(f.unit) + '</span></label><button class="btn primary" data-act="ci-save">' + (ciState.confirm === 'replace' ? 'Replace' : ciState.confirm === 'jump' ? 'Save anyway' : 'Save') + '</button></div>' +
-    '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' +
-    (ciState.msg ? esc(ciState.msg) : !day ? esc(shortDate(ciState.date)) + ' isn\'t in your Check In tab yet. Message Adam.' : have ? 'Logged for ' + esc(shortDate(ciState.date)) + '.' : '') + '</p>';
-
-  var wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
-  if (wk.length) {
-    html += '<div class="ci-week">' + wk.map(function (d) {
-      var v = d.values[f.id];
-      return '<button data-ci-date="' + d.date + '"' + (d.date > today ? ' disabled' : '') + ' class="' + (d.date === today ? 'is-today ' : '') + (d.date === ciState.date ? 'is-sel' : '') + '">' +
-        '<small>' + new Date(d.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' }) + '</small>' + (v ? esc(v) : '·') + '</button>';
-    }).join('') + '</div>';
-  }
-  var lines = [], tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id];
-  if (tw) lines.push('Week ' + c.thisWeek.week + ' average <span class="num">' + esc(tw) + ' ' + esc(f.unit) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(lw) + '.' : '.'));
-  else if (lw) lines.push('Week ' + c.lastWeek.week + ' average was ' + esc(lw) + ' ' + esc(f.unit) + '.');
-  var t = c.trend;
-  lines.push(t ? 'Trend <span class="num">' + t.value + ' ' + esc(f.unit) + '</span>, ' + (t.steady ? 'holding steady.' : (t.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(t.perWeek) + ' ' + esc(f.unit) + ' a week.')
-    : 'Your trend line shows after two weeks of weigh-ins.');
-  lines.push('<span class="muted">The weekly average and trend are what count. Daily numbers bounce around.</span>');
-  if (!have) lines.push('<span class="muted">Weigh first thing: after the toilet, before food or drink, same scale.</span>');
-  el.innerHTML = html + '<div class="ci-lines"><p>' + lines.join('</p><p>') + '</p></div>';
-}
-
 function fieldById(id) { return data.checkIn.fields.filter(function (f) { return f.id === id; })[0]; }
-function renderField() { return view.screen === 'scale' ? renderScaleCard() : view.screen === 'entry' ? renderEntryCard() : renderCheckIn(); }
-function weekStrip(f, today) {
-  var c = data.checkIn, wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
-  return !wk.length ? '' : '<div class="ci-week">' + wk.map(function (d) {
-    var v = d.values[f.id];
-    return '<button data-ci-date="' + d.date + '"' + (d.date > today ? ' disabled' : '') + ' class="' + (d.date === today ? 'is-today ' : '') + (d.date === ciState.date ? 'is-sel' : '') + '">' +
-      '<small>' + new Date(d.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' }) + '</small>' + (v ? esc(v) : '·') + '</button>';
+function fieldsOfKind(k) { return data.checkIn.fields.filter(function (f) { return f.kind === k; }); }
+function groupFields(g) { return data.checkIn.fields.filter(function (f) { return f.group === g; }); }
+function weightField() { return fieldsOfKind('weight')[0]; }
+function ciDay(date) { return data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null; }
+function ciPrev(date, id) { var p = null; data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; }); return p; }
+function targetOf(f) { // the block menu, then the Cardio tab text, then the meal plan
+  var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
+  if (n) return { n: n, text: fmtNum(n) + ' ' + f.unit + (f.weekly ? ' a week' : '') };
+  if (txt) return { n: parseInt(String(txt).replace(/,/g, ''), 10) || 0, text: txt };
+  var pt = plan && plan.targets && plan.targets[f.id];
+  return pt ? { n: pt, text: fmtNum(pt) + ' ' + f.unit } : null;
+}
+function weekTotal(f) { var c = data.checkIn, wk = c.thisWeek ? c.thisWeek.week : -1, sum = 0; c.days.forEach(function (d) { if (d.week === wk) sum += num(d.values[f.id]); }); return sum; }
+// Core items make the day: weight, steps, nutrition, hunger, energy, habits. Cardio, IG and comments are extras.
+var CORE = { bodyweight: 1, steps: 1, nutrition: 1, hunger: 1, energy: 1, habits: 1 };
+function coreDone(day) {
+  var out = { done: 0, of: 0 }; if (!data.checkIn) return out;
+  var seen = {};
+  data.checkIn.fields.forEach(function (f) {
+    var key = f.group || f.id; if (!CORE[key] || seen[key]) return; seen[key] = 1; out.of++;
+    if (!day) return;
+    if (f.group) { var g = groupFields(f.group); if (g.every(function (x) { return day.values[x.id]; })) out.done++; }
+    else if (f.kind === 'habits') { var hk = data.checkIn.habits && data.checkIn.habits.days[day.date]; if (hk && hk.some(Boolean)) out.done++; }
+    else if (day.values[f.id]) out.done++;
+  });
+  return out;
+}
+function dayLogged(day) { return !!day && coreDone(day).done > 0; }
+function streak() { // consecutive days with something logged, counted back from today (today itself may still be blank)
+  var today = localIso(), n = 0, d = today;
+  if (!dayLogged(ciDay(d))) d = addDaysIso(d, -1);
+  while (dayLogged(ciDay(d))) { n++; d = addDaysIso(d, -1); }
+  var best = Math.max(n, load('cw:best', 0)); store('cw:best', best);
+  return { n: n, best: best };
+}
+function points() { // "3 / 88 (3%)" from the sheet's WYMB column, pass mark from the block menu
+  var c = data.checkIn, s = c && c.thisWeek && c.thisWeek.avg && c.thisWeek.avg.wymb, m = /(\d+)\s*\/\s*(\d+)/.exec(s || '');
+  if (!m) return null;
+  var t = c.thisWeek.targets || {}, pass = t.passrate && t.weeklypoints ? Math.round(t.passrate * t.weeklypoints) : 0;
+  return { n: +m[1], of: +m[2], pass: pass };
+}
+function sessionsDone() { return data.days.filter(dayDone).length; }
+function trainingTarget() { var t = data.checkIn && data.checkIn.thisWeek && data.checkIn.thisWeek.targets; return (t && t.trainingdays) || data.days.length; }
+function ringSvg(frac, cls) {
+  var r = 48, C = 2 * Math.PI * r, off = C * (1 - Math.max(0, Math.min(1, frac || 0)));
+  return '<svg class="ring' + (cls ? ' ' + cls : '') + '" viewBox="0 0 112 112" aria-hidden="true"><circle class="track" cx="56" cy="56" r="' + r + '"/>' +
+    '<circle class="bar" cx="56" cy="56" r="' + r + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" data-off="' + off.toFixed(1) + '" transform="rotate(-90 56 56)"/></svg>';
+}
+function startRings() { requestAnimationFrame(function () { Array.prototype.forEach.call(document.querySelectorAll('.ring .bar'), function (b) { b.style.strokeDashoffset = b.dataset.off; }); }); }
+
+/* ---------- navigation ---------- */
+var TABS = { today: 1, workout: 1, plan: 1, progress: 1 };
+var RENDER = { today: renderToday, log: renderLog, workout: renderWorkout, ex: renderEx, ov: renderOv, fin: renderFin, plan: renderPlan, shop: renderShop,
+  progress: renderProgress, weekly: renderWeekly, measure: renderMeasure, photos: renderPhotos };
+function show(screen, day) {
+  view.screen = screen; if (day) view.day = day;
+  if (TABS[screen]) view.tab = screen;
+  var inSession = screen === 'ex';
+  $('dock').hidden = false; $('actbar').hidden = !inSession;
+  $('app').className = 'wrap' + (inSession ? ' in-session' : '') + (screen === 'today' ? ' today-bg' : '');
+  Array.prototype.forEach.call(document.querySelectorAll('.dock button'), function (b) { b.classList.toggle('on', b.dataset.tab === view.tab); });
+  RENDER[screen]();
+  var sc = document.querySelector('#app .screen'); if (sc && !TABS[screen]) sc.classList.add('sub');
+  startRings();
+  document.body.scrollTop = 0;
+}
+function topBar(title, sub, backTo, pill) {
+  return '<div class="top">' + (backTo ? '<button class="back" data-back="' + backTo + '" aria-label="Back">' + icon('back') + '</button>' : '') +
+    '<div class="title"><b>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div>' + (pill || '') + '</div>';
+}
+function weekLine() { var r = data.roadmap; return 'Week ' + data.week + (r && r.totalWeeks ? ' of ' + r.totalWeeks : '') + (r && r.phase ? ', ' + r.phase.toLowerCase() : ''); }
+
+/* ---------- Today ---------- */
+function renderToday() {
+  var today = localIso(), html = '<section class="screen">';
+  html += '<h1 class="t l">' + esc(weekday(today)) + '</h1><p class="meta">' + esc(fmtDate(today)) + ', ' + esc(weekLine()) + '.</p>';
+  if (!data.checkIn) { // a client whose sheet has no daily check in switched on: today is the session list
+    $('app').innerHTML = html + '<p class="sync" id="sync"></p>' + sessionList() + '</section>';
+    return renderSync();
+  }
+  var c = data.checkIn, t = ciDay(today), core = coreDone(t), st = streak(), pts = points();
+  html += '<div class="hero">' + (pts ? ringSvg(pts.n / pts.of, 'hero') : ringSvg(core.of ? core.done / core.of : 0, 'hero')) + '<div>' +
+    (pts ? '<div class="n on" id="pts">' + pts.n + '</div><p class="meta">of ' + pts.of + ' points this week' + (pts.pass ? '. Pass at ' + pts.pass + '.' : '.') + '</p>'
+      : '<div class="n on">' + core.done + '<span class="of"> of ' + core.of + '</span></div><p class="meta">logged today.</p>') +
+    '<p class="meta">' + (st.n ? st.n + (st.n === 1 ? ' day' : ' days') + ' in a row' + (st.best > st.n ? ', best ' + st.best : '') + '.' : st.best ? 'Fresh start today. Best run ' + st.best + ' days.' : 'Day 1. Log something and the run starts.') + '</p></div></div>';
+  if (!t) html += '<p class="note warn">' + esc(shortDate(today)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
+  html += '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>';
+  html += '<div style="margin-top:var(--s-3)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
+    (core.done === 0 ? 'Log today' : core.done < core.of ? 'Log the rest of today' : 'Logged for today, change something') + '</button></div>';
+  html += '<p class="sync" id="sync"></p>';
+  html += tasksCard();
+  html += nextSession(t);
+  $('app').innerHTML = html + '</section>';
+  renderSync();
+  if (pts && $('pts')) { countUp($('pts'), window._ptsFrom != null ? window._ptsFrom : 0, pts.n); window._ptsFrom = null; }
+}
+function statCells(t) {
+  var cells = [], seen = {};
+  data.checkIn.fields.forEach(function (f) {
+    var key = f.group || f.id; if (!CORE[key] || seen[key]) return; seen[key] = 1;
+    var v = t ? t.values[f.id] || '' : '', tg;
+    if (f.group) {
+      var g = groupFields(f.group), cal = g.filter(function (x) { return x.id === 'calories'; })[0] || g[0], pro = g.filter(function (x) { return x.id === 'protein'; })[0];
+      cells.push(cell(cal.label, t && t.values[cal.id], cal.unit, targetOf(cal)));
+      if (pro) cells.push(cell(pro.label, t && t.values[pro.id], pro.unit, targetOf(pro)));
+      return;
+    }
+    if (f.kind === 'habits') {
+      var hk = data.checkIn.habits && t && data.checkIn.habits.days[t.date], done = hk ? hk.filter(Boolean).length : 0;
+      return cells.push('<div class="row wide"><b>Habits</b><div class="n' + (done ? '' : ' empty') + '">' + (hk ? done + '<small>of ' + hk.length + ' ticked</small>' : 'not set up for today') + '</div></div>');
+    }
+    if (f.kind === 'scale') return cells.push('<div class="row"><b>' + esc(f.label) + '</b><div class="n' + (v ? ' on' : ' empty') + '">' + (v ? esc(v) + '<small>of 5</small>' : 'not yet') + '</div></div>');
+    cells.push(cell(f.label, v, f.unit, targetOf(f)));
+  });
+  return cells.join('');
+}
+function cell(label, v, unit, tg) {
+  return '<div class="row"><b>' + esc(label) + '</b><div class="n' + (v ? ' on' : ' empty') + '">' + (v ? esc(fmtNum(v)) + '<small>' + esc(unit) + '</small>' : tg ? 'of ' + esc(tg.n ? fmtNum(tg.n) + ' ' + unit : tg.text) : 'not yet') + '</div></div>';
+}
+function nextSession(t) {
+  if (!data.days.length) return '<p class="note warn">Week ' + data.week + ' is not in your plan yet. ' + MESSAGE_ADAM + '.</p>';
+  var trained = t && /^train/i.test(t.values.training || ''), done = sessionsDone(), nxt = data.days.filter(function (d) { return !dayDone(d); })[0];
+  var html = '<h2 class="sec">Training</h2>';
+  if (!nxt) return html + '<div class="session"><div><b>All ' + data.days.length + ' sessions logged</b><p class="meta">Week ' + data.week + ' done.</p></div>' + '<button class="btn auto quiet" data-go="workout">See them</button></div>';
+  var beat = ''; nxt.exercises.some(function (x) { var p = prevOf(x); if (p && p.kg[0]) { beat = 'To beat: ' + esc(x.name) + ' ' + esc(p.kg[0]) + ' kg x ' + esc(p.reps[0] || '?'); return true; } return false; });
+  return html + '<div class="session"><div><b>' + esc(nxt.name) + '</b><p class="meta">' + (beat || (nxt.exercises.length + ' exercises, first time logging')) + '</p><p class="meta">' + (trained ? 'Trained today. ' : '') + done + ' of ' + trainingTarget() + ' this week.</p></div>' +
+    '<button class="btn auto strong" data-day="' + esc(nxt.name) + '">Start</button></div>';
+}
+var tickedNow = {};
+function tasksCard() {
+  var t = data.tasks; if (!t || !(data.features || {}).tasks) return '';
+  var show = t.tasks.filter(function (x) { return !x.done || tickedNow[t.week + '|' + x.idx]; });
+  if (!show.length) return '';
+  var left = t.tasks.filter(function (x) { return !x.done; }).length;
+  return '<h2 class="sec">This week\'s tasks<span class="meta" style="float:right;font-weight:500">' + (left ? left + ' to do' : 'All done') + '</span></h2><div class="list">' + show.map(function (x) {
+    return '<button class="hab" data-task="' + x.idx + '" role="switch" aria-checked="' + x.done + '"><i class="tick' + (x.done ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(x.text) + '</span></button>';
   }).join('') + '</div>';
 }
+function taskToggle(idx) {
+  var t = data.tasks, x = t.tasks.filter(function (y) { return y.idx === idx; })[0]; if (!x) return;
+  x.done = !x.done; tickedNow[t.week + '|' + idx] = 1; store('cw:data', data);
+  enqueue({ type: 'task', week: t.week, idx: idx, text: x.text, value: x.done });
+  renderToday();
+}
+function otherSaved(p, res) {
+  if (res.ok) {
+    if (p.type === 'task' && res.tasks) data.tasks = res.tasks;
+    if (p.type === 'ms' && res.measurements) { data.measurements = res.measurements; msMsg = 'Saved to ' + SAVED_TO + '.'; }
+  } else if (p.type === 'task') {
+    var x = data.tasks && data.tasks.tasks.filter(function (y) { return y.idx === p.idx; })[0]; if (x) x.done = !p.value;
+    syncState.error = res.error || 'That task did not save';
+  } else { msMsg = res.error || 'That did not save. Try again.'; }
+  store('cw:data', data);
+  if (view.screen === 'today') renderToday(); else if (view.screen === 'measure' && !(document.activeElement && document.activeElement.dataset.cm)) renderMeasure();
+}
 
-function renderScale() {
-  $('app').innerHTML = '<section class="ci" id="ci"></section><p class="sync" id="sync"></p>';
-  renderScaleCard();
+/* ---------- Log: one screen, every field for one day, one Save ----------
+   Scales, habits and the IG switch save on the tap (one tap, no Save). Typed numbers and the comment save together
+   on Save. Each saved field is its own saveCheckIn call, queued and retried, exactly as before. */
+var ciState = { date: '', confirm: '', msg: '', warn: false, replace: false };
+function renderLog() {
+  var c = data.checkIn, today = localIso();
+  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
+  var date = ciState.date, day = ciDay(date), isToday = date === today, wf = weightField();
+  var html = '<section class="screen">' + topBar(isToday ? 'Log today' : 'Log ' + shortDate(date), fmtDate(date) + ', ' + weekLine(), 'today') + weekStrip(today) +
+    '<div class="earlier"><span>Earlier day</span><input type="date" id="ciDate" aria-label="Day to log" value="' + date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>';
+  if (!day) { $('app').innerHTML = html + '<p class="note warn">' + esc(shortDate(date)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p><p class="sync" id="sync"></p></section>'; return renderSync(); }
+  html += '<div class="form">';
+  if (wf) {
+    var prev = ciPrev(date, wf.id), have = day.values[wf.id] || '';
+    html += '<label class="field"><span>Weight</span><div class="box"><input id="ciVal" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(have) + '" placeholder="' + esc(data.startWeight ? 'Started at ' + data.startWeight : '0.0') + '" aria-label="Weight in ' + esc(wf.unit) + '"><span class="unit">' + esc(wf.unit) + '</span></div>' +
+      '<small' + (ciState.warn ? ' class="warn"' : '') + ' id="ciMsg">' + (ciState.msg ? esc(ciState.msg) : prev ? 'Last ' + prev + ' ' + esc(wf.unit) + '. Weigh first thing, same scale.' : 'First weigh-in. Weigh first thing, same scale.') + '</small></label>';
+  }
+  fieldsOfKind('number').filter(function (f) { return !f.group && !f.weekly; }).forEach(function (f) { html += numberField(f, day); });
+  var groups = []; data.checkIn.fields.forEach(function (f) { if (f.group && groups.indexOf(f.group) < 0) groups.push(f.group); });
+  groups.forEach(function (g) { html += '<div class="grid2">' + groupFields(g).map(function (f) { return numberField(f, day, true); }).join('') + '</div>'; });
+  fieldsOfKind('scale').forEach(function (f) {
+    var v = day.values[f.id];
+    html += '<div class="field"><span>' + esc(f.label) + '</span><div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
+      return '<button data-scale="' + f.id + '" data-n="' + n + '" class="' + (String(n) === v ? 'sel' : '') + '" aria-pressed="' + (String(n) === v) + '">' + n + '</button>';
+    }).join('') + '</div><div class="scale-ends"><span>' + esc(f.low) + '</span><span>' + esc(f.high) + '</span></div></div>';
+  });
+  fieldsOfKind('habits').forEach(function () {
+    var hb = c.habits, ticks = hb && hb.days[date];
+    html += '<div class="field"><span>Habits</span>';
+    if (!hb || !hb.names.length) html += '<p class="note warn">No habits found on your Habits tab. ' + MESSAGE_ADAM + '.</p>';
+    else if (!ticks) html += '<p class="note warn">Your Habits tab is not showing ' + esc(shortDate(date)) + ' yet. ' + MESSAGE_ADAM + '.</p>';
+    else html += '<div class="list">' + hb.names.map(function (n, i) {
+      return '<button class="hab" data-habit="' + i + '" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
+    }).join('') + '</div><small id="habCount" style="display:block;margin-top:var(--s-1);font-size:var(--fs-12);color:var(--ink-muted)">' + ticks.filter(Boolean).length + ' of ' + ticks.length + '. 85% or more counts the day as a habits day.</small>';
+    html += '</div>';
+  });
+  // extras: weekly cardio, IG switch, comment
+  var extras = '';
+  fieldsOfKind('number').filter(function (f) { return f.weekly; }).forEach(function (f) { extras += numberField(f, day); });
+  fieldsOfKind('toggle').forEach(function (f) { var on = day.values[f.id] === 'TRUE'; extras += '<div class="list"><button class="sw' + (on ? ' on' : '') + '" data-sw="' + f.id + '" role="switch" aria-checked="' + on + '"><span>' + esc(f.prompt || f.label) + '</span><span class="knob"></span></button></div>'; });
+  fieldsOfKind('text').forEach(function (f) { extras += '<label class="field"><span>' + esc(f.label) + '</span><textarea data-entry="' + f.id + '" maxlength="1000" placeholder="How the day went, anything Adam should know" aria-label="' + esc(f.label) + '">' + esc(day.values[f.id] || '') + '</textarea></label>'; });
+  if (extras) html += '<details' + (window._moreOpen ? ' open' : '') + ' id="more"><summary class="sec" style="cursor:pointer;list-style:none;margin:0">More: cardio, Instagram, a note</summary><div class="form" style="margin-top:var(--s-3)">' + extras + '</div></details>';
+  html += '<button class="btn strong" id="saveBtn" data-act="save-log" data-state="' + (window._saveState || 'idle') + '">' +
+    '<span class="st st-idle">' + (ciState.confirm ? 'Save anyway' : 'Save') + '</span><span class="st st-saving">Saving…</span><span class="st st-saved"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved to ' + esc(SAVED_TO) + '</span><span class="st st-failed">Not sent yet, kept on your phone</span></button>';
+  html += '<p class="sync" id="sync"></p></div></section>';
+  $('app').innerHTML = html;
+  var m = $('more'); if (m) m.addEventListener('toggle', function () { window._moreOpen = m.open; });
   renderSync();
 }
-// One tap saves: the current answer is lit up, so tapping another number is a clear change (no Replace step).
-function renderScaleCard() {
-  var el = $('ci'), c = data.checkIn, f = fieldById(view.field); if (!el || !f) return;
-  var today = localIso();
-  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
-  var day = ciDay(ciState.date), have = day ? day.values[f.id] : '';
-  var html = '<div class="ci-head"><h2>' + esc(f.label) + (ciState.date === today ? ' today' : ' on ' + esc(shortDate(ciState.date))) + '</h2>' +
-    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>' +
-    '<div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
-      return '<button data-scale="' + n + '" class="' + (String(n) === have ? 'is-sel' : '') + '" aria-pressed="' + (String(n) === have) + '">' + n + '</button>';
-    }).join('') + '</div><div class="scale-ends"><span>1 · ' + esc(f.low) + '</span><span>' + esc(f.high) + ' · 5</span></div>' +
-    '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' +
-    (ciState.msg ? esc(ciState.msg) : !day ? esc(shortDate(ciState.date)) + ' is not in your Check In tab yet. Message Adam.' : have ? 'Logged for ' + esc(shortDate(ciState.date)) + '. Tap another number to change it.' : '') + '</p>';
-  var tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id], line = '';
-  if (tw) line = 'Week ' + c.thisWeek.week + ' average <span class="num">' + esc(tw) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(lw) + '.' : '.');
-  else if (lw) line = 'Week ' + c.lastWeek.week + ' average was ' + esc(lw) + '.';
-  el.innerHTML = html + weekStrip(f, today) + '<div class="ci-lines">' + (line ? '<p>' + line + '</p>' : '') +
-    '<p class="muted">Go with your gut for the day as a whole. It is the weekly pattern that counts.</p></div>';
+function numberField(f, day, compact) {
+  var tg = targetOf(f), v = day.values[f.id] || '', hint = f.weekly ? fmtNum(weekTotal(f)) + ' ' + f.unit + ' so far this week' + (tg ? ', target ' + tg.text : '') : tg ? 'Target ' + tg.text : '';
+  return '<label class="field"><span>' + esc(f.label) + '</span><div class="box"><input data-entry="' + f.id + '" inputmode="numeric" enterkeyhint="next" autocomplete="off" value="' + esc(v) + '" placeholder="' + esc(tg && tg.n ? fmtNum(tg.n) + (compact ? '' : ' target') : '0') + '" aria-label="' + esc(f.label + ' in ' + f.unit) + '"><span class="unit">' + esc(f.unit) + '</span></div>' + (hint && !compact ? '<small>' + esc(hint) + '</small>' : '') + '</label>';
 }
-/* ---------- entry screens: numbers (steps, cardio, nutrition group), habits, IG Post switch, comments ---------- */
-function groupFields(g) { return data.checkIn.fields.filter(function (f) { return f.group === g; }); }
-function entryFields() { var k = view.field.slice(2); return view.field.charAt(0) === 'g' ? groupFields(k) : [fieldById(k)].filter(Boolean); }
-function entryTitle() { var fs = entryFields(); return view.field === 'g:nutrition' ? 'Nutrition' : fs.length ? fs[0].label : ''; }
-function fmtNum(v) { var n = Number(String(v).replace(/,/g, '')); return v === '' || isNaN(n) ? String(v) : n.toLocaleString('en-GB'); }
-function targetLine(f) {
-  var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
-  if (n) return 'Target ' + fmtNum(n) + ' ' + f.unit + (f.weekly ? ' this week' : ' a day');
-  if (txt) return 'Target: ' + txt;
-  var pt = plan && plan.targets && plan.targets[f.id];
-  return pt ? 'Target ' + fmtNum(pt) + ' ' + f.unit + ' a day (your meal plan)' : '';
+function weekStrip(today) {
+  var c = data.checkIn, wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
+  if (!wk.length) return '';
+  return '<div class="strip">' + wk.map(function (d) {
+    var cls = (dayLogged(d) ? 'done ' : '') + (d.date === today ? 'today ' : '') + (d.date === ciState.date ? 'sel' : '');
+    return '<button data-ci-date="' + d.date + '"' + (d.date > today ? ' disabled' : '') + ' aria-label="' + esc(shortDate(d.date)) + '">' + dateOf(d.date).toLocaleDateString('en-GB', { weekday: 'narrow' }) + '<span class="' + cls + '">' + dateOf(d.date).getDate() + '</span></button>';
+  }).join('') + '</div>';
 }
-function weekTotal(f) {
-  var c = data.checkIn, wk = c.thisWeek ? c.thisWeek.week : -1, sum = 0;
-  c.days.forEach(function (d) { if (d.week === wk) sum += Number(String(d.values[f.id] || '').replace(/,/g, '')) || 0; });
-  return sum;
-}
-function renderEntry() {
-  $('app').innerHTML = '<section class="ci" id="ci"></section><p class="sync" id="sync"></p>';
-  renderEntryCard();
-  renderSync();
-}
-function renderEntryCard() {
-  var el = $('ci'), c = data.checkIn, fs = entryFields(); if (!el || !fs.length) return;
-  var today = localIso();
-  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
-  var day = ciDay(ciState.date), kind = fs[0].kind, title = entryTitle();
-  var html = '<div class="ci-head"><h2>' + esc(title) + (ciState.date === today ? ' today' : ' on ' + esc(shortDate(ciState.date))) + '</h2>' +
-    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>';
-  var lines = [];
-  if (!day) html += '<p class="ci-status warn">' + esc(shortDate(ciState.date)) + ' is not in your Check In tab yet. Message Adam.</p>';
-  else if (kind === 'number') {
-    html += '<div class="entry' + (fs.length === 1 ? ' solo' : '') + '">' + fs.map(function (f) {
-      var tl = targetLine(f);
-      return '<div><label>' + (fs.length > 1 ? '<span>' + esc(f.label) + '</span>' : '') + '<span class="box"><input data-entry="' + f.id + '" inputmode="numeric" enterkeyhint="done" autocomplete="off" value="' + esc(day.values[f.id] || '') + '" placeholder="0" aria-label="' + esc(f.label + ' in ' + f.unit) + '"><i>' + esc(f.unit) + '</i></span></label>' +
-        (tl ? '<small>' + esc(tl) + '</small>' : '') + '</div>';
-    }).join('') + '<button class="btn primary" data-act="entry-save">Save</button></div>';
-    var f0 = fs[0], tw = c.thisWeek && c.thisWeek.avg[f0.id], lw = c.lastWeek && c.lastWeek.avg[f0.id];
-    if (f0.weekly) lines.push('This week so far <span class="num">' + fmtNum(weekTotal(f0)) + ' ' + esc(f0.unit) + '</span>.');
-    else if (tw) lines.push('Week ' + c.thisWeek.week + ' average <span class="num">' + esc(fmtNum(tw)) + ' ' + esc(f0.unit) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(fmtNum(lw)) + '.' : '.'));
-    if (view.field === 'g:nutrition') lines.push('<span class="muted">Copy the totals from your food app at the end of the day.</span>');
-    var how = howTo(fs[0].id);
-  } else if (kind === 'text') {
-    html += '<div class="entry solo"><label><textarea data-entry="' + fs[0].id + '" maxlength="1000" placeholder="How the day went, anything Adam should know" aria-label="Comments">' + esc(day.values[fs[0].id] || '') + '</textarea></label>' +
-      '<button class="btn primary" data-act="entry-save">Save</button></div>';
-  } else if (kind === 'toggle') {
-    var on = day.values[fs[0].id] === 'TRUE';
-    html += '<div class="entry"><button class="sw' + (on ? ' on' : '') + '" data-sw="' + fs[0].id + '" role="switch" aria-checked="' + on + '"><span>' + esc(fs[0].prompt) + '</span><span class="knob"></span></button></div>';
-  } else if (kind === 'habits') {
-    var hb = c.habits, ticks = hb && hb.days[ciState.date];
-    if (!hb || !hb.names.length) html += '<p class="ci-status warn">No habits found on your Habits tab. Message Adam.</p>';
-    else if (!ticks) html += '<p class="ci-status warn">Your Habits tab is not showing ' + esc(shortDate(ciState.date)) + ' yet. Message Adam.</p>';
-    else {
-      html += '<div class="entry">' + hb.names.map(function (n, i) {
-        return '<button class="sw' + (ticks[i] ? ' on' : '') + '" data-sw="habit:' + i + '" role="switch" aria-checked="' + !!ticks[i] + '"><span>' + esc(n) + '</span><span class="knob"></span></button>';
-      }).join('') + '</div>';
-      var done = ticks.filter(Boolean).length;
-      lines.push('<span class="num">' + done + ' of ' + ticks.length + '</span> done (' + Math.round(done / ticks.length * 100) + '%). 85% or more counts the day as a habits day.');
+function setSaveState(s) { window._saveState = s; var b = $('saveBtn'); if (b) b.dataset.state = s; if (s === 'saved' || s === 'failed') setTimeout(function () { if (window._saveState === s) { window._saveState = 'idle'; var b2 = $('saveBtn'); if (b2) b2.dataset.state = 'idle'; } }, 2400); }
+function saveLog() {
+  var c = data.checkIn, date = ciState.date, day = ciDay(date), wf = weightField(); if (!day) return;
+  var errs = [], n = 0, pts = points(); window._ptsFrom = pts ? pts.n : null;
+  if (wf) {
+    var typed = $('ciVal').value, have = day.values[wf.id] || '';
+    if (String(typed).trim() !== '' && String(typed).trim() !== String(have)) {
+      var r = parseWeight(typed, wf.unit);
+      if (r.error) errs.push(r.error);
+      else if (have && parseFloat(have) !== r.value && ciState.confirm !== 'replace' && ciState.confirm !== 'jump') {
+        ciState.confirm = 'replace'; ciState.warn = true; ciState.msg = 'You already logged ' + have + ' for ' + shortDate(date) + '. Tap Save anyway to change it.';
+        return confirmInPlace();
+      } else {
+        var warn = weightWarning(r.value, ciPrev(date, wf.id));
+        if (warn && ciState.confirm !== 'jump') { ciState.replace = ciState.confirm === 'replace' || !!have; ciState.confirm = 'jump'; ciState.warn = true; ciState.msg = warn; return confirmInPlace(); }
+        enqueue({ type: 'ci', date: date, field: wf.id, value: r.value, replace: ciState.confirm === 'replace' || !!ciState.replace || !!have, prev: have });
+        day.values[wf.id] = String(r.value); n++;
+      }
     }
   }
-  if (day) html += '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' + esc(ciState.msg) + '</p>';
-  el.innerHTML = html + (kind === 'number' ? weekStrip(fs[0], today) : '') + (lines.length ? '<div class="ci-lines"><p>' + lines.join('</p><p>') + '</p></div>' : '') + (how || '');
-}
-function entrySave() {
-  var date = ciState.date, day = ciDay(date), errs = [], n = 0; if (!day) return;
   Array.prototype.forEach.call(document.querySelectorAll('[data-entry]'), function (inp) {
     var f = fieldById(inp.dataset.entry), raw = inp.value, have = day.values[f.id] || '';
     if (f.kind === 'number' && String(raw).trim() === '') return; // blank = leave the sheet alone
@@ -720,18 +895,23 @@ function entrySave() {
     day.values[f.id] = String(r.value); n++;
   });
   store('cw:data', data);
-  ciState.warn = !!errs.length;
-  ciState.msg = errs.length ? errs[0] : n ? 'Saving…' : 'Nothing changed.';
-  renderEntryCard();
+  ciState.confirm = ''; ciState.replace = false; ciState.warn = !!errs.length; ciState.msg = errs.length ? errs[0] : '';
+  if (errs.length) { renderLog(); return; }
+  if (!n) { toast('Nothing changed'); return; }
+  window._saveMoment = true;
+  setSaveState('saving'); renderLog();
 }
-// Copy of Logic.js parseNumber (the server checks again).
-var NUM_MAX = { steps: 100000, calories: 10000, protein: 1000, carbs: 1500, fats: 600, cardio: 600 };
-function parseNumberField(input, f) {
-  var s = String(input).replace(/[,\s]/g, '').replace(/(kcal|cals?|g|mins?|steps)$/i, '');
-  if (!/^\d+(\.\d+)?$/.test(s)) return { error: 'Type ' + f.label.toLowerCase() + ' as a number.' };
-  var v = Math.round(Number(s));
-  if (v > (NUM_MAX[f.id] || 1e9)) return { error: v + ' ' + f.unit + ' looks too high. Check the number.' };
-  return { value: v };
+function confirmInPlace() { // keep every typed number on screen; only the weight line and the button label change
+  var m = $('ciMsg'); if (m) { m.textContent = ciState.msg; m.className = 'warn'; }
+  var b = $('saveBtn'); if (b) b.querySelector('.st-idle').textContent = 'Save anyway';
+  var w = $('ciVal'); if (w) w.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+}
+function scaleSave(id, n) {
+  var date = ciState.date, day = ciDay(date); if (!day) return;
+  var have = day.values[id]; if (have === String(n)) return;
+  enqueue({ type: 'ci', date: date, field: id, value: n, replace: !!have, prev: have });
+  day.values[id] = String(n); store('cw:data', data);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-scale="' + id + '"]'), function (b) { var on = +b.dataset.n === n; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); });
 }
 function switchSave(key) {
   var date = ciState.date, day = ciDay(date); if (!day) return;
@@ -747,54 +927,177 @@ function switchSave(key) {
     day.values[key] = on ? 'FALSE' : 'TRUE';
   }
   store('cw:data', data);
-  ciState.warn = false; ciState.msg = 'Saving…';
-  renderEntryCard();
+  if (view.screen !== 'log') return;
+  // update in place: a full re-render would wipe numbers typed but not yet saved
+  if (hm) {
+    var tk = data.checkIn.habits.days[date], hb = document.querySelector('[data-habit="' + hm[1] + '"]');
+    if (hb) { var tkEl = hb.querySelector('.tick'); tkEl.classList.toggle('off', !tk[+hm[1]]); tkEl.classList.remove('pop'); void tkEl.offsetWidth; if (tk[+hm[1]]) { tkEl.classList.add('pop'); buzz(10); } hb.setAttribute('aria-checked', !!tk[+hm[1]]); }
+    var cnt = $('habCount'); if (cnt) cnt.textContent = tk.filter(Boolean).length + ' of ' + tk.length + '. 85% or more counts the day as a habits day.';
+  } else {
+    var sw = document.querySelector('[data-sw="' + key + '"]'); if (sw) { var isOn = day.values[key] === 'TRUE'; sw.classList.toggle('on', isOn); sw.setAttribute('aria-checked', isOn); }
+  }
+}
+function checkInSaved(p, res) {
+  if (!data || !data.checkIn) return;
+  if (res.ok && res.checkIn) {
+    data.checkIn = res.checkIn;
+    if (!queue.some(function (q) { return q.type === 'ci'; })) {
+      setSaveState('saved');
+      if (window._saveMoment) { window._saveMoment = false; buzz(20); var pts = points(), st = streak(), from = window._ptsFrom || 0; window._ptsFrom = null;
+        moment({ ring: pts ? pts.n / pts.of : 1, tick: true, huge: pts ? pts.n : st.n, from: pts ? from : 0, small: pts ? 'of ' + pts.of + ' points this week' : 'days in a row',
+          line: 'Saved to ' + SAVED_TO, sub: st.n ? st.n + (st.n === 1 ? ' day' : ' days') + ' in a row' : '', then: function () { if (view.screen === 'log') show('today'); milestoneCheck(st); } });
+      }
+    }
+  }
+  else {
+    var day = ciDay(p.date), hm = /^habit:(\d+)$/.exec(p.field);
+    if (hm) { var hd = data.checkIn.habits && data.checkIn.habits.days[p.date]; if (hd) hd[+hm[1]] = !!p.prev; if (day) day.values.habits = p.prevVerdict || ''; }
+    else if (day) day.values[p.field] = p.prev || '';
+    ciState.date = p.date; ciState.warn = true;
+    if (res.conflict) { ciState.confirm = 'replace'; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type the number again and tap Save anyway to change it.'; }
+    else ciState.msg = res.error || 'That did not save. Try again.';
+    setSaveState('failed');
+  }
+  store('cw:data', data);
+  var typing = document.activeElement && document.activeElement.dataset && (document.activeElement.dataset.entry || document.activeElement.id === 'ciVal');
+  if (view.screen === 'log' && !typing && !res.ok) renderLog();
+  else if (view.screen === 'log' && $('ciMsg') && ciState.msg) { $('ciMsg').textContent = ciState.msg; $('ciMsg').className = ciState.warn ? 'warn' : ''; }
+  else if (view.screen === 'today') renderToday();
+  else if (view.screen === 'progress') renderProgress();
 }
 
-var PAGE_TITLES = { meal: 'Meal plan', shop: 'Shopping list', supps: 'Supplements', supp: 'Supplements', measure: 'Measurements', photos: 'Progress photos' };
-var plan = load('cw:plan', null);
+/* ---------- Workout: sessions, set table, overview, done ---------- */
+function sessionList() {
+  if (!data.days.length) return '<p class="note warn">Week ' + data.week + ' is not in your plan yet. ' + MESSAGE_ADAM + '.</p>';
+  return '<ul class="days">' + data.days.map(function (d, i) {
+    var s = load(sessKey(d.name), null);
+    var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
+    var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
+    var sub = doneN ? doneN + ' of ' + d.exercises.length + ' logged this week' : d.exercises.length + ' exercises, ' + (last ? 'last logged week ' + last : 'first time');
+    return '<li><button class="day" data-day="' + esc(d.name) + '"><span class="num">' + (i + 1) + '</span><span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
+      (doneN === d.exercises.length ? '<i class="tick">' + icon('check') + '</i>' : icon('chev')) + '</button></li>';
+  }).join('') + '</ul>';
+}
+function renderWorkout() {
+  $('app').innerHTML = '<section class="screen"><h1 class="t l">Week ' + data.week + '</h1><p class="meta">' + (data.weekStart ? 'Week starting ' + esc(fmtDate(data.weekStart)) + '. ' : '') + sessionsDone() + ' of ' + trainingTarget() + ' sessions done.</p>' +
+    '<p class="sync" id="sync"></p>' + sessionList() + '</section>';
+  renderSync();
+}
+function lastCell(p, i) {
+  if (!p) return '<span class="last none">No previous</span>';
+  var kg = p.kg[i], r = p.reps[i];
+  if (!kg && !r) return '<span class="last none">Not done</span>';
+  return '<button class="last" data-copy="' + i + '" aria-label="Copy last time into set ' + (i + 1) + '">' + (kg ? esc(kg) + ' kg' : 'No weight') + '<small>x ' + (r ? esc(r) : '?') + ', tap to copy</small></button>';
+}
+function beats(p, i, kg, r) {
+  if (!p) return false;
+  var pk = parseFloat(p.kg[i]) || 0, pr = parseFloat(p.reps[i]) || 0, k = parseFloat(kg), rr = parseFloat(r);
+  if (isNaN(rr)) return false;
+  if (isNaN(k)) k = 0;
+  return k > pk || (k >= pk && rr > pr);
+}
+function renderEx() {
+  var day = dayByName(sess.day), x = exByName(day, sess.current);
+  if (!x) return show(remaining().length ? 'ov' : 'fin');
+  var p = prevOf(x), d = draft(x.name), n = setCount(x), left = remaining().length;
+  var rest = /^\d+$/.test(x.rest) ? x.rest + 's' : '';
+  var html = '<section class="screen ex">' + topBar(sess.day, 'Week ' + data.week + ', ' + (left ? left + (left === 1 ? ' exercise left' : ' exercises left') : 'all done'), 'workout', '<button class="pill" data-go="ov">Whole session</button>') +
+    '<h1>' + esc(x.name) + '</h1><ul class="target"><li><b>' + esc(x.sets || n) + '</b>sets</li><li><b>' + esc(x.reps) + '</b>reps</li>' + (rest ? '<li><b>' + esc(rest) + '</b>rest</li>' : '') + '</ul>' +
+    (x.video ? '<a class="video" href="' + esc(x.video) + '" target="_blank" rel="noopener">' + icon('play') + 'Watch the demo</a>' : '') +
+    '<p class="sync" id="sync"></p>' +
+    '<div class="sets"><div class="hd"><span>Set</span><span>' + (p ? 'Week ' + p.week : 'First time') + '</span><span style="text-align:center">kg</span><span style="text-align:center">reps</span></div>';
+  for (var i = 0; i < n; i++) {
+    html += '<div class="set' + (beats(p, i, d.kg[i], d.reps[i]) ? ' beaten' : '') + '" id="set' + i + '"><span class="no">' + (i + 1) + '</span>' + lastCell(p, i) +
+      '<input inputmode="decimal" enterkeyhint="next" data-f="kg" data-i="' + i + '" value="' + esc(d.kg[i]) + '" placeholder="kg" aria-label="Set ' + (i + 1) + ' kg">' +
+      '<input inputmode="numeric" enterkeyhint="next" data-f="reps" data-i="' + i + '" value="' + esc(d.reps[i]) + '" placeholder="reps" aria-label="Set ' + (i + 1) + ' reps"></div>';
+  }
+  html += '</div>' + (p && p.comment ? '<p class="meta" style="margin-top:var(--s-2)">You noted last time: "' + esc(p.comment) + '"</p>' : '') +
+    '<div class="comment"><input data-f="comment" value="' + esc(d.comment) + '" placeholder="Note for Adam (optional)" aria-label="Note for Adam" enterkeyhint="done"></div><p class="hint" id="hint" hidden></p></section>';
+  $('app').innerHTML = html;
+  $('doneBtn').lastChild.textContent = 'Complete';
+  sess.confirmEmpty = false;
+  renderSync();
+}
+function renderOv() {
+  var day = dayByName(sess.day), left = remaining();
+  var html = '<section class="screen ov">' + topBar(sess.day, left.length ? 'Tap Do now to pick what is next. Skip anything you cannot do today.' : 'Every exercise is done or skipped.', 'workout') + '<p class="sync" id="sync"></p><ol>';
+  sess.order.forEach(function (name) {
+    var x = exByName(day, name), isDone = sess.done.indexOf(name) > -1, isSkip = sess.skipped.indexOf(name) > -1, isCur = name === sess.current && !isDone && !isSkip;
+    var p = prevOf(x);
+    html += '<li class="item' + (isDone ? ' is-done' : isSkip ? ' is-skipped' : isCur ? ' is-current' : '') + '">' +
+      '<i class="tick' + (isDone ? '' : ' off') + '">' + icon('check') + '</i><span class="info"><b>' + esc(name) + '</b><span>' +
+      esc(x.sets) + ' x ' + esc(x.reps) + (isDone ? ', logged' : isSkip ? ', skipped' : p ? ', last week ' + p.week : '') + '</span></span>' +
+      (isSkip ? '<button class="chip go" data-act="unskip" data-n="' + esc(name) + '">Undo skip</button>'
+        : isDone ? '<button class="chip" data-act="edit" data-n="' + esc(name) + '">Edit</button>'
+        : '<button class="chip go" data-act="go" data-n="' + esc(name) + '">' + (isCur ? 'Resume' : 'Do now') + '</button><button class="chip skip" data-act="skip" data-n="' + esc(name) + '">Skip</button>') + '</li>';
+  });
+  html += '</ol>' + (left.length ? '' : '<div style="margin-top:var(--s-4)"><button class="btn strong" data-act="finish">Finish session</button></div>') + '</section>';
+  $('app').innerHTML = html;
+  renderSync();
+}
+function renderFin() {
+  var day = dayByName(sess.day), ups = 0, moved = 0, sets = 0;
+  var rows = sess.order.map(function (name, idx) {
+    var x = exByName(day, name), d = sess.drafts[name], p = prevOf(x);
+    if (sess.skipped.indexOf(name) > -1) return '<li style="--i:' + idx + '"><b>' + esc(name) + '</b><span>Skipped</span></li>';
+    if (!d) return '';
+    var up = d.kg.some(function (_, i) { return beats(p, i, d.kg[i], d.reps[i]); });
+    if (up) ups++;
+    d.kg.forEach(function (k, i) { var kk = parseFloat(k) || 0, rr = parseFloat(d.reps[i]) || 0; if (kk || rr) sets++; moved += kk * rr; });
+    var best = d.kg.map(function (k, i) { return k || d.reps[i] ? (k ? k + ' kg' : '') + (d.reps[i] ? ' x ' + d.reps[i] : '') : ''; }).filter(Boolean).join(', ');
+    return '<li class="' + (up ? 'up' : '') + '" style="--i:' + idx + '"><b>' + esc(name) + '</b><span>' + esc(best || 'Done') + (up ? ', up' : '') + '</span></li>';
+  }).join('');
+  var done = sessionsDone(), of = trainingTarget();
+  $('app').innerHTML = '<section class="screen fin"><div class="hero" style="margin-top:0">' + ringSvg(of ? done / of : 0, 'hero') + '<div><div class="n on"><span id="finDone">0</span><span class="of"> of ' + of + '</span></div><p class="meta">sessions this week.</p><p class="meta">Training day marked in your sheet.</p></div></div>' +
+    '<h1 class="t l" style="margin-top:var(--s-5)">' + esc(sess.day) + ' done</h1>' +
+    '<p class="meta">' + sets + ' sets, <b><span id="finKg">0</span> kg</b> moved' + (ups ? ', beat last time on ' + ups + (ups === 1 ? ' exercise' : ' exercises') : '') + '.</p>' +
+    '<p class="sync" id="sync"></p><ul>' + rows + '</ul>' +
+    '<button class="btn quiet" data-go="today">Back to today</button></section>';
+  renderSync();
+  if (window._finShown !== sess.day + data.week) { window._finShown = sess.day + data.week; buzz([20, 30, 40]); }
+  countUp($('finDone'), Math.max(0, done - 1), done);
+  var kgEl = $('finKg'), kgTo = Math.round(moved); countUp(kgEl, 0, kgTo); setTimeout(function () { if (kgEl.isConnected) kgEl.textContent = fmtNum(kgTo); }, 340);
+}
+function commit(name, skip) {
+  var d = draft(name), today = localIso();
+  enqueue({ day: sess.day, exercise: name, week: data.week, kg: d.kg, reps: d.reps, comment: d.comment, skip: !!skip, date: today });
+  var t = !skip && data.checkIn && ciDay(today);
+  if (t && 'training' in t.values) { t.values.training = 'Training'; store('cw:data', data); }
+}
+function next() { var left = remaining(); sess.current = left[0] || null; saveSess(); show(left.length ? 'ex' : 'fin'); }
+
+/* ---------- Plan: meals, targets, supplements, cardio notes, shopping list ---------- */
 function loadPlan() {
   var ft = data.features || {}; if (!(ft.plan || ft.supps) || !api.getPlan) return;
   api.getPlan().then(function (p) {
     if (!p) return; plan = p; store('cw:plan', plan);
-    if (['meal', 'shop', 'supps', 'supp'].indexOf(view.screen) > -1) show(view.screen === 'supp' ? 'supp:' + view.supp : view.screen);
-    else if (view.screen === 'entry' && !document.activeElement.dataset.entry) renderEntryCard();
+    if (view.screen === 'plan' || view.screen === 'shop') show(view.screen);
+    else if (view.screen === 'log' && !(document.activeElement && document.activeElement.dataset.entry)) renderLog();
   }, function () {});
 }
-function waitPlan() { return '<p class="loading">' + (plan ? '' : 'Loading your plan…') + '</p>'; }
-// Cardio tab rows for this screen: steps rows on Steps, the rest on Cardio (training and rest day cardio, timings).
-function howTo(id) {
-  if (!plan || !plan.cardio || (id !== 'steps' && id !== 'cardio')) return '';
-  var rows = plan.cardio.filter(function (r) { return /^step/i.test(r.type) === (id === 'steps'); });
-  if (!rows.length) return '';
-  return '<details class="howto"><summary>How to do it</summary>' + rows.map(function (r) {
-    return '<p><b>' + esc(r.type) + (r.duration ? ': ' + esc(r.duration) : '') + '</b>' + (r.notes ? '\n' + esc(r.notes) : '') + '</p>';
-  }).join('') + '</details>';
-}
-
-function renderMeal() {
-  if (!plan || !plan.plans) { $('app').innerHTML = waitPlan(); return; }
-  var i = Math.min(view.mealTab || 0, plan.plans.length - 1), mp = plan.plans[i];
-  if (!mp) { $('app').innerHTML = '<p class="hint">No meals in your plan yet. Message Adam.</p>'; return; }
-  var t = mp.targets || {}, sum = { calories: 0, protein: 0, carbs: 0, fats: 0 };
-  var num = function (v) { return Number(String(v || '').replace(/,/g, '')) || 0; };
-  var html = mp.meals.map(function (m) {
-    ['calories', 'protein', 'carbs', 'fats'].forEach(function (k) { sum[k] += num(m.totals && m.totals[k]); });
-    return '<section class="meal"><h2>' + esc(m.name || 'Meal') + '</h2><ul>' + m.foods.map(function (x) {
-      return '<li><b>' + esc(x.food) + '</b><span>' + esc(x.portion) + '</span></li>';
-    }).join('') + '</ul>' + (m.totals ? '<p class="tot">' + esc(fmtNum(m.totals.calories)) + ' kcal · ' + esc(m.totals.protein) + 'g protein · ' + esc(m.totals.carbs) + 'g carbs · ' + esc(m.totals.fats) + 'g fats</p>' : '') + '</section>';
+function renderPlan() {
+  var ft = data.features || {};
+  if (!(ft.plan || ft.supps)) { $('app').innerHTML = '<section class="screen"><h1 class="t l">Plan</h1><p class="note">Your meal plan and supplements are not switched on in the app yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
+  if (!plan) { $('app').innerHTML = '<section class="screen"><h1 class="t l">Plan</h1><p class="loading">Loading your plan…</p></section>'; return; }
+  var i = Math.min(view.mealTab || 0, (plan.plans || []).length - 1), mp = (plan.plans || [])[i], t = mp && mp.targets || {}, html = '<section class="screen"><h1 class="t l">Plan</h1>';
+  if (mp) {
+    html += '<p class="meta">' + (t.calories ? '<b>' + fmtNum(t.calories) + ' kcal</b>, ' + esc(t.protein) + ' g protein, ' + esc(t.carbs) + ' g carbs, ' + esc(t.fats) + ' g fats a day.' : 'Your meals for the day.') + '</p>';
+    if (plan.plans.length > 1) html += '<div class="chips" style="margin-top:var(--s-3)">' + plan.plans.map(function (p, k) { return '<button class="' + (k === i ? 'sel' : '') + '" data-mealtab="' + k + '">' + esc(p.tab) + '</button>'; }).join('') + '</div>';
+    html += '<h2 class="sec">Meals</h2>' + mp.meals.map(function (m, k) {
+      return '<details class="meal"' + (k === 0 ? ' open' : '') + '><summary>' + esc(m.name || 'Meal') + (m.totals ? '<span>' + esc(fmtNum(m.totals.calories)) + ' kcal, ' + esc(m.totals.protein) + ' g P</span>' : '') + '</summary><ul>' +
+        m.foods.map(function (x) { return '<li><b>' + esc(x.food) + '</b><span>' + esc(x.portion) + '</span></li>'; }).join('') + '</ul></details>';
+    }).join('');
+    html += '<div style="margin-top:var(--s-3)"><button class="btn quiet" data-go="shop">Shopping list</button></div>';
+  } else if (ft.plan) html += '<p class="note">No meals in your plan yet. ' + MESSAGE_ADAM + '.</p>';
+  if (plan.supplements && plan.supplements.length) html += '<h2 class="sec">Supplements</h2>' + plan.supplements.map(function (x) {
+    return '<details class="meal"><summary>' + esc(x.name) + '<span>' + esc([x.serving, x.timing].filter(Boolean).join(', ')) + '</span></summary>' +
+      [['Dose', x.serving], ['When', x.timing], ['Notes', x.notes]].filter(function (r) { return r[1]; }).map(function (r) { return '<p><b>' + r[0] + '</b>' + esc(r[1]) + '</p>'; }).join('') + '</details>';
   }).join('');
-  var chips = plan.plans.length > 1 ? '<div class="target" style="margin-top:20px">' + plan.plans.map(function (p, k) {
-    return '<button class="chip' + (k === i ? ' go' : '') + '" data-mealtab="' + k + '">' + esc(p.tab) + '</button>';
-  }).join('') + '</div>' : '';
-  var top = chips + '<section class="week"><h1 class="date">' + esc(plan.plans.length > 1 ? mp.tab : 'Your day') + '</h1><p>' + fmtNum(Math.round(sum.calories)) + ' kcal · ' + Math.round(sum.protein) + 'g protein · ' + Math.round(sum.carbs) + 'g carbs · ' + Math.round(sum.fats) + 'g fats' +
-    (t.calories ? '<br>Targets ' + fmtNum(t.calories) + ' kcal · ' + t.protein + 'g protein · ' + t.carbs + 'g carbs · ' + t.fats + 'g fats' : '') + '</p></section>';
-  $('app').innerHTML = top + (html || '<p class="hint">No meals in your plan yet. Message Adam.</p>') + '<div style="height:40px"></div>';
+  if (plan.cardio && plan.cardio.length) html += '<h2 class="sec">Steps and cardio</h2>' + plan.cardio.map(function (r) {
+    return '<details class="meal"><summary>' + esc(r.type) + '<span>' + esc(r.duration) + '</span></summary>' + (r.notes ? '<p>' + esc(r.notes) + '</p>' : '') + '</details>';
+  }).join('');
+  $('app').innerHTML = html + '</section>';
 }
-
-/* Shopping list: the client says how many days of each meal plan they are shopping for (weekly shop, two smaller
-   shops, topping up, a new plan mid-week), then ticks items off as they go. Built on the phone, so it works in a
-   shop with no signal. The choices and ticks live on this phone only. */
 function str(v) { return v === null || v === undefined ? '' : String(v).trim(); }
 function norm(v) { return str(v).toLowerCase().replace(/\s+/g, ' '); }
 function shoppingList(meals, days) {
@@ -822,76 +1125,193 @@ function shoppingList(meals, days) {
     return { food: it.food.trim(), qty: q, unit: it.unit, text: text };
   });
 }
-function shopState() {
-  if (!window._shop) window._shop = load('cw:shop', { days: {}, made: false, got: {} });
-  return window._shop;
-}
+function shopState() { if (!window._shop) window._shop = load('cw:shop', { days: {}, made: false, got: {} }); return window._shop; }
 function saveShopState() { store('cw:shop', shopState()); }
-function shopItems() {
-  var st = shopState(), meals = [];
-  plan.plans.forEach(function (p) { var d = st.days[p.tab] || 0; p.meals.forEach(function (m) { meals.push({ foods: m.foods, days: d }); }); });
-  return shoppingList(meals, 0);
-}
-function planDays(tab, step) {
-  var st = shopState(); st.days[tab] = Math.max(0, Math.min(14, (st.days[tab] || 0) + step)); saveShopState(); renderShop();
-}
-function shopMake() {
-  var st = shopState(); st.made = true; st.got = {}; saveShopState(); renderShop(); document.body.scrollTop = 0;
-}
+function shopItems() { var st = shopState(), meals = []; plan.plans.forEach(function (p) { var d = st.days[p.tab] || 0; p.meals.forEach(function (m) { meals.push({ foods: m.foods, days: d }); }); }); return shoppingList(meals, 0); }
+function planDays(tab, step) { var st = shopState(); st.days[tab] = Math.max(0, Math.min(14, (st.days[tab] || 0) + step)); saveShopState(); renderShop(); }
+function shopMake() { var st = shopState(); st.made = true; st.got = {}; saveShopState(); renderShop(); document.body.scrollTop = 0; }
 function renderShop() {
-  if (!plan || !plan.plans) { $('app').innerHTML = waitPlan(); return; }
-  if (!plan.plans.length) { $('app').innerHTML = '<p class="hint">No meal plan to build a list from yet.</p>'; return; }
+  if (!plan || !plan.plans) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'plan') + '<p class="loading">Loading your plan…</p></section>'; return; }
+  if (!plan.plans.length) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'plan') + '<p class="note">No meal plan to build a list from yet.</p></section>'; return; }
   var st = shopState(), total = plan.plans.reduce(function (n, p) { return n + (st.days[p.tab] || 0); }, 0);
   if (!st.made || !total) {
-    $('app').innerHTML = '<section class="week"><h1 class="date">Plan your shop</h1><p>How many days of each meal plan are you shopping for?</p></section>' +
-      '<ul class="days">' + plan.plans.map(function (p) {
-        var d = st.days[p.tab] || 0;
-        return '<li><div class="day" style="cursor:default"><span class="grow"><b>' + esc(p.tab) + '</b><span>' + p.meals.length + (p.meals.length === 1 ? ' meal' : ' meals') + ' a day</span></span>' +
-          '<button class="icon-btn" data-plan="' + esc(p.tab) + '" data-step="-1" aria-label="One day fewer of ' + esc(p.tab) + '">−</button>' +
-          '<b style="width:28px;text-align:center" aria-live="polite">' + d + '</b>' +
-          '<button class="icon-btn" data-plan="' + esc(p.tab) + '" data-step="1" aria-label="One day more of ' + esc(p.tab) + '">+</button></div></li>';
-      }).join('') + '</ul>' +
-      '<button class="btn primary" style="width:100%"' + (total ? '' : ' disabled') + ' data-act="shop-make">' + (total ? 'Make my list for ' + total + (total === 1 ? ' day' : ' days') : 'Pick at least one day') + '</button>';
+    $('app').innerHTML = '<section class="screen">' + topBar('Plan your shop', 'How many days of each meal plan?', 'plan') + '<div class="list">' + plan.plans.map(function (p) {
+      var d = st.days[p.tab] || 0;
+      return '<div class="row"><span class="l">' + esc(p.tab) + '<span>' + p.meals.length + (p.meals.length === 1 ? ' meal' : ' meals') + ' a day</span></span><span class="stepper"><button data-plan="' + esc(p.tab) + '" data-step="-1" aria-label="One day fewer of ' + esc(p.tab) + '">&minus;</button><b aria-live="polite">' + d + '</b><button data-plan="' + esc(p.tab) + '" data-step="1" aria-label="One day more of ' + esc(p.tab) + '">+</button></span></div>';
+    }).join('') + '</div><div style="margin-top:var(--s-3)"><button class="btn strong"' + (total ? '' : ' disabled') + ' data-act="shop-make">' + (total ? 'Make my list for ' + total + (total === 1 ? ' day' : ' days') : 'Pick at least one day') + '</button></div></section>';
     return;
   }
   var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
-  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return esc(p.tab) + ' × ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
-  $('app').innerHTML = '<section class="week"><h1 class="date">Shopping list</h1><p>' + what + '. ' + (left ? left + ' of ' + items.length + ' left to get.' : 'All in the basket.') +
-    ' Amounts are rounded up so you do not run short.</p></section>' +
-    '<button class="btn ghost" style="width:100%;margin-bottom:12px" data-act="shop-change">Change days or meal plans</button>' +
-    '<ul class="shop">' + items.map(function (x, i) {
-      return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>';
-    }).join('') + '</ul><div style="height:40px"></div>';
+  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return esc(p.tab) + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
+  $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'plan', '<button class="pill" data-act="shop-change">Change</button>') +
+    '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
 }
 function shopTick(i) { var st = shopState(); st.got[i] = !st.got[i]; saveShopState(); renderShop(); }
 
-function renderSupps() {
-  if (!plan || !plan.supplements) { $('app').innerHTML = waitPlan(); return; }
-  $('app').innerHTML = (plan.supplements.length ? '<ul class="days" style="margin-top:22px">' + plan.supplements.map(function (x, i) {
-    return tileHtml({ go: 'supp:' + i, name: x.name, sub: [x.serving, x.timing].filter(Boolean).join(' · ') });
-  }).join('') + '</ul>' : '<p class="hint">No supplements in your plan.</p>');
+/* ---------- Progress ---------- */
+function readings() { var wf = weightField(), out = []; if (!wf) return out; data.checkIn.days.forEach(function (d) { var v = parseFloat(String(d.values[wf.id] || '').replace(/,/g, '')); if (v > 0 && d.date <= localIso()) out.push({ date: d.date, v: v }); }); return out; }
+function chartSvg() {
+  var c = data.checkIn, wf = weightField(), rs = readings(), W = 343, H = 150, bottom = 128;
+  if (!wf) return '';
+  var first = c.firstDate, last = localIso(), span = Math.max(1, (Date.parse(last) - Date.parse(first)) / 864e5);
+  var vals = rs.map(function (r) { return r.v; }), sw = parseFloat(data.startWeight) || 0; if (sw) vals.push(sw);
+  if (c.trend) vals.push(c.trend.value);
+  var lo = vals.length ? Math.min.apply(null, vals) : 0, hi = vals.length ? Math.max.apply(null, vals) : 1; if (hi - lo < 2) { lo -= 1; hi += 1; }
+  var x = function (d) { return ((Date.parse(d) - Date.parse(first)) / 864e5 / span * (W - 8) + 4); }, y = function (v) { return bottom - (v - lo) / (hi - lo) * 100 - 8; };
+  var pts = rs.map(function (r) { return x(r.date).toFixed(1) + ',' + y(r.v).toFixed(1); }).join(' ');
+  var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Weight over the last two weeks"><line class="axis" x1="0" y1="' + bottom + '" x2="' + W + '" y2="' + bottom + '"/>';
+  if (sw && sw >= lo && sw <= hi) svg += '<line class="goal" x1="0" y1="' + y(sw).toFixed(1) + '" x2="' + W + '" y2="' + y(sw).toFixed(1) + '"/><text x="0" y="' + (y(sw) - 5).toFixed(1) + '">' + sw + ' start</text>';
+  if (c.trend) svg += '<line class="trend" x1="0" y1="' + y(c.trend.value).toFixed(1) + '" x2="' + W + '" y2="' + y(c.trend.value).toFixed(1) + '"/><text x="' + (W - 70) + '" y="' + (y(c.trend.value) - 5).toFixed(1) + '">trend ' + c.trend.value + '</text>';
+  if (rs.length > 1) {
+    var first_ = rs[0], last_ = rs[rs.length - 1];
+    svg += '<path class="area" d="M' + x(first_.date).toFixed(1) + ',' + bottom + ' L' + pts.replace(/ /g, ' L') + ' L' + x(last_.date).toFixed(1) + ',' + bottom + ' Z"/>';
+    svg += '<polyline class="line" pathLength="1" points="' + pts + '"/>';
+  }
+  rs.forEach(function (r, i) {
+    var lastDot = i === rs.length - 1;
+    if (lastDot) svg += '<circle class="halo" cx="' + x(r.date).toFixed(1) + '" cy="' + y(r.v).toFixed(1) + '" r="5"/>';
+    svg += '<circle class="dot' + (lastDot ? ' last' : '') + '" cx="' + x(r.date).toFixed(1) + '" cy="' + y(r.v).toFixed(1) + '" r="' + (lastDot ? 5 : 3.5) + '"/>';
+  });
+  svg += '<text x="0" y="' + (H - 4) + '">' + esc(shortDate(first).replace(/^\w+ /, '')) + '</text><text x="' + (W - 52) + '" y="' + (H - 4) + '">' + esc(shortDate(last).replace(/^\w+ /, '')) + '</text></svg>';
+  return svg;
 }
-function renderSupp() {
-  var x = plan && plan.supplements && plan.supplements[view.supp]; if (!x) return renderSupps();
-  $('app').innerHTML = '<section class="ci supp"><h2 style="margin:0">' + esc(x.name) + '</h2>' +
-    [['Dose', x.serving], ['When', x.timing], ['Notes', x.notes]].filter(function (r) { return r[1]; }).map(function (r) {
-      return '<p><b>' + r[0] + '</b>' + esc(r[1]) + '</p>';
-    }).join('') + '</section>';
+function renderProgress() {
+  var html = '<section class="screen"><h1 class="t l">Progress</h1>';
+  if (!data.checkIn) { $('app').innerHTML = html + '<p class="meta">' + esc(weekLine()) + '.</p><p class="note">Your check in is not switched on in the app yet, so there is no weight trend here. ' + MESSAGE_ADAM + '.</p>' + weeklyLinks() + '</section>'; return; }
+  var c = data.checkIn, wf = weightField(), tw = c.thisWeek && wf && c.thisWeek.avg[wf.id], lw = c.lastWeek && wf && c.lastWeek.avg[wf.id], rs = readings(), pts = points();
+  var diff = tw && lw ? Math.round((num(tw) - num(lw)) * 10) / 10 : null;
+  html += '<div class="hero" style="align-items:flex-start"><div><div class="big on">' + (tw ? esc(tw) : rs.length ? esc(rs[rs.length - 1].v) : '&ndash;') + '</div><p class="meta">' + (tw ? 'average this week' : rs.length ? 'last weigh-in' : 'no weigh-ins yet') + '</p></div>' +
+    (diff !== null ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (diff > 0 ? '+' : '') + diff + '</div><p class="meta">vs week ' + c.lastWeek.week + '</p></div>' : data.startWeight && rs.length ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (function (d) { return (d > 0 ? '+' : '') + d; })(Math.round((rs[rs.length - 1].v - parseFloat(data.startWeight)) * 10) / 10) + '</div><p class="meta">since the start</p></div>' : '') + '</div>';
+  html += rs.length ? chartSvg() : '';
+  html += '<p class="meta" style="margin-top:var(--s-2)">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
+    : 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
+  html += '<div class="list two" style="margin-top:var(--s-4)">' +
+    (pts ? '<div class="row"><b>Points</b><div class="n on">' + pts.n + '<small>of ' + pts.of + '</small></div></div>' : '<div class="row"><b>Logged today</b><div class="n">' + coreDone(ciDay(localIso())).done + '<small>of ' + coreDone(ciDay(localIso())).of + '</small></div></div>') +
+    '<div class="row"><b>Sessions</b><div class="n">' + sessionsDone() + '<small>of ' + trainingTarget() + '</small></div></div>' +
+    (data.roadmap && data.roadmap.phase ? '<div class="row wide"><b>Phase</b><div class="n">' + esc(cap(data.roadmap.phase)) + '<small>' + esc([data.roadmap.month ? cap(data.roadmap.month) : '', data.roadmap.calories ? cap(data.roadmap.calories) : '', 'week ' + data.week + (data.roadmap.totalWeeks ? ' of ' + data.roadmap.totalWeeks : '')].filter(Boolean).join(', ')) + '</small></div></div>' : '') + '</div>';
+  html += averagesList();
+  $('app').innerHTML = html + weeklyLinks() + '<p class="sync" id="sync"></p></section>';
+  renderSync();
+}
+function cap(s) { s = String(s).toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
+function averagesList() {
+  var c = data.checkIn, rows = [];
+  c.fields.forEach(function (f) {
+    if (f.kind === 'weight' || f.kind === 'readonly' || f.kind === 'training' || f.kind === 'toggle' || f.kind === 'text' || f.kind === 'habits') return;
+    var tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id]; if (!tw && !lw) return;
+    rows.push('<div class="row"><span class="l">' + esc(f.label) + '<span>' + (lw ? 'week ' + c.lastWeek.week + ': ' + esc(fmtNum(lw)) : 'no last week') + '</span></span><span class="v' + (tw ? ' on' : ' empty') + '">' + (tw ? esc(fmtNum(tw)) + '<small>' + esc(f.unit || (f.kind === 'scale' ? 'of 5' : '')) + '</small>' : 'none yet') + '</span></div>');
+  });
+  return rows.length ? '<h2 class="sec">This week\'s averages</h2><div class="list">' + rows.join('') + '</div>' : '';
+}
+function weeklyLinks() {
+  var ft = data.features || {}, m = data.measurements, rows = [];
+  if (data.weeklyForm) rows.push('<button class="linkrow" data-go="weekly">Weekly check in<span>' + (load('cw:wsent:' + data.week, false) ? 'sent for week ' + data.week : 'about a minute') + '</span></button>');
+  else if (data.checkInForm) rows.push('<a class="linkrow" href="' + esc(data.checkInForm) + '" target="_blank" rel="noopener">Weekly check in form<span>opens your form</span></a>');
+  if (ft.measure && m) { var done = m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; }); rows.push('<button class="linkrow" data-go="measure">Measurements<span>' + (done ? 'week ' + m.thisWeek.week + ' logged' : 'week ' + (m.thisWeek ? m.thisWeek.week : data.week) + ' not yet') + '</span></button>'); }
+  if (ft.photos) rows.push('<button class="linkrow" data-go="photos">Progress photos<span>week ' + data.week + '</span></button>');
+  return rows.length ? '<h2 class="sec">Weekly</h2><div class="card" style="padding:0 var(--s-4)">' + rows.join('') + '</div>' : '';
 }
 
+/* ---------- Weekly check in: the client's own Google Form, one tap per answer ---------- */
+var wform = load('cw:wf', null);
+function wdKey() { return 'cw:wd:' + data.week; }
+function autoAnswers(items) { // what the app already knows from the sheet, answered for them
+  var out = {}, m = data.measurements, mdone = m && m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; });
+  var allSessions = data.days.length && sessionsDone() >= trainingTarget();
+  var yesNo = function (q, yes) { var y = q.choices.filter(function (c) { return /^yes/i.test(c); })[0], n = q.choices.filter(function (c) { return /^no\b/i.test(c); })[0]; return yes ? y : n; };
+  items.forEach(function (q) {
+    var t = norm(q.title); if (!q.choices.length) return;
+    if (/complete all scheduled workouts/.test(t)) { var a = yesNo(q, allSessions); if (a) out[q.id] = a; }
+    if (/circumference|measurements tab/.test(t)) { var b = yesNo(q, !!mdone); if (b) out[q.id] = b; }
+    if (/coaching sheet.*check in tab|check in tab/.test(t)) { var cdn = coreDone(ciDay(localIso())); var cc = yesNo(q, cdn.done > 0); if (cc) out[q.id] = cc; }
+  });
+  return out;
+}
+function renderWeekly() {
+  var html = '<section class="screen">' + topBar('Week ' + data.week + ' check in', 'About a minute. Adam reads it Sunday night.', 'progress');
+  if (load('cw:wsent:' + data.week, false)) { $('app').innerHTML = html + '<div class="hero"><i class="tick" style="width:56px;height:56px"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><div><b>Sent to Adam</b><p class="meta">Week ' + data.week + ' check in is in. You can send another if something changes.</p></div></div><div style="margin-top:var(--s-4)"><button class="btn quiet" data-act="weekly-again">Fill it in again</button></div></section>'; return; }
+  if (!wform) {
+    $('app').innerHTML = html + '<p class="loading">Loading your questions…</p></section>';
+    api.getWeeklyForm().then(function (f) { if (f) { wform = f; store('cw:wf', f); if (view.screen === 'weekly') renderWeekly(); } }, function (e) { if (view.screen === 'weekly') $('app').innerHTML = html + '<p class="note warn">Could not load your check in questions. ' + esc((e && e.message) || 'Check your signal.') + '</p></section>'; });
+    return;
+  }
+  var d = load(wdKey(), null) || { answers: autoAnswers(wform.items), more: false }, a = d.answers;
+  var quick = wform.items.filter(function (q) { return q.choices.length || q.type === 'SCALE'; }), text = wform.items.filter(function (q) { return q.type === 'TEXT' || q.type === 'PARAGRAPH_TEXT'; }), dates = wform.items.filter(function (q) { return q.type === 'DATE'; });
+  var auto = autoAnswers(wform.items), autoN = Object.keys(auto).length;
+  if (autoN) {
+    var mm = data.measurements, mOk = mm && mm.thisWeek && mm.fields.some(function (x) { return mm.thisWeek.values[x.id]; }), cdn = coreDone(ciDay(localIso()));
+    html += '<div class="coach"><b>AJ</b><span>' + autoN + (autoN === 1 ? ' answer' : ' answers') + ' filled in from your sheet: ' + sessionsDone() + ' of ' + trainingTarget() + ' sessions logged' +
+      (mm ? ', measurements ' + (mOk ? 'in' : 'not yet') : '') + ', check in tab ' + (cdn.done ? 'done today' : 'not yet today') + '. Change any of them below.</span></div>';
+  }
+  html += '<div class="form">';
+  quick.forEach(function (q) {
+    var v = a[q.id], required = q.required ? '' : '<small>Optional</small>';
+    html += '<div class="q"><p>' + esc(q.title) + required + (q.help ? '<small>' + esc(q.help) + '</small>' : '') + '</p>';
+    if (q.type === 'SCALE') {
+      var lo = q.low || 1, hi = q.high || 10, ns = []; for (var n = lo; n <= hi; n++) ns.push(n);
+      html += '<div class="scale' + (ns.length > 6 ? ' ten' : '') + '" style="' + (ns.length > 6 && ns.length < 10 ? 'grid-template-columns:repeat(' + ns.length + ',1fr)' : '') + '">' + ns.map(function (n) { return '<button data-wq="' + q.id + '" data-v="' + n + '" class="' + (String(v) === String(n) ? 'sel' : '') + '">' + n + '</button>'; }).join('') + '</div>' +
+        (q.lowLabel || q.highLabel ? '<div class="scale-ends"><span>' + esc(q.lowLabel || '') + '</span><span>' + esc(q.highLabel || '') + '</span></div>' : '');
+    } else if (q.type === 'CHECKBOX') {
+      var arr = Array.isArray(v) ? v : [];
+      html += '<div class="chips">' + q.choices.map(function (c) { return '<button data-wq="' + q.id + '" data-v="' + esc(c) + '" data-multi="1" class="' + (arr.indexOf(c) > -1 ? 'sel' : '') + '">' + esc(c) + '</button>'; }).join('') + '</div>';
+    } else if (q.choices.length === 2 && q.choices.every(function (c) { return /^(yes|no)\b/i.test(c); })) {
+      html += '<div class="yn">' + q.choices.map(function (c) { return '<button data-wq="' + q.id + '" data-v="' + esc(c) + '" class="' + (v === c ? 'sel' : '') + '">' + esc(c) + '</button>'; }).join('') + '</div>';
+    } else {
+      html += '<div class="chips">' + q.choices.map(function (c) { return '<button data-wq="' + q.id + '" data-v="' + esc(c) + '" class="' + (v === c ? 'sel' : '') + '">' + esc(c) + '</button>'; }).join('') + '</div>';
+    }
+    html += '</div>';
+  });
+  if (text.length) {
+    var req = text.filter(function (q) { return q.required; }), opt = text.filter(function (q) { return !q.required; });
+    var box = function (q) { return '<label class="field"><span>' + esc(q.title) + (q.required ? '' : ' <small style="display:inline;color:var(--ink-muted)">optional</small>') + '</span><textarea data-wt="' + q.id + '" placeholder="' + esc(q.help || 'A line or two') + '">' + esc(a[q.id] || '') + '</textarea></label>'; };
+    html += req.map(box).join('');
+    if (opt.length) html += '<details' + (d.more ? ' open' : '') + ' id="wmore"><summary class="sec" style="cursor:pointer;list-style:none;margin:0">Say more (' + opt.length + ' optional)</summary><div class="form" style="margin-top:var(--s-3)">' + opt.map(box).join('') + '</div></details>';
+  }
+  html += '<p class="note" id="wmsg" hidden></p><button class="btn strong" data-act="weekly-send">Send to Adam</button><p class="sync" id="sync"></p></div></section>';
+  $('app').innerHTML = html;
+  var m = $('wmore'); if (m) m.addEventListener('toggle', function () { var dd = load(wdKey(), { answers: a }); dd.more = m.open; store(wdKey(), dd); });
+  store(wdKey(), d);
+  renderSync();
+}
+function weeklyAnswer(id, v, multi) {
+  var d = load(wdKey(), { answers: {} });
+  if (multi) { var arr = Array.isArray(d.answers[id]) ? d.answers[id] : []; var i = arr.indexOf(v); if (i > -1) arr.splice(i, 1); else arr.push(v); d.answers[id] = arr; }
+  else d.answers[id] = d.answers[id] === v ? '' : v;
+  store(wdKey(), d);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-wq="' + id + '"]'), function (b) {
+    var on = multi ? d.answers[id].indexOf(b.dataset.v) > -1 : d.answers[id] === b.dataset.v; b.classList.toggle('sel', on);
+  });
+}
+function weeklySend() {
+  var d = load(wdKey(), { answers: {} }), a = d.answers;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-wt]'), function (t) { a[t.dataset.wt] = String(t.value).trim(); });
+  wform.items.forEach(function (q) { if (q.type === 'DATE' && !a[q.id]) a[q.id] = localIso(); });
+  var missing = wform.items.filter(function (q) { var v = a[q.id]; return q.required && (v === undefined || v === '' || (Array.isArray(v) && !v.length)); });
+  var msg = $('wmsg');
+  if (missing.length) { msg.hidden = false; msg.className = 'note warn'; msg.textContent = 'Still needs an answer: ' + missing[0].title; return; }
+  store(wdKey(), d);
+  enqueue({ type: 'wc', week: data.week, answers: a });
+  msg.hidden = false; msg.className = 'note'; msg.textContent = 'Sending to Adam…';
+}
+function weeklySaved(p, res) {
+  if (res.ok) { store('cw:wsent:' + p.week, true); buzz(20); moment({ tick: true, line: 'Sent to Adam', sub: 'Week ' + p.week + ' check in is in.' }, 1600); if (view.screen === 'weekly') renderWeekly(); }
+  else { var msg = $('wmsg'); if (msg) { msg.hidden = false; msg.className = 'note warn'; msg.textContent = res.error || 'That did not send. Try again.'; } else toast(res.error || 'Check in did not send'); }
+}
+
+/* ---------- Measurements ---------- */
 var msMsg = '';
 function renderMeasure() {
-  var m = data.measurements; if (!m) return show(startScreen());
+  var m = data.measurements; if (!m) return show('progress');
   var tw = m.thisWeek, lw = m.lastWeek;
-  if (!tw) { $('app').innerHTML = '<p class="hint">Week ' + data.week + ' is not on your Measurements tab yet. Message Adam.</p>'; return; }
-  $('app').innerHTML = '<section class="ci"><div class="ci-head"><h2>Measurements</h2><span class="muted">' + esc(tw.date) + '</span></div>' +
-    '<div class="entry">' + m.fields.map(function (x) {
-      var last = lw && lw.values[x.id];
-      return '<div><label><span>' + esc(x.label) + '</span><span class="box"><input data-cm="' + x.id + '" inputmode="decimal" autocomplete="off" value="' + esc(tw.values[x.id] || '') + '" placeholder="0.0" aria-label="' + esc(x.label) + ' in cm"><i>cm</i></span></label>' +
-        (last ? '<small>Last week ' + esc(last) + ' cm</small>' : '') + '</div>';
-    }).join('') + '<button class="btn primary" data-act="ms-save">Save</button></div>' +
-    '<p class="ci-status' + (/did not|wrong|number|not on/i.test(msMsg) ? ' warn' : '') + '" id="msMsg" aria-live="polite">' + esc(msMsg) + '</p>' +
-    '<div class="ci-lines"><p class="muted">Measure on Sunday morning, before food, tape snug but not tight, same spot each week.</p></div></section><p class="sync" id="sync"></p>';
+  var html = '<section class="screen">' + topBar('Measurements', tw ? 'Week ' + tw.week + (tw.date ? ', ' + tw.date : '') : 'Week ' + data.week, 'progress');
+  if (!tw) { $('app').innerHTML = html + '<p class="note warn">Week ' + data.week + ' is not on your Measurements tab yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
+  html += '<p class="meta">Sunday morning, before food, tape snug not tight, same spot each week.</p><div class="form"><div class="grid2">' + m.fields.map(function (x) {
+    var last = lw && lw.values[x.id];
+    return '<label class="field"><span>' + esc(x.label) + '</span><div class="box"><input data-cm="' + x.id + '" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(tw.values[x.id] || '') + '" placeholder="' + esc(last || '0.0') + '" aria-label="' + esc(x.label) + ' in cm"><span class="unit">cm</span></div>' + (last ? '<small>Last week ' + esc(last) + '</small>' : '') + '</label>';
+  }).join('') + '</div>' +
+    '<p class="note' + (/did not|wrong|number|not on/i.test(msMsg) ? ' warn' : '') + '" id="msMsg" aria-live="polite"' + (msMsg ? '' : ' hidden') + '>' + esc(msMsg) + '</p>' +
+    '<button class="btn strong" data-act="ms-save">Save week ' + tw.week + '</button><p class="sync" id="sync"></p></div></section>';
+  $('app').innerHTML = html;
   renderSync();
 }
 function measureSave() {
@@ -902,22 +1322,22 @@ function measureSave() {
     v = String(Math.round(+v * 10) / 10);
     if (v !== String(m.thisWeek.values[inp.dataset.cm] || '')) vals[inp.dataset.cm] = v;
   });
-  if (errs.length) { msMsg = errs[0]; $('msMsg').textContent = msMsg; $('msMsg').className = 'ci-status warn'; return; } // keep what they typed
-  if (!Object.keys(vals).length) { msMsg = 'Nothing changed.'; return renderMeasure(); }
+  if (errs.length) { msMsg = errs[0]; $('msMsg').hidden = false; $('msMsg').textContent = msMsg; $('msMsg').className = 'note warn'; return; }
+  if (!Object.keys(vals).length) { toast('Nothing changed'); return; }
   Object.assign(m.thisWeek.values, vals);
-  var q = queue.filter(function (x) { return x.type === 'ms' && x.week === m.thisWeek.week; })[0]; // merge with an unsent save
+  var q = queue.filter(function (x) { return x.type === 'ms' && x.week === m.thisWeek.week; })[0];
   enqueue({ type: 'ms', week: m.thisWeek.week, values: Object.assign({}, q ? q.values : {}, vals) });
   store('cw:data', data); msMsg = 'Saving…'; renderMeasure();
 }
 
-// Photos: shrunk on the phone, uploaded one at a time, kept in memory only (too big for phone storage). The app
-// never shows uploaded photos back: these thumbnails are the copies on this phone, for this visit.
+/* ---------- Photos: shrunk on the phone, uploaded one at a time, never shown back ---------- */
 var photos = [];
 function renderPhotos() {
-  $('app').innerHTML = '<section class="ci"><h2 style="margin:0">Progress photos</h2>' +
-    '<div class="ci-lines"><p>Front, side and back, same light and spot each week. They go straight into your Check In Photos folder for week ' + data.week + '.</p>' +
-    '<p class="muted">Keep this screen open until each photo says Uploaded.</p></div>' +
-    '<label class="pick">' + icon('play') + '<span>Add photos</span><input type="file" id="photoIn" accept="image/*" multiple></label>' +
+  var done = photos.filter(function (p) { return p.status === 'done'; }).length;
+  $('app').innerHTML = '<section class="screen">' + topBar('Progress photos', 'Week ' + data.week, 'progress') +
+    '<p class="meta">Front, side and back, same light and spot each week. They go straight into your Week ' + data.week + ' photos folder.' + (done ? ' <b>' + done + ' uploaded.</b>' : '') + '</p>' +
+    '<label class="pick">' + icon('plus') + '<span>Add photos</span><input type="file" id="photoIn" accept="image/*" multiple></label>' +
+    (photos.length ? '<p class="meta" style="margin-top:var(--s-2)">Keep this screen open until each photo says Uploaded.</p>' : '') +
     '<div class="thumbs">' + photos.map(function (x, i) {
       return '<figure><img src="' + x.url + '" alt="Photo ' + (i + 1) + '"><figcaption>' + (x.status === 'failed' ? '<button class="chip skip" data-retry="' + i + '">Try again</button>' : esc(x.label)) + '</figcaption></figure>';
     }).join('') + '</div></section>';
@@ -926,8 +1346,7 @@ function renderPhotos() {
 function addPhoto(file) {
   var x = { url: URL.createObjectURL(file), status: 'waiting', label: 'Getting ready…', data: '' };
   photos.push(x); renderPhotos();
-  shrink(file).then(function (b64) { x.data = b64; x.label = 'Waiting…'; pumpPhotos(); },
-    function () { x.status = 'bad'; x.label = 'Could not read this one'; renderPhotos(); });
+  shrink(file).then(function (b64) { x.data = b64; x.label = 'Waiting…'; pumpPhotos(); }, function () { x.status = 'bad'; x.label = 'Could not read this one'; renderPhotos(); });
 }
 function shrink(file) {
   return new Promise(function (ok, no) {
@@ -948,191 +1367,47 @@ function pumpPhotos() {
   photoBusy = true; x.status = 'up'; x.label = 'Uploading…'; if (view.screen === 'photos') renderPhotos();
   api.uploadPhoto({ week: data.week, data: x.data }).then(function (res) {
     if (res && res.ok) { x.status = 'done'; x.label = 'Uploaded'; x.data = ''; } else { x.status = 'failed'; x.label = (res && res.error) || 'Failed'; }
-  }, function () { x.status = 'failed'; x.label = 'No signal'; }).then(function () {
-    photoBusy = false; if (view.screen === 'photos') renderPhotos(); pumpPhotos();
-  });
+  }, function () { x.status = 'failed'; x.label = 'No signal'; }).then(function () { photoBusy = false; if (view.screen === 'photos') renderPhotos(); pumpPhotos(); });
 }
 function retryPhoto(i) { var x = photos[i]; if (x && x.data) { x.status = 'waiting'; x.label = 'Waiting…'; pumpPhotos(); renderPhotos(); } }
 
-function scaleSave(n) {
-  var f = fieldById(view.field), date = ciState.date, day = ciDay(date);
-  if (!day) { ciState.warn = true; ciState.msg = shortDate(date) + ' is not in your Check In tab yet. Message Adam.'; return renderScaleCard(); }
-  var have = day.values[f.id];
-  if (have === String(n)) return;
-  enqueue({ type: 'ci', date: date, field: f.id, value: n, replace: !!have, prev: have });
-  day.values[f.id] = String(n); store('cw:data', data);
-  ciState.confirm = ''; ciState.warn = false; ciState.msg = 'Saving ' + n + ' for ' + shortDate(date) + '…';
-  renderScaleCard();
-}
-
-function ciSave() {
-  var c = data.checkIn, f = weightField(), date = ciState.date, day = ciDay(date);
-  ciState.warn = true;
-  if (!day) { ciState.msg = shortDate(date) + ' isn\'t in your Check In tab yet. Message Adam.'; return renderCheckIn(); }
-  var r = parseWeight($('ciVal').value, f.unit);
-  if (r.error) { ciState.msg = r.error; ciState.confirm = ''; return renderCheckIn(); }
-  var have = day.values[f.id], typed = $('ciVal').value;
-  if (have && parseFloat(have) !== r.value && ciState.confirm !== 'replace' && ciState.confirm !== 'jump') {
-    ciState.confirm = 'replace'; ciState.msg = 'You already logged ' + have + ' for ' + shortDate(date) + '. Tap Replace to change it.';
-    renderCheckIn(); $('ciVal').value = typed; return;
-  }
-  var warn = weightWarning(r.value, ciPrev(date, f.id));
-  if (warn && ciState.confirm !== 'jump') {
-    var wasReplace = ciState.confirm === 'replace';
-    ciState.confirm = 'jump'; ciState.replace = wasReplace || !!have; ciState.msg = warn;
-    renderCheckIn(); $('ciVal').value = typed; return;
-  }
-  enqueue({ type: 'ci', date: date, field: f.id, value: r.value, replace: ciState.confirm === 'replace' || !!ciState.replace || !!have, prev: have });
-  day.values[f.id] = String(r.value); store('cw:data', data); // show it now; the sheet's reply replaces it
-  ciState.confirm = ''; ciState.replace = false; ciState.warn = false; ciState.msg = 'Saving ' + r.value + ' ' + f.unit + ' for ' + shortDate(date) + '…';
-  renderCheckIn();
-}
-
-function checkInSaved(p, res) {
-  if (!data || !data.checkIn) return;
-  if (res.ok && res.checkIn) {
-    data.checkIn = res.checkIn;
-    var pf = fieldById(p.field) || (/^habit:/.test(p.field) ? { unit: '' } : null);
-    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = typeof p.value === 'boolean' || pf.kind === 'text' ? 'Saved to ' + SAVED_TO + '.' : 'Saved ' + p.value + (pf && pf.unit ? ' ' + pf.unit : '') + ' to ' + SAVED_TO + '.'; }
-  }
-  else {
-    var day = ciDay(p.date), hm = /^habit:(\d+)$/.exec(p.field);
-    if (hm) { var hd = data.checkIn.habits && data.checkIn.habits.days[p.date]; if (hd) hd[+hm[1]] = !!p.prev; if (day) day.values.habits = p.prevVerdict || ''; }
-    else if (day) day.values[p.field] = p.prev || ''; // undo the early display
-    ciState.date = p.date; ciState.warn = true;
-    if (res.conflict) { ciState.confirm = 'replace'; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type the number again and tap Replace to change it.'; }
-    else ciState.msg = res.error || 'That didn\'t save. Try again.';
-  }
-  store('cw:data', data);
-  var typing = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.entry;
-  if (view.screen === 'entry' && typing) { if ($('ciMsg')) { $('ciMsg').textContent = ciState.msg; $('ciMsg').className = 'ci-status' + (ciState.warn ? ' warn' : ''); } }
-  else if (view.screen === 'weight' || view.screen === 'scale' || view.screen === 'entry') renderField(); else if (view.screen === 'hub') renderHub();
-}
-
-function lastCell(p, i) {
-  if (!p) return '<span class="last none">No previous</span>';
-  var kg = p.kg[i], r = p.reps[i];
-  if (!kg && !r) return '<span class="last none">Not done</span>';
-  return '<span class="last">' + (kg ? esc(kg) + ' kg' : 'No weight') + '<small>× ' + (r ? esc(r) : '?') + '</small></span>';
-}
-function beats(p, i, kg, r) {
-  if (!p) return false;
-  var pk = parseFloat(p.kg[i]) || 0, pr = parseFloat(p.reps[i]) || 0, k = parseFloat(kg), rr = parseFloat(r);
-  if (isNaN(rr)) return false;
-  if (isNaN(k)) k = 0;
-  return k > pk || (k >= pk && rr > pr);
-}
-
-function renderEx() {
-  var day = dayByName(sess.day), x = exByName(day, sess.current);
-  if (!x) return show(remaining().length ? 'ov' : 'fin');
-  var p = prevOf(x), d = draft(x.name), n = setCount(x);
-  var rest = /^\d+$/.test(x.rest) ? x.rest + 's' : '';
-  var html = '<article class="ex"><p class="sync" id="sync"></p><h1>' + esc(x.name) + '</h1><ul class="target">' +
-    '<li><b>' + esc(x.sets || n) + '</b>sets</li><li><b>' + esc(x.reps) + '</b>reps</li>' +
-    (rest ? '<li><b>' + esc(rest) + '</b>rest</li>' : '') + '</ul>' +
-    (x.video ? '<a class="video" href="' + esc(x.video) + '" target="_blank" rel="noopener">' + icon('play') + 'Watch the demo</a>' : '') +
-    '<section class="beat"><h2>' + (p ? 'Numbers to beat' : 'First time logging this') +
-    '<span>' + (p ? 'from week ' + p.week : 'set your baseline') + '</span></h2>' +
-    (p && p.comment ? '<p class="prev-note">You noted: "' + esc(p.comment) + '"</p>' : '') + '<div class="sets">';
-  for (var i = 0; i < n; i++) {
-    html += '<div class="set' + (beats(p, i, d.kg[i], d.reps[i]) ? ' beaten' : '') + '" id="set' + i + '"><span class="no">' + (i + 1) + '</span>' + lastCell(p, i) +
-      '<label><span>kg</span><input inputmode="decimal" enterkeyhint="next" data-f="kg" data-i="' + i + '" value="' + esc(d.kg[i]) + '" aria-label="Set ' + (i + 1) + ' kg"></label>' +
-      '<label><span>reps</span><input inputmode="numeric" enterkeyhint="next" data-f="reps" data-i="' + i + '" value="' + esc(d.reps[i]) + '" aria-label="Set ' + (i + 1) + ' reps"></label></div>';
-  }
-  html += '</div><div class="note"><input data-f="comment" value="' + esc(d.comment) + '" placeholder="Note for Adam (optional)" aria-label="Note for Adam" enterkeyhint="done"></div>' +
-    '<p class="hint" id="hint" hidden></p></section></article>';
-  $('app').innerHTML = html;
-  $('doneBtn').lastChild.textContent = 'Complete';
-  sess.confirmEmpty = false;
-  renderSync();
-}
-
-function renderOv() {
-  var day = dayByName(sess.day), left = remaining();
-  var html = '<section class="ov"><p class="sync" id="sync"></p><h1>' + esc(sess.day) + '</h1><p class="lead">' +
-    (left.length ? 'Tap <b>Do now</b> to pick what\'s next. Skip anything you can\'t do today.' : 'Every exercise is done or skipped.') + '</p><ol>';
-  sess.order.forEach(function (name) {
-    var x = exByName(day, name), isDone = sess.done.indexOf(name) > -1, isSkip = sess.skipped.indexOf(name) > -1, isCur = name === sess.current && !isDone && !isSkip;
-    var p = prevOf(x);
-    html += '<li class="row' + (isDone ? ' is-done' : isSkip ? ' is-skipped' : isCur ? ' is-current' : '') + '">' +
-      '<span class="state">' + (isDone ? icon('check') : '') + '</span><span class="info"><b>' + esc(name) + '</b><span>' +
-      esc(x.sets) + ' × ' + esc(x.reps) + (isDone ? ' · logged' : isSkip ? ' · skipped' : p ? ' · last: week ' + p.week : '') + '</span></span>' +
-      (isSkip ? '<button class="chip go" data-act="unskip" data-n="' + esc(name) + '">Undo skip</button>'
-        : isDone ? '<button class="chip" data-act="edit" data-n="' + esc(name) + '">Edit</button>'
-        : '<button class="chip go" data-act="go" data-n="' + esc(name) + '">' + (isCur ? 'Resume' : 'Do now') + '</button>' +
-          '<button class="chip skip" data-act="skip" data-n="' + esc(name) + '">Skip</button>') + '</li>';
-  });
-  html += '</ol>' + (left.length ? '' : '<p style="margin-top:22px"><button class="btn primary" style="width:100%" data-act="finish">Finish session</button></p>') + '</section>';
-  $('app').innerHTML = html;
-  renderSync();
-}
-
-function renderFin() {
-  var day = dayByName(sess.day), ups = 0;
-  var rows = sess.order.map(function (name) {
-    var x = exByName(day, name), d = sess.drafts[name], p = prevOf(x);
-    if (sess.skipped.indexOf(name) > -1) return '<li><b>' + esc(name) + '</b><span>Skipped</span></li>';
-    if (!d) return '';
-    var up = d.kg.some(function (_, i) { return beats(p, i, d.kg[i], d.reps[i]); });
-    if (up) ups++;
-    var best = d.kg.map(function (k, i) { return k || d.reps[i] ? (k ? k + 'kg' : '') + (d.reps[i] ? '×' + d.reps[i] : '') : ''; }).filter(Boolean).join(', ');
-    return '<li class="' + (up ? 'up' : '') + '"><b>' + esc(name) + '</b><span>' + esc(best || 'Done') + (up ? ' ↑' : '') + '</span></li>';
-  }).join('');
-  $('app').innerHTML = '<section class="fin"><div class="mark">' + icon('check') + '</div><h1>' + esc(sess.day) + ' done.</h1>' +
-    '<p>' + (ups ? 'You beat last time on ' + ups + (ups === 1 ? ' exercise' : ' exercises') + '. ' : '') + 'Week ' + data.week + ' logged.</p>' +
-    '<p class="sync" id="sync"></p><ul>' + rows + '</ul>' +
-    '<button class="btn ghost" style="width:100%" data-act="home">Back to sessions</button></section>';
-  renderSync();
-}
-
-/* ---------- actions ---------- */
-function commit(name, skip) {
-  var d = draft(name);
-  var today = localIso();
-  enqueue({ day: sess.day, exercise: name, week: data.week, kg: d.kg, reps: d.reps, comment: d.comment, skip: !!skip, date: today });
-  var t = !skip && data.checkIn && ciDay(today); // the sheet marks today Training; show it on the menu now
-  if (t && 'training' in t.values) { t.values.training = 'Training'; store('cw:data', data); }
-}
-function next() {
-  var left = remaining();
-  sess.current = left[0] || null; saveSess();
-  show(left.length ? 'ex' : 'fin');
-}
-
+/* ---------- events ---------- */
 document.addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.tab) return show(b.dataset.tab);
+  if (b.dataset.back) return show(b.dataset.back);
   if (b.dataset.day) { openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
   if (b.dataset.go) return show(b.dataset.go);
-  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderField(); }
-  if (b.dataset.scale) return scaleSave(+b.dataset.scale);
+  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderLog(); }
+  if (b.dataset.scale) return scaleSave(b.dataset.scale, +b.dataset.n);
+  if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit);
   if (b.dataset.sw) return switchSave(b.dataset.sw);
   if (b.dataset.task) return taskToggle(+b.dataset.task);
+  if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
+  if (b.dataset.copy !== undefined) return copyLast(+b.dataset.copy);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
   if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
-  if (b.dataset.act === 'shop-make') return shopMake();
-  if (b.dataset.act === 'shop-change') { shopState().made = false; saveShopState(); return renderShop(); }
-  if (b.dataset.mealtab !== undefined) { view.mealTab = +b.dataset.mealtab; return renderMeal(); }
-  if (b.dataset.act === 'ms-save') return measureSave();
+  if (b.dataset.mealtab !== undefined) { view.mealTab = +b.dataset.mealtab; return renderPlan(); }
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
-  if (b.dataset.act === 'entry-save') return entrySave();
   var act = b.dataset.act, n = b.dataset.n;
-  if (act === 'ci-save') return ciSave();
+  if (act === 'save-log') return saveLog();
+  if (act === 'shop-make') return shopMake();
+  if (act === 'shop-change') { shopState().made = false; saveShopState(); return renderShop(); }
+  if (act === 'ms-save') return measureSave();
+  if (act === 'weekly-send') return weeklySend();
+  if (act === 'weekly-again') { store('cw:wsent:' + data.week, false); return renderWeekly(); }
   if (act === 'go' || act === 'edit') { sess.current = n; sess.done = sess.done.filter(function (x) { return x !== n; }); saveSess(); return show('ex'); }
   if (act === 'skip') { sess.skipped.push(n); if (sess.current === n) sess.current = remaining()[0] || null; saveSess(); commit(n, true); return show('ov'); }
   if (act === 'unskip') { sess.skipped = sess.skipped.filter(function (x) { return x !== n; }); saveSess(); return show('ov'); }
   if (act === 'finish') return show('fin');
-  if (act === 'home') return show('home');
 });
-$('barBack').onclick = function () {
-  if (view.screen === 'supp') return show('supps');
-  if (['weight', 'scale', 'entry', 'home', 'meal', 'shop', 'supps', 'measure', 'photos'].indexOf(view.screen) > -1) return show(startScreen());
-  show(view.screen === 'ov' && sess.current && remaining().length ? 'ex' : 'home');
-};
-$('barList').onclick = function () { show('ov'); };
-$('skipBtn').onclick = function () {
-  var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next();
-};
+function copyLast(i) { // one tap fills a set with last time's numbers
+  var p = prevOf(exByName(dayByName(sess.day), sess.current)), d = draft(sess.current); if (!p) return;
+  d.kg[i] = p.kg[i] || ''; d.reps[i] = p.reps[i] || ''; saveSess();
+  var row = $('set' + i); row.querySelector('[data-f="kg"]').value = d.kg[i]; row.querySelector('[data-f="reps"]').value = d.reps[i];
+  row.classList.toggle('beaten', beats(p, i, d.kg[i], d.reps[i]));
+}
+$('skipBtn').onclick = function () { var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next(); };
 $('doneBtn').onclick = function () {
   var n = sess.current, d = draft(n);
   var any = d.kg.concat(d.reps).some(function (v) { return String(v).trim() !== ''; });
@@ -1145,52 +1420,44 @@ $('doneBtn').onclick = function () {
   sess.done.push(n); if (any) commit(n, false); next();
 };
 document.addEventListener('change', function (e) {
-  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderField(); }
+  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderLog(); }
 });
 document.addEventListener('input', function (e) {
-  if (e.target.id === 'ciVal' && ciState.confirm) { // a new number needs its own checks
-    ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false;
-    var b = document.querySelector('[data-act="ci-save"]'); if (b) b.textContent = 'Save'; $('ciMsg').textContent = '';
-  }
+  if (e.target.id === 'ciVal' && ciState.confirm) { ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false; var sb = $('saveBtn'); if (sb) sb.querySelector('.st-idle').textContent = 'Save'; if ($('ciMsg')) { $('ciMsg').textContent = ''; $('ciMsg').className = ''; } }
   var f = e.target.dataset && e.target.dataset.f; if (!f || !sess || !sess.current) return;
   var d = draft(sess.current);
   if (f === 'comment') d.comment = e.target.value; else d[f][+e.target.dataset.i] = e.target.value;
   saveSess();
-  if (f !== 'comment') {
-    var i = +e.target.dataset.i, p = prevOf(exByName(dayByName(sess.day), sess.current));
-    $('set' + i).classList.toggle('beaten', beats(p, i, d.kg[i], d.reps[i]));
-  }
+  if (f !== 'comment') { var i = +e.target.dataset.i, p = prevOf(exByName(dayByName(sess.day), sess.current)), row = $('set' + i), was = row.classList.contains('beaten'), now = beats(p, i, d.kg[i], d.reps[i]);
+    row.classList.toggle('beaten', now); if (now && !was) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); buzz(15); } }
 });
-document.addEventListener('keydown', function (e) { // Enter jumps to the next box, like a form on a phone should
-  if (e.key === 'Enter' && e.target.id === 'ciVal') { e.preventDefault(); return ciSave(); }
-  if (e.key !== 'Enter' || !e.target.dataset || !e.target.dataset.f) return;
+document.addEventListener('keydown', function (e) { // Enter moves to the next box; on the last box it saves
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  var inForm = e.target.closest('.form'), inEx = e.target.closest('.ex');
+  if (!inForm && !inEx) return;
   e.preventDefault();
-  var all = Array.prototype.slice.call(document.querySelectorAll('.ex input'));
-  var nx = all[all.indexOf(e.target) + 1]; if (nx) nx.focus(); else e.target.blur();
+  var all = Array.prototype.slice.call((inForm || inEx).querySelectorAll('input:not([type="date"]):not([type="file"])'));
+  var nx = all[all.indexOf(e.target) + 1];
+  if (nx) nx.focus(); else { e.target.blur(); if (inForm && $('saveBtn')) saveLog(); }
 });
 
 /* ---------- boot ---------- */
 function boot() {
-  if (data) { resume(); }
+  if (data) resume();
   api.getData().then(function (fresh) {
     var first = !data; data = fresh; store('cw:data', data);
     if (data.savedTo) SAVED_TO = data.savedTo;
     if (data.title) document.title = data.title;
     loadPlan();
-    if (first || view.screen === 'hub' || view.screen === 'home') resume();
-    else if ((view.screen === 'weight' && document.activeElement !== $('ciVal')) || view.screen === 'scale' || (view.screen === 'entry' && !document.activeElement.dataset.entry)) renderField();
+    if (first || TABS[view.screen]) resume();
+    else if (view.screen === 'log' && !(document.activeElement && (document.activeElement.dataset.entry || document.activeElement.id === 'ciVal'))) renderLog();
     flush();
   }, function (err) {
-    if (!data) $('app').innerHTML = '<div class="err"><b>Couldn\'t load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
+    if (!data) $('app').innerHTML = '<div class="err"><b>Could not load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
     else { syncState.error = 'offline'; renderSync(); }
   });
 }
-// First paint and fresh data: redraw the menu or day list; never pull someone out of a session or the weight box.
-function resume() {
-  var v = view.screen;
-  if (!v || (v === 'hub' && !data.checkIn)) return show(startScreen());
-  if (v === 'hub' || v === 'home') show(v);
-}
+function resume() { var v = view.screen; if (!v || !TABS[v]) return show('today'); show(v); }
 boot();
 
 function mockApi() { // public copy: a link without ?s and ?k has nothing to load
