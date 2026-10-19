@@ -105,6 +105,11 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .ci-week button.is-today { border-color: var(--green-deep); }
 .ci-week button.is-sel { border-color: var(--green); box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 30%, transparent); }
 .ci-week button:disabled { opacity: .4; cursor: default; }
+.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+.scale button { height: 60px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); font-size: 24px; font-weight: 700; transition: transform .15s var(--ease), background .2s; }
+.scale button:active { transform: scale(.95); }
+.scale button.is-sel { background: var(--green); border-color: var(--green); color: var(--green-ink); }
+.scale-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: var(--muted); }
 .ci-lines { margin: 14px 0 0; display: grid; gap: 4px; font-size: 15px; }
 .ci-lines p { margin: 0; }
 .ci-lines .muted { color: var(--muted); font-size: 13px; }
@@ -324,14 +329,15 @@ function renderSync() {
 // Screens: hub (menu, only when the sheet has check in) > weight | home (workout days) > ex / ov / fin.
 function startScreen() { return data.checkIn ? 'hub' : 'home'; }
 function show(screen, day) {
+  if (screen.indexOf('scale:') === 0) { view.field = screen.slice(6); screen = 'scale'; }
   view.screen = screen; if (day) view.day = day;
   var inDay = screen === 'ex' || screen === 'ov' || screen === 'fin';
   var menuChild = !inDay && screen !== startScreen(); // weight, or workouts opened from the menu
   $('bar').hidden = !inDay && !menuChild; $('dock').hidden = screen !== 'ex';
   $('barLeft').hidden = $('barList').hidden = menuChild;
   if (menuChild) {
-    $('barDay').textContent = screen === 'weight' ? 'Weight' : 'Workouts';
-    $('barWeek').textContent = screen === 'weight' ? fmtDate(localIso()) : 'Week ' + data.week;
+    $('barDay').textContent = screen === 'weight' ? 'Weight' : screen === 'scale' ? fieldById(view.field).label : 'Workouts';
+    $('barWeek').textContent = screen === 'home' ? 'Week ' + data.week : fmtDate(localIso());
   }
   if (inDay) {
     $('barDay').textContent = sess.day;
@@ -341,7 +347,7 @@ function show(screen, day) {
     $('barLeft').className = 'left' + (n ? '' : ' zero');
     $('barList').hidden = screen === 'ov';
   }
-  ({ hub: renderHub, weight: renderWeight, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
+  ({ hub: renderHub, weight: renderWeight, scale: renderScale, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
   document.body.scrollTop = 0;
 }
 
@@ -380,9 +386,10 @@ function dayDone(d) { // every exercise logged (in the sheet or this session) or
 // Menu: one tile per daily check in field, then Workouts. A new field kind = one more tile here.
 function renderHub() {
   var c = data.checkIn, today = localIso(), t = ciDay(today);
-  var tiles = c.fields.filter(function (f) { return f.kind === 'weight'; }).map(function (f) {
+  var tiles = c.fields.filter(function (f) { return f.kind === 'weight' || f.kind === 'scale'; }).map(function (f) {
     var v = t && t.values[f.id];
-    return { go: f.id === 'bodyweight' ? 'weight' : f.id, name: f.label, done: !!v, sub: v ? v + ' ' + f.unit + ' logged today' : 'Not logged yet today' };
+    return { go: f.kind === 'weight' ? 'weight' : 'scale:' + f.id, name: f.label, done: !!v,
+      sub: !v ? 'Not logged yet today' : f.kind === 'scale' ? v + ' out of 5 today' : v + ' ' + f.unit + ' logged today' };
   });
   var doneN = tiles.filter(function (x) { return x.done; }).length;
   var trained = t && /^train/i.test(t.values.training || '');
@@ -468,6 +475,52 @@ function renderCheckIn() {
   el.innerHTML = html + '<div class="ci-lines"><p>' + lines.join('</p><p>') + '</p></div>';
 }
 
+function fieldById(id) { return data.checkIn.fields.filter(function (f) { return f.id === id; })[0]; }
+function renderField() { return view.screen === 'scale' ? renderScaleCard() : renderCheckIn(); }
+function weekStrip(f, today) {
+  var c = data.checkIn, wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
+  return !wk.length ? '' : '<div class="ci-week">' + wk.map(function (d) {
+    var v = d.values[f.id];
+    return '<button data-ci-date="' + d.date + '"' + (d.date > today ? ' disabled' : '') + ' class="' + (d.date === today ? 'is-today ' : '') + (d.date === ciState.date ? 'is-sel' : '') + '">' +
+      '<small>' + new Date(d.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' }) + '</small>' + (v ? esc(v) : '·') + '</button>';
+  }).join('') + '</div>';
+}
+
+function renderScale() {
+  $('app').innerHTML = '<section class="ci" id="ci"></section><p class="sync" id="sync"></p>';
+  renderScaleCard();
+  renderSync();
+}
+// One tap saves: the current answer is lit up, so tapping another number is a clear change (no Replace step).
+function renderScaleCard() {
+  var el = $('ci'), c = data.checkIn, f = fieldById(view.field); if (!el || !f) return;
+  var today = localIso();
+  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
+  var day = ciDay(ciState.date), have = day ? day.values[f.id] : '';
+  var html = '<div class="ci-head"><h2>' + esc(f.label) + (ciState.date === today ? ' today' : ' on ' + esc(shortDate(ciState.date))) + '</h2>' +
+    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>' +
+    '<div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
+      return '<button data-scale="' + n + '" class="' + (String(n) === have ? 'is-sel' : '') + '" aria-pressed="' + (String(n) === have) + '">' + n + '</button>';
+    }).join('') + '</div><div class="scale-ends"><span>1 · ' + esc(f.low) + '</span><span>' + esc(f.high) + ' · 5</span></div>' +
+    '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' +
+    (ciState.msg ? esc(ciState.msg) : !day ? esc(shortDate(ciState.date)) + ' is not in your Check In tab yet. Message Adam.' : have ? 'Logged for ' + esc(shortDate(ciState.date)) + '. Tap another number to change it.' : '') + '</p>';
+  var tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id], line = '';
+  if (tw) line = 'Week ' + c.thisWeek.week + ' average <span class="num">' + esc(tw) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(lw) + '.' : '.');
+  else if (lw) line = 'Week ' + c.lastWeek.week + ' average was ' + esc(lw) + '.';
+  el.innerHTML = html + weekStrip(f, today) + '<div class="ci-lines">' + (line ? '<p>' + line + '</p>' : '') +
+    '<p class="muted">Go with your gut for the day as a whole. It is the weekly pattern that counts.</p></div>';
+}
+function scaleSave(n) {
+  var f = fieldById(view.field), date = ciState.date, day = ciDay(date);
+  if (!day) { ciState.warn = true; ciState.msg = shortDate(date) + ' is not in your Check In tab yet. Message Adam.'; return renderScaleCard(); }
+  var have = day.values[f.id];
+  if (have === String(n)) return;
+  enqueue({ type: 'ci', date: date, field: f.id, value: n, replace: !!have, prev: have });
+  day.values[f.id] = String(n); store('cw:data', data);
+  ciState.confirm = ''; ciState.warn = false; ciState.msg = 'Saving ' + n + ' for ' + shortDate(date) + '…';
+  renderScaleCard();
+}
+
 function ciSave() {
   var c = data.checkIn, f = weightField(), date = ciState.date, day = ciDay(date);
   ciState.warn = true;
@@ -495,7 +548,8 @@ function checkInSaved(p, res) {
   if (!data || !data.checkIn) return;
   if (res.ok && res.checkIn) {
     data.checkIn = res.checkIn;
-    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = 'Saved ' + p.value + ' ' + weightField().unit + ' to ' + SAVED_TO + '.'; }
+    var pf = fieldById(p.field);
+    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = 'Saved ' + p.value + (pf && pf.unit ? ' ' + pf.unit : '') + ' to ' + SAVED_TO + '.'; }
   }
   else {
     var day = ciDay(p.date); if (day) day.values[p.field] = p.prev || ''; // undo the early display
@@ -504,7 +558,7 @@ function checkInSaved(p, res) {
     else ciState.msg = res.error || 'That didn\'t save. Try again.';
   }
   store('cw:data', data);
-  if (view.screen === 'weight') renderCheckIn(); else if (view.screen === 'hub') renderHub();
+  if (view.screen === 'weight' || view.screen === 'scale') renderField(); else if (view.screen === 'hub') renderHub();
 }
 
 function lastCell(p, i) {
@@ -602,7 +656,8 @@ document.addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
   if (b.dataset.day) { openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
   if (b.dataset.go) return show(b.dataset.go);
-  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderCheckIn(); }
+  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderField(); }
+  if (b.dataset.scale) return scaleSave(+b.dataset.scale);
   var act = b.dataset.act, n = b.dataset.n;
   if (act === 'ci-save') return ciSave();
   if (act === 'go' || act === 'edit') { sess.current = n; sess.done = sess.done.filter(function (x) { return x !== n; }); saveSess(); return show('ex'); }
@@ -612,7 +667,7 @@ document.addEventListener('click', function (e) {
   if (act === 'home') return show('home');
 });
 $('barBack').onclick = function () {
-  if (view.screen === 'weight' || view.screen === 'home') return show(startScreen());
+  if (view.screen === 'weight' || view.screen === 'scale' || view.screen === 'home') return show(startScreen());
   show(view.screen === 'ov' && sess.current && remaining().length ? 'ex' : 'home');
 };
 $('barList').onclick = function () { show('ov'); };
@@ -631,7 +686,7 @@ $('doneBtn').onclick = function () {
   sess.done.push(n); if (any) commit(n, false); next();
 };
 document.addEventListener('change', function (e) {
-  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderCheckIn(); }
+  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderField(); }
 });
 document.addEventListener('input', function (e) {
   if (e.target.id === 'ciVal' && ciState.confirm) { // a new number needs its own checks
@@ -663,7 +718,7 @@ function boot() {
     if (data.savedTo) SAVED_TO = data.savedTo;
     if (data.title) document.title = data.title;
     if (first || view.screen === 'hub' || view.screen === 'home') resume();
-    else if (view.screen === 'weight' && document.activeElement !== $('ciVal')) renderCheckIn();
+    else if ((view.screen === 'weight' && document.activeElement !== $('ciVal')) || view.screen === 'scale') renderField();
     flush();
   }, function (err) {
     if (!data) $('app').innerHTML = '<div class="err"><b>Couldn\'t load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
