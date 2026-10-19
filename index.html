@@ -217,8 +217,10 @@ var LS = (function () {
   try { localStorage.setItem('cw:t', '1'); localStorage.removeItem('cw:t'); return localStorage; }
   catch (e) { var m = {}; return { getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; } }; }
 })();
-function load(k, d) { try { var v = LS.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
-function store(k, v) { try { LS.setItem(k, JSON.stringify(v)); } catch (e) {} }
+// On GitHub Pages every client's link shares one origin: keep each script's saves apart.
+var NS = SCRIPT ? SCRIPT.slice(-10) + '|' : '';
+function load(k, d) { try { var v = LS.getItem(NS + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function store(k, v) { try { LS.setItem(NS + k, JSON.stringify(v)); } catch (e) {} }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
 function $(id) { return document.getElementById(id); }
 function icon(n) { return '<svg class="i"><use href="#i-' + n + '"/></svg>'; }
@@ -305,7 +307,8 @@ window.addEventListener('online', function () { syncState.error = ''; flush(); }
 function renderSync() {
   var el = $('sync'); if (!el) return;
   el.className = 'sync' + (syncState.error ? ' error' : queue.length ? ' pending' : '');
-  el.textContent = syncState.error
+  el.textContent = syncState.error && !queue.length ? 'Offline. Showing what you last loaded.'
+    : syncState.error
     ? queue.length + ' not saved yet. Keep going, it will retry. (' + syncState.error + ')'
     : queue.length ? 'Saving to ' + SAVED_TO + '…' : 'Everything saved to ' + SAVED_TO;
 }
