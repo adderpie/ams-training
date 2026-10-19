@@ -27,6 +27,8 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior-y: none; }
+html { scrollbar-width: none; } /* app feel: no page scroll bar while scrolling */
+::-webkit-scrollbar { display: none; width: 0; height: 0; }
 /* Dark strip pinned past the bottom edge: when the phone's browser bar slides away mid-scroll, Google's white
    wrapper page showed through for a frame on the home screen (exercise screens hide it behind the dock). */
 body::after { content: ""; position: fixed; left: 0; right: 0; bottom: -120px; height: 240px; background: var(--bg); z-index: -1; pointer-events: none; }
