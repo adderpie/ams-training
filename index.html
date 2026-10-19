@@ -292,8 +292,7 @@ var api = (typeof google !== 'undefined' && google.script) ? {
   getPlan: function () { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).getPlan(KEY); }); },
   saveTask: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveTask(KEY, p); }); },
   saveMeasurement: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveMeasurement(KEY, p); }); },
-  uploadPhoto: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).uploadPhoto(KEY, p); }); },
-  emailShoppingList: function () { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).emailShoppingList(KEY); }); }
+  uploadPhoto: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).uploadPhoto(KEY, p); }); }
 } : SCRIPT ? {
   getData: function () { return post('getData'); },
   save: function (p) { return post('saveExercise', p); },
@@ -301,8 +300,7 @@ var api = (typeof google !== 'undefined' && google.script) ? {
   getPlan: function () { return post('getPlan'); },
   saveTask: function (p) { return post('saveTask', p); },
   saveMeasurement: function (p) { return post('saveMeasurement', p); },
-  uploadPhoto: function (p) { return post('uploadPhoto', p); },
-  emailShoppingList: function () { return post('emailShoppingList'); }
+  uploadPhoto: function (p) { return post('uploadPhoto', p); }
 } : mockApi();
 function post(fn, p) { // text/plain body: no CORS preflight, Apps Script answers with JSON {ok, result|error}
   return fetch('https://script.google.com/macros/s/' + SCRIPT + '/exec', { method: 'POST', body: JSON.stringify({ fn: fn, k: KEY, p: p }) })
@@ -499,7 +497,7 @@ function renderHub() {
   if (sections) html = html.replace('<ul class="days">', tasksCard() + '<h2 class="sec">Today</h2><ul class="days">');
   html += tiles.map(tileHtml).join('') + '</ul>';
   if (sections) {
-    var mine = [ft.plan && { go: 'meal', name: 'Meal plan', sub: 'Your meals for the day' }, ft.plan && { go: 'shop', name: 'Shopping list', sub: 'Everything for 7 days' },
+    var mine = [ft.plan && { go: 'meal', name: 'Meal plan', sub: 'Your meals for the day' }, ft.plan && { go: 'shop', name: 'Shopping list', sub: 'Pick your days, tick items off' },
       ft.supps && { go: 'supps', name: 'Supplements', sub: 'What to take and when' }].filter(Boolean);
     var m = data.measurements, mdone = m && m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; });
     var weekly = [ft.measure && m && { go: 'measure', name: 'Measurements', done: mdone, sub: mdone ? 'Logged for week ' + m.thisWeek.week : 'Week ' + (m.thisWeek ? m.thisWeek.week : data.week) + (m.thisWeek && m.thisWeek.date ? ' · ' + m.thisWeek.date : '') },
@@ -775,39 +773,97 @@ function howTo(id) {
 }
 
 function renderMeal() {
-  if (!plan || !plan.meals) { $('app').innerHTML = waitPlan(); return; }
-  var t = plan.targets || {}, sum = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+  if (!plan || !plan.plans) { $('app').innerHTML = waitPlan(); return; }
+  var i = Math.min(view.mealTab || 0, plan.plans.length - 1), mp = plan.plans[i];
+  if (!mp) { $('app').innerHTML = '<p class="hint">No meals in your plan yet. Message Adam.</p>'; return; }
+  var t = mp.targets || {}, sum = { calories: 0, protein: 0, carbs: 0, fats: 0 };
   var num = function (v) { return Number(String(v || '').replace(/,/g, '')) || 0; };
-  var html = plan.meals.map(function (m) {
+  var html = mp.meals.map(function (m) {
     ['calories', 'protein', 'carbs', 'fats'].forEach(function (k) { sum[k] += num(m.totals && m.totals[k]); });
     return '<section class="meal"><h2>' + esc(m.name || 'Meal') + '</h2><ul>' + m.foods.map(function (x) {
       return '<li><b>' + esc(x.food) + '</b><span>' + esc(x.portion) + '</span></li>';
     }).join('') + '</ul>' + (m.totals ? '<p class="tot">' + esc(fmtNum(m.totals.calories)) + ' kcal · ' + esc(m.totals.protein) + 'g protein · ' + esc(m.totals.carbs) + 'g carbs · ' + esc(m.totals.fats) + 'g fats</p>' : '') + '</section>';
   }).join('');
-  var top = '<section class="week"><h1 class="date">Your day</h1><p>' + fmtNum(Math.round(sum.calories)) + ' kcal · ' + Math.round(sum.protein) + 'g protein · ' + Math.round(sum.carbs) + 'g carbs · ' + Math.round(sum.fats) + 'g fats' +
+  var chips = plan.plans.length > 1 ? '<div class="target" style="margin-top:20px">' + plan.plans.map(function (p, k) {
+    return '<button class="chip' + (k === i ? ' go' : '') + '" data-mealtab="' + k + '">' + esc(p.tab) + '</button>';
+  }).join('') + '</div>' : '';
+  var top = chips + '<section class="week"><h1 class="date">' + esc(plan.plans.length > 1 ? mp.tab : 'Your day') + '</h1><p>' + fmtNum(Math.round(sum.calories)) + ' kcal · ' + Math.round(sum.protein) + 'g protein · ' + Math.round(sum.carbs) + 'g carbs · ' + Math.round(sum.fats) + 'g fats' +
     (t.calories ? '<br>Targets ' + fmtNum(t.calories) + ' kcal · ' + t.protein + 'g protein · ' + t.carbs + 'g carbs · ' + t.fats + 'g fats' : '') + '</p></section>';
   $('app').innerHTML = top + (html || '<p class="hint">No meals in your plan yet. Message Adam.</p>') + '<div style="height:40px"></div>';
 }
 
-function shopKey() { return 'cw:shop:' + data.week; }
+/* Shopping list: the client says how many days of each meal plan they are shopping for (weekly shop, two smaller
+   shops, topping up, a new plan mid-week), then ticks items off as they go. Built on the phone, so it works in a
+   shop with no signal. The choices and ticks live on this phone only. */
+function str(v) { return v === null || v === undefined ? '' : String(v).trim(); }
+function norm(v) { return str(v).toLowerCase().replace(/\s+/g, ' '); }
+function shoppingList(meals, days) {
+  days = days || 7;
+  var by = {}, order = [];
+  meals.forEach(function (m) {
+    var d = m.days === undefined ? days : Number(m.days) || 0;
+    if (d <= 0) return;
+    m.foods.forEach(function (x) {
+      var base = Number(str(x.base).replace(/,/g, '')), sv = Number(str(x.servings).replace(/,/g, ''));
+      var mm = /^[\d.,]+\s*(.*)$/.exec(str(x.portion)), unit = mm ? str(mm[1]) : '';
+      var key = norm(x.food) + '|' + norm(unit);
+      if (!by[key]) { by[key] = { food: x.food, unit: unit, qty: 0, loose: false }; order.push(key); }
+      if (base > 0 && sv > 0 && mm) by[key].qty += base * sv * d; else by[key].loose = true;
+    });
+  });
+  return order.map(function (k) {
+    var it = by[k], u = norm(it.unit), q = it.qty, text;
+    if (!q) text = 'as needed';
+    else if (u === 'g' || u === 'ml') {
+      q = Math.ceil(q / 10) * 10;
+      text = q >= 1000 ? (q / 1000).toFixed(q % 1000 ? 2 : 0).replace(/0$/, '') + (u === 'g' ? ' kg' : ' litres') : q + ' ' + u;
+    } else if (/^(tbsp|tsp|tablespoons?|teaspoons?)$/.test(u)) { q = Math.ceil(q * 2) / 2; text = q + ' ' + it.unit; }
+    else { q = Math.ceil(q - 1e-9); text = q + (it.unit ? ' ' + it.unit : ''); }
+    return { food: it.food.trim(), qty: q, unit: it.unit, text: text };
+  });
+}
+function shopState() {
+  if (!window._shop) window._shop = load('cw:shop', { days: {}, made: false, got: {} });
+  return window._shop;
+}
+function saveShopState() { store('cw:shop', shopState()); }
+function shopItems() {
+  var st = shopState(), meals = [];
+  plan.plans.forEach(function (p) { var d = st.days[p.tab] || 0; p.meals.forEach(function (m) { meals.push({ foods: m.foods, days: d }); }); });
+  return shoppingList(meals, 0);
+}
+function planDays(tab, step) {
+  var st = shopState(); st.days[tab] = Math.max(0, Math.min(14, (st.days[tab] || 0) + step)); saveShopState(); renderShop();
+}
+function shopMake() {
+  var st = shopState(); st.made = true; st.got = {}; saveShopState(); renderShop(); document.body.scrollTop = 0;
+}
 function renderShop() {
-  if (!plan || !plan.shopping) { $('app').innerHTML = waitPlan(); return; }
-  var got = load(shopKey(), {}), ft = data.features || {};
-  var html = '<section class="week"><h1 class="date">Shopping list</h1><p>For 7 days of your meal plan. Amounts are rounded up so you do not run short. Tap an item once it is in the basket.</p></section>' +
-    (ft.email ? '<button class="btn ghost" style="width:100%" data-act="email-list">Email me this list</button><p class="ci-status" id="shopMsg" aria-live="polite"></p>' : '') +
-    '<ul class="shop">' + plan.shopping.map(function (x, i) {
-      return '<li class="' + (got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>';
+  if (!plan || !plan.plans) { $('app').innerHTML = waitPlan(); return; }
+  if (!plan.plans.length) { $('app').innerHTML = '<p class="hint">No meal plan to build a list from yet.</p>'; return; }
+  var st = shopState(), total = plan.plans.reduce(function (n, p) { return n + (st.days[p.tab] || 0); }, 0);
+  if (!st.made || !total) {
+    $('app').innerHTML = '<section class="week"><h1 class="date">Plan your shop</h1><p>How many days of each meal plan are you shopping for?</p></section>' +
+      '<ul class="days">' + plan.plans.map(function (p) {
+        var d = st.days[p.tab] || 0;
+        return '<li><div class="day" style="cursor:default"><span class="grow"><b>' + esc(p.tab) + '</b><span>' + p.meals.length + (p.meals.length === 1 ? ' meal' : ' meals') + ' a day</span></span>' +
+          '<button class="icon-btn" data-plan="' + esc(p.tab) + '" data-step="-1" aria-label="One day fewer of ' + esc(p.tab) + '">−</button>' +
+          '<b style="width:28px;text-align:center" aria-live="polite">' + d + '</b>' +
+          '<button class="icon-btn" data-plan="' + esc(p.tab) + '" data-step="1" aria-label="One day more of ' + esc(p.tab) + '">+</button></div></li>';
+      }).join('') + '</ul>' +
+      '<button class="btn primary" style="width:100%"' + (total ? '' : ' disabled') + ' data-act="shop-make">' + (total ? 'Make my list for ' + total + (total === 1 ? ' day' : ' days') : 'Pick at least one day') + '</button>';
+    return;
+  }
+  var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
+  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return esc(p.tab) + ' × ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
+  $('app').innerHTML = '<section class="week"><h1 class="date">Shopping list</h1><p>' + what + '. ' + (left ? left + ' of ' + items.length + ' left to get.' : 'All in the basket.') +
+    ' Amounts are rounded up so you do not run short.</p></section>' +
+    '<button class="btn ghost" style="width:100%;margin-bottom:12px" data-act="shop-change">Change days or meal plans</button>' +
+    '<ul class="shop">' + items.map(function (x, i) {
+      return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>';
     }).join('') + '</ul><div style="height:40px"></div>';
-  $('app').innerHTML = plan.shopping.length ? html : '<p class="hint">No meal plan to build a list from yet.</p>';
 }
-function shopTick(i) { var got = load(shopKey(), {}); got[i] = !got[i]; store(shopKey(), got); renderShop(); }
-function emailList() {
-  var m = $('shopMsg'); m.className = 'ci-status'; m.textContent = 'Sending…';
-  api.emailShoppingList().then(function (res) {
-    m.className = 'ci-status' + (res && res.ok ? '' : ' warn');
-    m.textContent = res && res.ok ? 'Sent. Check your email.' : (res && res.error) || 'That did not send. Try again.';
-  }, function (err) { m.className = 'ci-status warn'; m.textContent = (err && err.message) || 'No connection. Try again.'; });
-}
+function shopTick(i) { var st = shopState(); st.got[i] = !st.got[i]; saveShopState(); renderShop(); }
 
 function renderSupps() {
   if (!plan || !plan.supplements) { $('app').innerHTML = waitPlan(); return; }
@@ -1053,7 +1109,10 @@ document.addEventListener('click', function (e) {
   if (b.dataset.sw) return switchSave(b.dataset.sw);
   if (b.dataset.task) return taskToggle(+b.dataset.task);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
-  if (b.dataset.act === 'email-list') return emailList();
+  if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
+  if (b.dataset.act === 'shop-make') return shopMake();
+  if (b.dataset.act === 'shop-change') { shopState().made = false; saveShopState(); return renderShop(); }
+  if (b.dataset.mealtab !== undefined) { view.mealTab = +b.dataset.mealtab; return renderMeal(); }
   if (b.dataset.act === 'ms-save') return measureSave();
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
   if (b.dataset.act === 'entry-save') return entrySave();
