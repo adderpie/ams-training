@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0f0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Training</title>
+<style>
+:root {
+  --bg: #0d0f0d;
+  --surface: #161916;
+  --surface-2: #1e221e;
+  --line: #2a2f2a;
+  --text: #f2f2f2;
+  --muted: #a3aba3;
+  --green: #2ba84a;
+  --green-deep: #1f7a36;
+  --green-ink: #062611;
+  --wine: #6b2d34;
+  --wine-text: #f0b9bf;
+  --warn: #e8c15a;
+  --r: 14px;
+  --pad: 18px;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior-y: none; }
+/* Dark strip pinned past the bottom edge: when the phone's browser bar slides away mid-scroll, Google's white
+   wrapper page showed through for a frame on the home screen (exercise screens hide it behind the dock). */
+body::after { content: ""; position: fixed; left: 0; right: 0; bottom: -120px; height: 240px; background: var(--bg); z-index: -1; pointer-events: none; }
+body {
+  font: 16px/1.4 Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  font-variant-numeric: tabular-nums;
+}
+::selection { background: var(--green); color: var(--green-ink); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 8px; }
+a { color: inherit; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 var(--pad); }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Top bar */
+.bar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.bar .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; }
+.bar-title { flex: 1; min-width: 0; }
+.bar-title b { display: block; font-size: 17px; }
+.bar-title span { font-size: 13px; color: var(--muted); }
+.icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.left { font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px; background: var(--green-deep); color: #fff; white-space: nowrap; }
+.left.zero { background: var(--surface-2); color: var(--muted); }
+
+/* Sync line */
+.sync { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; padding: 10px 0 0; min-height: 28px; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.sync.pending::before { background: var(--warn); }
+.sync.error { color: var(--warn); }
+.sync.error::before { background: var(--warn); }
+
+/* Home */
+.week { padding: 30px 0 8px; }
+.week h1 { font-size: clamp(44px, 14vw, 64px); line-height: .95; margin: 0; letter-spacing: -.03em; }
+.week p { margin: 10px 0 0; color: var(--muted); }
+.week h1.date { font-size: clamp(34px, 10vw, 46px); }
+.days { list-style: none; margin: 26px 0 40px; padding: 0; display: grid; gap: 10px; }
+.day { width: 100%; text-align: left; display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); transition: transform .2s var(--ease), border-color .2s; }
+.day:active { transform: scale(.985); }
+.day .n { font-size: 13px; font-weight: 700; color: var(--green); width: 26px; }
+.day b { font-size: 20px; display: block; }
+.day span { font-size: 14px; color: var(--muted); }
+.day .grow { flex: 1; }
+.day.has-done { border-color: var(--green-deep); }
+.day .tick { color: var(--green); }
+
+/* Daily check in card */
+.ci { margin: 22px 0 0; padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.ci-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ci-head h2 { font-size: 18px; margin: 0; }
+.ci-head input { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color-scheme: dark; font-size: 15px; }
+.ci-row { display: flex; gap: 10px; margin-top: 14px; }
+.ci-row label { flex: 1; position: relative; display: block; }
+.ci-row label span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+.ci-row input { width: 100%; height: 58px; padding: 0 56px 0 16px; font-size: 26px; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
+.ci-row input::placeholder { color: #5f675f; font-weight: 400; }
+.ci-row input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
+.ci-row .btn.primary { flex: none; min-width: 104px; }
+.ci-status { margin: 10px 0 0; font-size: 14px; color: var(--green); min-height: 20px; }
+.ci-status.warn { color: var(--warn); }
+.ci-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 14px; }
+.ci-week button { padding: 7px 0 8px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); text-align: center; font-size: 13px; line-height: 1.3; }
+.ci-week button small { display: block; font-size: 11px; color: var(--muted); }
+.ci-week button.is-today { border-color: var(--green-deep); }
+.ci-week button.is-sel { border-color: var(--green); box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 30%, transparent); }
+.ci-week button:disabled { opacity: .4; cursor: default; }
+.ci-lines { margin: 14px 0 0; display: grid; gap: 4px; font-size: 15px; }
+.ci-lines p { margin: 0; }
+.ci-lines .muted { color: var(--muted); font-size: 13px; }
+.ci-lines .num { font-weight: 700; }
+
+/* Exercise */
+.ex { padding: 22px 0 140px; animation: rise .45s var(--ease) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } }
+.ex h1 { font-size: clamp(30px, 9vw, 40px); line-height: 1.05; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+.target { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 14px 0 0; padding: 0; list-style: none; }
+.target li { font-size: 15px; color: var(--muted); }
+.target b { color: var(--text); font-size: 22px; margin-right: 4px; }
+.video { margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; font-weight: 700; }
+.video svg { color: var(--green); }
+
+.beat { margin-top: 26px; }
+.beat h2 { font-size: 15px; margin: 0 0 10px; display: flex; justify-content: space-between; gap: 10px; }
+.beat h2 span { color: var(--muted); font-weight: 400; }
+.prev-note { margin: -2px 0 12px; font-size: 14px; color: var(--muted); font-style: italic; }
+.sets { display: grid; gap: 8px; }
+.set { display: grid; grid-template-columns: 34px 1fr 82px 82px; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.set .no { font-weight: 700; color: var(--muted); }
+.set .last { font-size: 15px; line-height: 1.2; }
+.set .last small { display: block; font-size: 12px; color: var(--muted); }
+.set .last.none { color: var(--muted); }
+.set label { position: relative; display: block; }
+.set label span { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); pointer-events: none; }
+.set input { width: 100%; height: 58px; padding: 16px 4px 0; text-align: center; font-size: 22px; font-weight: 700; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
+.set input::placeholder { color: #5f675f; font-weight: 400; }
+.set input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent); }
+.set.beaten { border-color: var(--green-deep); }
+.set.beaten .no { color: var(--green); }
+.note { margin-top: 14px; }
+.note input { width: 100%; height: 50px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.note input::placeholder { color: #8a928a; }
+.hint { color: var(--warn); font-size: 14px; margin: 12px 0 0; }
+
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: linear-gradient(to top, var(--bg) 70%, transparent); padding: 18px 0 calc(14px + env(safe-area-inset-bottom)); }
+.dock .wrap { display: flex; gap: 10px; }
+.btn { height: 58px; border-radius: 14px; font-weight: 700; font-size: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; transition: transform .15s var(--ease), background .2s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { flex: 1; background: var(--green); color: var(--green-ink); box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .8); }
+.btn.ghost { background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+
+/* Overview */
+.ov { padding: 22px 0 120px; }
+.ov h1 { font-size: 30px; margin: 0; }
+.ov p.lead { color: var(--muted); margin: 6px 0 20px; }
+.ov ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.row { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.row .info { flex: 1; min-width: 0; }
+.row b { display: block; font-size: 16px; }
+.row span { font-size: 13px; color: var(--muted); }
+.row.is-done { opacity: .62; }
+.row.is-skipped b { text-decoration: line-through; color: var(--muted); }
+.row.is-current { border-color: var(--green); }
+.state { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); flex: none; }
+.is-done .state { background: var(--green); border-color: var(--green); color: var(--green-ink); }
+.is-done .state svg { width: 16px; height: 16px; stroke-width: 3; }
+.is-current .state { border-color: var(--green); }
+.chip { height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 700; background: var(--surface-2); border: 1px solid var(--line); }
+.chip.go { color: var(--green); }
+.chip.skip { color: var(--wine-text); }
+
+/* Done */
+.fin { padding: 48px 0 60px; text-align: left; }
+.fin .mark { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: var(--green-ink); animation: pop .6s var(--ease) both; }
+.fin .mark svg { width: 38px; height: 38px; stroke-width: 3; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } }
+.fin h1 { font-size: 40px; line-height: 1; margin: 24px 0 10px; letter-spacing: -.02em; }
+.fin p { color: var(--muted); margin: 0 0 8px; font-size: 17px; }
+.fin ul { list-style: none; padding: 0; margin: 22px 0 28px; display: grid; gap: 6px; }
+.fin li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: 12px; font-size: 15px; }
+.fin li span { color: var(--muted); text-align: right; }
+.fin li.up span { color: var(--green); font-weight: 700; }
+
+.loading, .err { padding: 80px 0; color: var(--muted); }
+.err b { color: var(--text); display: block; font-size: 20px; margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-saved-to="<?= savedTo ?>">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="bar" id="bar" hidden>
+  <div class="wrap">
+    <button class="icon-btn" id="barBack" aria-label="Back"><svg class="i"><use href="#i-back"/></svg></button>
+    <div class="bar-title"><b id="barDay"></b><span id="barWeek"></span></div>
+    <span class="left" id="barLeft" aria-live="polite"></span>
+    <button class="icon-btn" id="barList" aria-label="See the whole day"><svg class="i"><use href="#i-list"/></svg></button>
+  </div>
+</header>
+
+<main class="wrap" id="app"><p class="loading">Loading your plan…</p></main>
+
+<div class="dock" id="dock" hidden>
+  <div class="wrap">
+    <button class="btn ghost" id="skipBtn">Skip</button>
+    <button class="btn primary" id="doneBtn"><svg class="i"><use href="#i-check"/></svg><span>Complete</span></button>
+  </div>
+</div>
+
+<script>
+// Served two ways: by Apps Script (template tags filled in) or as a plain page on GitHub Pages, where the link
+// carries the script (?s=<deployment id>) and key (?k=). Plain page without ?s = mock backend for testing.
+var Q = new URLSearchParams(location.search);
+var KEY = '<?= key ?>'; if (KEY.charAt(0) === '<') KEY = Q.get('k') || '';
+var SCRIPT = /^[\w-]{20,}$/.test(Q.get('s') || '') ? Q.get('s') : '';
+var SAVED_TO = document.body.dataset.savedTo.charAt(0) === '<' ? 'Adam\'s sheet' : document.body.dataset.savedTo; // unfilled template tag gets the default (getData sends the real one)
+var LS = (function () {
+  try { localStorage.setItem('cw:t', '1'); localStorage.removeItem('cw:t'); return localStorage; }
+  catch (e) { var m = {}; return { getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { m[k] = String(v); }, removeItem: function (k) { delete m[k]; } }; }
+})();
+function load(k, d) { try { var v = LS.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function store(k, v) { try { LS.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+function $(id) { return document.getElementById(id); }
+function icon(n) { return '<svg class="i"><use href="#i-' + n + '"/></svg>'; }
+
+/* ---------- backend: Apps Script in production, mock when opened as a plain file ---------- */
+var api = (typeof google !== 'undefined' && google.script) ? {
+  getData: function () { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).getData(KEY); }); },
+  save: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveExercise(KEY, p); }); },
+  saveCheckIn: function (p) { return new Promise(function (ok, no) { google.script.run.withSuccessHandler(ok).withFailureHandler(no).saveCheckIn(KEY, p); }); }
+} : SCRIPT ? {
+  getData: function () { return post('getData'); },
+  save: function (p) { return post('saveExercise', p); },
+  saveCheckIn: function (p) { return post('saveCheckIn', p); }
+} : mockApi();
+function post(fn, p) { // text/plain body: no CORS preflight, Apps Script answers with JSON {ok, result|error}
+  return fetch('https://script.google.com/macros/s/' + SCRIPT + '/exec', { method: 'POST', body: JSON.stringify({ fn: fn, k: KEY, p: p }) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) { if (!j.ok) throw new Error(j.error); return j.result; });
+}
+
+/* ---------- state ---------- */
+var data = load('cw:data', null);
+var queue = load('cw:q', []);
+var view = { screen: '', day: null };
+var sess = null;
+var syncState = { busy: false, error: '' };
+
+function dayByName(n) { return data.days.filter(function (d) { return d.name === n; })[0]; }
+function exByName(day, n) { return day.exercises.filter(function (x) { return x.name === n; })[0]; }
+function setCount(x) { var n = parseInt(x.sets, 10); return n >= 1 ? Math.min(n, 4) : 4; }
+function hasNums(e) { return !!e && e.kg.concat(e.reps).some(function (v) { return /\d/.test(v); }); }
+function prevOf(x) {
+  for (var w = data.week - 1; w >= 1; w--) { var e = x.history[w]; if (hasNums(e)) return { week: w, kg: e.kg, reps: e.reps, comment: e.comment }; }
+  return null;
+}
+function sessKey(day) { return 'cw:s:' + data.week + ':' + day; }
+
+function openSession(dayName) {
+  var day = dayByName(dayName);
+  var s = load(sessKey(dayName), null);
+  if (!s) {
+    s = { order: day.exercises.map(function (x) { return x.name; }), done: [], skipped: [], drafts: {} };
+    day.exercises.forEach(function (x) { // already logged this week in the sheet: show as done, prefilled
+      var cur = x.history[data.week];
+      if (hasNums(cur)) { s.done.push(x.name); s.drafts[x.name] = { kg: cur.kg.slice(), reps: cur.reps.slice(), comment: cur.comment }; }
+    });
+  }
+  // plan edited in the sheet since: drop gone exercises, append new ones
+  var names = day.exercises.map(function (x) { return x.name; });
+  s.order = s.order.filter(function (n) { return names.indexOf(n) > -1; }).concat(names.filter(function (n) { return s.order.indexOf(n) < 0; }));
+  sess = s; sess.day = dayName;
+  if (!sess.current || remaining().indexOf(sess.current) < 0) sess.current = remaining()[0] || null;
+  saveSess();
+}
+function saveSess() { store(sessKey(sess.day), sess); }
+function remaining() { return sess.order.filter(function (n) { return sess.done.indexOf(n) < 0 && sess.skipped.indexOf(n) < 0; }); }
+function draft(name) { return sess.drafts[name] || (sess.drafts[name] = { kg: ['', '', '', ''], reps: ['', '', '', ''], comment: '' }); }
+
+/* ---------- save queue: nothing is lost if the signal drops ---------- */
+function qKey(q) { return q.type === 'ci' ? 'ci|' + q.date + '|' + q.field : q.day + '|' + q.exercise + '|' + q.week; }
+function enqueue(p) {
+  queue = queue.filter(function (q) { return qKey(q) !== qKey(p); });
+  queue.push(p); store('cw:q', queue); flush();
+}
+function flush() {
+  if (syncState.busy || !queue.length) return renderSync();
+  syncState.busy = true; renderSync();
+  var p = queue[0];
+  (p.type === 'ci' ? api.saveCheckIn(p) : api.save(p)).then(function (res) {
+    queue.shift(); store('cw:q', queue); syncState.error = '';
+    if (p.type === 'ci') return checkInSaved(p, res || {});
+    var x = data && dayByName(p.day) && exByName(dayByName(p.day), p.exercise); // keep local history in step
+    if (x && !p.skip) { x.history[p.week] = { kg: p.kg, reps: p.reps, comment: p.comment }; store('cw:data', data); }
+  }, function (err) {
+    syncState.error = (err && err.message) || 'No connection';
+  }).then(function () {
+    syncState.busy = false;
+    if (queue.length && !syncState.error) flush(); else renderSync();
+  });
+}
+setInterval(function () { if (queue.length) { syncState.error = ''; flush(); } }, 30000);
+window.addEventListener('online', function () { syncState.error = ''; flush(); });
+
+function renderSync() {
+  var el = $('sync'); if (!el) return;
+  el.className = 'sync' + (syncState.error ? ' error' : queue.length ? ' pending' : '');
+  el.textContent = syncState.error
+    ? queue.length + ' not saved yet. Keep going, it will retry. (' + syncState.error + ')'
+    : queue.length ? 'Saving to ' + SAVED_TO + '…' : 'Everything saved to ' + SAVED_TO;
+}
+
+/* ---------- screens ---------- */
+// Screens: hub (menu, only when the sheet has check in) > weight | home (workout days) > ex / ov / fin.
+function startScreen() { return data.checkIn ? 'hub' : 'home'; }
+function show(screen, day) {
+  view.screen = screen; if (day) view.day = day;
+  var inDay = screen === 'ex' || screen === 'ov' || screen === 'fin';
+  var menuChild = !inDay && screen !== startScreen(); // weight, or workouts opened from the menu
+  $('bar').hidden = !inDay && !menuChild; $('dock').hidden = screen !== 'ex';
+  $('barLeft').hidden = $('barList').hidden = menuChild;
+  if (menuChild) {
+    $('barDay').textContent = screen === 'weight' ? 'Weight' : 'Workouts';
+    $('barWeek').textContent = screen === 'weight' ? fmtDate(localIso()) : 'Week ' + data.week;
+  }
+  if (inDay) {
+    $('barDay').textContent = sess.day;
+    $('barWeek').textContent = 'Week ' + data.week;
+    var n = remaining().length;
+    $('barLeft').textContent = n ? n + (n === 1 ? ' exercise left' : ' exercises left') : 'All done';
+    $('barLeft').className = 'left' + (n ? '' : ' zero');
+    $('barList').hidden = screen === 'ov';
+  }
+  ({ hub: renderHub, weight: renderWeight, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
+  window.scrollTo(0, 0);
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+}
+
+function renderHome() {
+  var html = '<section class="week"><h1>Week ' + data.week + '</h1><p>' +
+    (data.weekStart ? 'Week starting ' + esc(fmtDate(data.weekStart)) + '. ' : '') + 'Which session are you doing?</p>' +
+    (!data.days.length ? '<p class="hint">Week ' + data.week + ' isn\'t in your plan yet. Message Adam to add it.</p>' : '') +
+    '</section><p class="sync" id="sync"></p><ul class="days">';
+  data.days.forEach(function (d, i) {
+    var s = load(sessKey(d.name), null);
+    var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
+    var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
+    var sub = doneN ? doneN + ' of ' + d.exercises.length + ' done this week'
+      : d.exercises.length + ' exercises · ' + (last ? 'last logged week ' + last : 'not logged yet');
+    html += '<li><button class="day' + (doneN ? ' has-done' : '') + '" data-day="' + esc(d.name) + '">' +
+      '<span class="n">' + (i + 1) + '</span><span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
+      (doneN === d.exercises.length ? '<span class="tick">' + icon('check') + '</span>' : icon('chev')) + '</button></li>';
+  });
+  $('app').innerHTML = html + '</ul>';
+  renderSync();
+}
+
+function dayDone(d) { // every exercise logged (in the sheet or this session) or skipped
+  var s = load(sessKey(d.name), null);
+  return d.exercises.length && d.exercises.every(function (x) {
+    return hasNums(x.history[data.week]) || (s && (s.done.indexOf(x.name) > -1 || s.skipped.indexOf(x.name) > -1));
+  });
+}
+
+// Menu: one tile per daily check in field, then Workouts. A new field kind = one more tile here.
+function renderHub() {
+  var c = data.checkIn, today = localIso(), t = ciDay(today);
+  var tiles = c.fields.filter(function (f) { return f.kind === 'weight'; }).map(function (f) {
+    var v = t && t.values[f.id];
+    return { go: f.id === 'bodyweight' ? 'weight' : f.id, name: f.label, done: !!v, sub: v ? v + ' ' + f.unit + ' logged today' : 'Not logged yet today' };
+  });
+  var doneN = tiles.filter(function (x) { return x.done; }).length;
+  var trained = t && /^train/i.test(t.values.training || '');
+  var sessions = data.days.filter(dayDone).length;
+  tiles.push({ go: 'home', name: 'Workouts', done: trained,
+    sub: (trained ? 'Trained today · ' : '') + 'Week ' + data.week + ' · ' + sessions + ' of ' + data.days.length + ' sessions done' });
+  var html = '<section class="week"><h1 class="date">' + esc(new Date(today + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })) + '</h1>' +
+    '<p>' + (doneN === tiles.length - 1 ? 'Check in done for today.' : doneN + ' of ' + (tiles.length - 1) + ' check in' + (tiles.length > 2 ? 's' : '') + ' done today.') + '</p></section>' +
+    '<p class="sync" id="sync"></p><ul class="days">';
+  tiles.forEach(function (x) {
+    html += '<li><button class="day' + (x.done ? ' has-done' : '') + '" data-go="' + x.go + '"><span class="grow"><b>' + esc(x.name) + '</b><span>' + esc(x.sub) + '</span></span>' +
+      (x.done ? '<span class="tick">' + icon('check') + '</span>' : icon('chev')) + '</button></li>';
+  });
+  $('app').innerHTML = html + '</ul>';
+  renderSync();
+}
+
+function renderWeight() {
+  $('app').innerHTML = '<section class="ci" id="ci" aria-label="Weight"></section><p class="sync" id="sync"></p>';
+  renderCheckIn();
+  renderSync();
+}
+
+/* ---------- daily check in card (only when the sheet has it switched on: data.checkIn) ---------- */
+// Copies of parseWeight/weightWarning in Logic.js (server checks again): instant feedback, works offline.
+var WEIGHT_RANGE = { kg: [30, 300], lbs: [66, 661], lb: [66, 661] };
+function parseWeight(input, unit) {
+  var range = WEIGHT_RANGE[String(unit).toLowerCase()];
+  if (!range) return { error: 'Your Check In tab has no kg or lbs unit under Bodyweight. Message Adam.' };
+  var s = String(input).trim().replace(/,/g, '.').replace(/\s*(kgs?|lbs?)$/i, '');
+  if (!/^\d+(\.\d+)?$/.test(s)) return { error: 'Type your weight as a number, like ' + (range[0] === 30 ? '84.5' : '186.4') + '.' };
+  var v = Math.round(Number(s) * 10) / 10;
+  if (v < range[0] || v > range[1]) return { error: v + ' ' + unit + ' looks wrong. Check the number on the scale.' };
+  return { value: v };
+}
+function weightWarning(value, prev) {
+  if (!(prev > 0)) return '';
+  var pct = Math.abs(value - prev) / prev * 100;
+  return pct > 3 ? 'That is ' + pct.toFixed(1) + '% away from your last weigh-in (' + prev + '). Tap Save again if it is right.' : '';
+}
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function localIso() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function shortDate(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+
+var ciState = { date: '', confirm: '', msg: '', warn: false };
+function weightField() { return data.checkIn.fields.filter(function (f) { return f.kind === 'weight'; })[0]; }
+function ciDay(date) { return data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null; }
+function ciPrev(date, id) { // last reading before this date, for the jump check
+  var p = null;
+  data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; });
+  return p;
+}
+
+function renderCheckIn() {
+  var el = $('ci'), c = data.checkIn; if (!el || !c) return;
+  var today = localIso();
+  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
+  var f = weightField(), day = ciDay(ciState.date), have = day ? day.values[f.id] : '';
+  var isToday = ciState.date === today;
+  var html = '<div class="ci-head"><h2>' + (isToday ? 'Today\'s weight' : 'Weight for ' + esc(shortDate(ciState.date))) + '</h2>' +
+    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>' +
+    '<div class="ci-row"><label><input id="ciVal" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="' + esc(have) + '" placeholder="0.0" aria-label="Weight in ' + esc(f.unit) + '">' +
+    '<span>' + esc(f.unit) + '</span></label><button class="btn primary" data-act="ci-save">' + (ciState.confirm === 'replace' ? 'Replace' : ciState.confirm === 'jump' ? 'Save anyway' : 'Save') + '</button></div>' +
+    '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' +
+    (ciState.msg ? esc(ciState.msg) : !day ? esc(shortDate(ciState.date)) + ' isn\'t in your Check In tab yet. Message Adam.' : have ? 'Logged for ' + esc(shortDate(ciState.date)) + '.' : '') + '</p>';
+
+  var wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
+  if (wk.length) {
+    html += '<div class="ci-week">' + wk.map(function (d) {
+      var v = d.values[f.id];
+      return '<button data-ci-date="' + d.date + '"' + (d.date > today ? ' disabled' : '') + ' class="' + (d.date === today ? 'is-today ' : '') + (d.date === ciState.date ? 'is-sel' : '') + '">' +
+        '<small>' + new Date(d.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' }) + '</small>' + (v ? esc(v) : '·') + '</button>';
+    }).join('') + '</div>';
+  }
+  var lines = [], tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id];
+  if (tw) lines.push('Week ' + c.thisWeek.week + ' average <span class="num">' + esc(tw) + ' ' + esc(f.unit) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(lw) + '.' : '.'));
+  else if (lw) lines.push('Week ' + c.lastWeek.week + ' average was ' + esc(lw) + ' ' + esc(f.unit) + '.');
+  var t = c.trend;
+  lines.push(t ? 'Trend <span class="num">' + t.value + ' ' + esc(f.unit) + '</span>, ' + (t.steady ? 'holding steady.' : (t.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(t.perWeek) + ' ' + esc(f.unit) + ' a week.')
+    : 'Your trend line shows after two weeks of weigh-ins.');
+  lines.push('<span class="muted">The weekly average and trend are what count. Daily numbers bounce around.</span>');
+  if (!have) lines.push('<span class="muted">Weigh first thing: after the toilet, before food or drink, same scale.</span>');
+  el.innerHTML = html + '<div class="ci-lines"><p>' + lines.join('</p><p>') + '</p></div>';
+}
+
+function ciSave() {
+  var c = data.checkIn, f = weightField(), date = ciState.date, day = ciDay(date);
+  ciState.warn = true;
+  if (!day) { ciState.msg = shortDate(date) + ' isn\'t in your Check In tab yet. Message Adam.'; return renderCheckIn(); }
+  var r = parseWeight($('ciVal').value, f.unit);
+  if (r.error) { ciState.msg = r.error; ciState.confirm = ''; return renderCheckIn(); }
+  var have = day.values[f.id], typed = $('ciVal').value;
+  if (have && parseFloat(have) !== r.value && ciState.confirm !== 'replace' && ciState.confirm !== 'jump') {
+    ciState.confirm = 'replace'; ciState.msg = 'You already logged ' + have + ' for ' + shortDate(date) + '. Tap Replace to change it.';
+    renderCheckIn(); $('ciVal').value = typed; return;
+  }
+  var warn = weightWarning(r.value, ciPrev(date, f.id));
+  if (warn && ciState.confirm !== 'jump') {
+    var wasReplace = ciState.confirm === 'replace';
+    ciState.confirm = 'jump'; ciState.replace = wasReplace || !!have; ciState.msg = warn;
+    renderCheckIn(); $('ciVal').value = typed; return;
+  }
+  enqueue({ type: 'ci', date: date, field: f.id, value: r.value, replace: ciState.confirm === 'replace' || !!ciState.replace || !!have, prev: have });
+  day.values[f.id] = String(r.value); store('cw:data', data); // show it now; the sheet's reply replaces it
+  ciState.confirm = ''; ciState.replace = false; ciState.warn = false; ciState.msg = 'Saving ' + r.value + ' ' + f.unit + ' for ' + shortDate(date) + '…';
+  renderCheckIn();
+}
+
+function checkInSaved(p, res) {
+  if (!data || !data.checkIn) return;
+  if (res.ok && res.checkIn) {
+    data.checkIn = res.checkIn;
+    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = 'Saved ' + p.value + ' ' + weightField().unit + ' to ' + SAVED_TO + '.'; }
+  }
+  else {
+    var day = ciDay(p.date); if (day) day.values[p.field] = p.prev || ''; // undo the early display
+    ciState.date = p.date; ciState.warn = true;
+    if (res.conflict) { ciState.confirm = 'replace'; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type the number again and tap Replace to change it.'; }
+    else ciState.msg = res.error || 'That didn\'t save. Try again.';
+  }
+  store('cw:data', data);
+  if (view.screen === 'weight') renderCheckIn(); else if (view.screen === 'hub') renderHub();
+}
+
+function lastCell(p, i) {
+  if (!p) return '<span class="last none">No previous</span>';
+  var kg = p.kg[i], r = p.reps[i];
+  if (!kg && !r) return '<span class="last none">Not done</span>';
+  return '<span class="last">' + (kg ? esc(kg) + ' kg' : 'No weight') + '<small>× ' + (r ? esc(r) : '?') + '</small></span>';
+}
+function beats(p, i, kg, r) {
+  if (!p) return false;
+  var pk = parseFloat(p.kg[i]) || 0, pr = parseFloat(p.reps[i]) || 0, k = parseFloat(kg), rr = parseFloat(r);
+  if (isNaN(rr)) return false;
+  if (isNaN(k)) k = 0;
+  return k > pk || (k >= pk && rr > pr);
+}
+
+function renderEx() {
+  var day = dayByName(sess.day), x = exByName(day, sess.current);
+  if (!x) return show(remaining().length ? 'ov' : 'fin');
+  var p = prevOf(x), d = draft(x.name), n = setCount(x);
+  var rest = /^\d+$/.test(x.rest) ? x.rest + 's' : '';
+  var html = '<article class="ex"><p class="sync" id="sync"></p><h1>' + esc(x.name) + '</h1><ul class="target">' +
+    '<li><b>' + esc(x.sets || n) + '</b>sets</li><li><b>' + esc(x.reps) + '</b>reps</li>' +
+    (rest ? '<li><b>' + esc(rest) + '</b>rest</li>' : '') + '</ul>' +
+    (x.video ? '<a class="video" href="' + esc(x.video) + '" target="_blank" rel="noopener">' + icon('play') + 'Watch the demo</a>' : '') +
+    '<section class="beat"><h2>' + (p ? 'Numbers to beat' : 'First time logging this') +
+    '<span>' + (p ? 'from week ' + p.week : 'set your baseline') + '</span></h2>' +
+    (p && p.comment ? '<p class="prev-note">You noted: "' + esc(p.comment) + '"</p>' : '') + '<div class="sets">';
+  for (var i = 0; i < n; i++) {
+    html += '<div class="set' + (beats(p, i, d.kg[i], d.reps[i]) ? ' beaten' : '') + '" id="set' + i + '"><span class="no">' + (i + 1) + '</span>' + lastCell(p, i) +
+      '<label><span>kg</span><input inputmode="decimal" enterkeyhint="next" data-f="kg" data-i="' + i + '" value="' + esc(d.kg[i]) + '" aria-label="Set ' + (i + 1) + ' kg"></label>' +
+      '<label><span>reps</span><input inputmode="numeric" enterkeyhint="next" data-f="reps" data-i="' + i + '" value="' + esc(d.reps[i]) + '" aria-label="Set ' + (i + 1) + ' reps"></label></div>';
+  }
+  html += '</div><div class="note"><input data-f="comment" value="' + esc(d.comment) + '" placeholder="Note for Adam (optional)" aria-label="Note for Adam" enterkeyhint="done"></div>' +
+    '<p class="hint" id="hint" hidden></p></section></article>';
+  $('app').innerHTML = html;
+  $('doneBtn').lastChild.textContent = 'Complete';
+  sess.confirmEmpty = false;
+  renderSync();
+}
+
+function renderOv() {
+  var day = dayByName(sess.day), left = remaining();
+  var html = '<section class="ov"><p class="sync" id="sync"></p><h1>' + esc(sess.day) + '</h1><p class="lead">' +
+    (left.length ? 'Tap <b>Do now</b> to pick what\'s next. Skip anything you can\'t do today.' : 'Every exercise is done or skipped.') + '</p><ol>';
+  sess.order.forEach(function (name) {
+    var x = exByName(day, name), isDone = sess.done.indexOf(name) > -1, isSkip = sess.skipped.indexOf(name) > -1, isCur = name === sess.current && !isDone && !isSkip;
+    var p = prevOf(x);
+    html += '<li class="row' + (isDone ? ' is-done' : isSkip ? ' is-skipped' : isCur ? ' is-current' : '') + '">' +
+      '<span class="state">' + (isDone ? icon('check') : '') + '</span><span class="info"><b>' + esc(name) + '</b><span>' +
+      esc(x.sets) + ' × ' + esc(x.reps) + (isDone ? ' · logged' : isSkip ? ' · skipped' : p ? ' · last: week ' + p.week : '') + '</span></span>' +
+      (isSkip ? '<button class="chip go" data-act="unskip" data-n="' + esc(name) + '">Undo skip</button>'
+        : isDone ? '<button class="chip" data-act="edit" data-n="' + esc(name) + '">Edit</button>'
+        : '<button class="chip go" data-act="go" data-n="' + esc(name) + '">' + (isCur ? 'Resume' : 'Do now') + '</button>' +
+          '<button class="chip skip" data-act="skip" data-n="' + esc(name) + '">Skip</button>') + '</li>';
+  });
+  html += '</ol>' + (left.length ? '' : '<p style="margin-top:22px"><button class="btn primary" style="width:100%" data-act="finish">Finish session</button></p>') + '</section>';
+  $('app').innerHTML = html;
+  renderSync();
+}
+
+function renderFin() {
+  var day = dayByName(sess.day), ups = 0;
+  var rows = sess.order.map(function (name) {
+    var x = exByName(day, name), d = sess.drafts[name], p = prevOf(x);
+    if (sess.skipped.indexOf(name) > -1) return '<li><b>' + esc(name) + '</b><span>Skipped</span></li>';
+    if (!d) return '';
+    var up = d.kg.some(function (_, i) { return beats(p, i, d.kg[i], d.reps[i]); });
+    if (up) ups++;
+    var best = d.kg.map(function (k, i) { return k || d.reps[i] ? (k ? k + 'kg' : '') + (d.reps[i] ? '×' + d.reps[i] : '') : ''; }).filter(Boolean).join(', ');
+    return '<li class="' + (up ? 'up' : '') + '"><b>' + esc(name) + '</b><span>' + esc(best || 'Done') + (up ? ' ↑' : '') + '</span></li>';
+  }).join('');
+  $('app').innerHTML = '<section class="fin"><div class="mark">' + icon('check') + '</div><h1>' + esc(sess.day) + ' done.</h1>' +
+    '<p>' + (ups ? 'You beat last time on ' + ups + (ups === 1 ? ' exercise' : ' exercises') + '. ' : '') + 'Week ' + data.week + ' logged.</p>' +
+    '<p class="sync" id="sync"></p><ul>' + rows + '</ul>' +
+    '<button class="btn ghost" style="width:100%" data-act="home">Back to sessions</button></section>';
+  renderSync();
+}
+
+/* ---------- actions ---------- */
+function commit(name, skip) {
+  var d = draft(name);
+  var today = localIso();
+  enqueue({ day: sess.day, exercise: name, week: data.week, kg: d.kg, reps: d.reps, comment: d.comment, skip: !!skip, date: today });
+  var t = !skip && data.checkIn && ciDay(today); // the sheet marks today Training; show it on the menu now
+  if (t && 'training' in t.values) { t.values.training = 'Training'; store('cw:data', data); }
+}
+function next() {
+  var left = remaining();
+  sess.current = left[0] || null; saveSess();
+  show(left.length ? 'ex' : 'fin');
+}
+
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.day) { openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
+  if (b.dataset.go) return show(b.dataset.go);
+  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderCheckIn(); }
+  var act = b.dataset.act, n = b.dataset.n;
+  if (act === 'ci-save') return ciSave();
+  if (act === 'go' || act === 'edit') { sess.current = n; sess.done = sess.done.filter(function (x) { return x !== n; }); saveSess(); return show('ex'); }
+  if (act === 'skip') { sess.skipped.push(n); if (sess.current === n) sess.current = remaining()[0] || null; saveSess(); commit(n, true); return show('ov'); }
+  if (act === 'unskip') { sess.skipped = sess.skipped.filter(function (x) { return x !== n; }); saveSess(); return show('ov'); }
+  if (act === 'finish') return show('fin');
+  if (act === 'home') return show('home');
+});
+$('barBack').onclick = function () {
+  if (view.screen === 'weight' || view.screen === 'home') return show(startScreen());
+  show(view.screen === 'ov' && sess.current && remaining().length ? 'ex' : 'home');
+};
+$('barList').onclick = function () { show('ov'); };
+$('skipBtn').onclick = function () {
+  var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next();
+};
+$('doneBtn').onclick = function () {
+  var n = sess.current, d = draft(n);
+  var any = d.kg.concat(d.reps).some(function (v) { return String(v).trim() !== ''; });
+  if (!any && !sess.confirmEmpty) {
+    sess.confirmEmpty = true;
+    $('hint').hidden = false; $('hint').textContent = 'No numbers entered. Tap Complete again to mark it done anyway, or Skip.';
+    this.lastChild.textContent = 'Complete anyway';
+    return;
+  }
+  sess.done.push(n); if (any) commit(n, false); next();
+};
+document.addEventListener('change', function (e) {
+  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderCheckIn(); }
+});
+document.addEventListener('input', function (e) {
+  if (e.target.id === 'ciVal' && ciState.confirm) { // a new number needs its own checks
+    ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false;
+    var b = document.querySelector('[data-act="ci-save"]'); if (b) b.textContent = 'Save'; $('ciMsg').textContent = '';
+  }
+  var f = e.target.dataset && e.target.dataset.f; if (!f || !sess || !sess.current) return;
+  var d = draft(sess.current);
+  if (f === 'comment') d.comment = e.target.value; else d[f][+e.target.dataset.i] = e.target.value;
+  saveSess();
+  if (f !== 'comment') {
+    var i = +e.target.dataset.i, p = prevOf(exByName(dayByName(sess.day), sess.current));
+    $('set' + i).classList.toggle('beaten', beats(p, i, d.kg[i], d.reps[i]));
+  }
+});
+document.addEventListener('keydown', function (e) { // Enter jumps to the next box, like a form on a phone should
+  if (e.key === 'Enter' && e.target.id === 'ciVal') { e.preventDefault(); return ciSave(); }
+  if (e.key !== 'Enter' || !e.target.dataset || !e.target.dataset.f) return;
+  e.preventDefault();
+  var all = Array.prototype.slice.call(document.querySelectorAll('.ex input'));
+  var nx = all[all.indexOf(e.target) + 1]; if (nx) nx.focus(); else e.target.blur();
+});
+
+/* ---------- boot ---------- */
+function boot() {
+  if (data) { resume(); }
+  api.getData().then(function (fresh) {
+    var first = !data; data = fresh; store('cw:data', data);
+    if (data.savedTo) SAVED_TO = data.savedTo;
+    if (data.title) document.title = data.title;
+    if (first || view.screen === 'hub' || view.screen === 'home') resume();
+    else if (view.screen === 'weight' && document.activeElement !== $('ciVal')) renderCheckIn();
+    flush();
+  }, function (err) {
+    if (!data) $('app').innerHTML = '<div class="err"><b>Couldn\'t load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
+    else { syncState.error = 'offline'; renderSync(); }
+  });
+}
+// First paint and fresh data: redraw the menu or day list; never pull someone out of a session or the weight box.
+function resume() {
+  var v = view.screen;
+  if (!v || (v === 'hub' && !data.checkIn)) return show(startScreen());
+  if (v === 'hub' || v === 'home') show(v);
+}
+boot();
+
+function mockApi() { // public copy: a link without ?s and ?k has nothing to load
+  return { getData: function () { return Promise.reject(new Error('This link is missing its details. Ask Adam for your workout link.')); } };
+}
+</script>
+</body>
+</html>
