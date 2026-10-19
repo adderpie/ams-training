@@ -105,6 +105,24 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .ci-week button.is-today { border-color: var(--green-deep); }
 .ci-week button.is-sel { border-color: var(--green); box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 30%, transparent); }
 .ci-week button:disabled { opacity: .4; cursor: default; }
+.entry { display: grid; gap: 10px; margin-top: 14px; }
+.entry label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px; }
+.entry label > span { font-weight: 700; }
+.entry .box { position: relative; }
+.entry .box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-style: normal; pointer-events: none; }
+.entry input, .entry textarea { width: 100%; height: 54px; padding: 0 58px 0 14px; font-size: 22px; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); caret-color: var(--green); }
+.entry textarea { height: 140px; padding: 12px 14px; font-size: 16px; font-weight: 400; line-height: 1.4; resize: none; }
+.entry input:focus, .entry textarea:focus { outline: none; border-color: var(--green); }
+.entry small { display: block; margin: 6px 0 0 102px; color: var(--muted); font-size: 13px; }
+.entry.solo label { grid-template-columns: 1fr; }
+.entry.solo small { margin-left: 0; }
+.entry .btn { width: 100%; }
+.sw { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); text-align: left; font-size: 17px; }
+.sw .knob { flex: none; width: 52px; height: 30px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); position: relative; transition: background .2s; }
+.sw .knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--muted); transition: transform .2s var(--ease), background .2s; }
+.sw.on { border-color: var(--green-deep); }
+.sw.on .knob { background: var(--green-deep); }
+.sw.on .knob::after { transform: translateX(22px); background: #fff; }
 .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
 .scale button { height: 60px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); font-size: 24px; font-weight: 700; transition: transform .15s var(--ease), background .2s; }
 .scale button:active { transform: scale(.95); }
@@ -330,13 +348,14 @@ function renderSync() {
 function startScreen() { return data.checkIn ? 'hub' : 'home'; }
 function show(screen, day) {
   if (screen.indexOf('scale:') === 0) { view.field = screen.slice(6); screen = 'scale'; }
+  if (/^[fg]:/.test(screen)) { view.field = screen; screen = 'entry'; }
   view.screen = screen; if (day) view.day = day;
   var inDay = screen === 'ex' || screen === 'ov' || screen === 'fin';
   var menuChild = !inDay && screen !== startScreen(); // weight, or workouts opened from the menu
   $('bar').hidden = !inDay && !menuChild; $('dock').hidden = screen !== 'ex';
   $('barLeft').hidden = $('barList').hidden = menuChild;
   if (menuChild) {
-    $('barDay').textContent = screen === 'weight' ? 'Weight' : screen === 'scale' ? fieldById(view.field).label : 'Workouts';
+    $('barDay').textContent = screen === 'weight' ? 'Weight' : screen === 'scale' ? fieldById(view.field).label : screen === 'entry' ? entryTitle() : 'Workouts';
     $('barWeek').textContent = screen === 'home' ? 'Week ' + data.week : fmtDate(localIso());
   }
   if (inDay) {
@@ -347,7 +366,7 @@ function show(screen, day) {
     $('barLeft').className = 'left' + (n ? '' : ' zero');
     $('barList').hidden = screen === 'ov';
   }
-  ({ hub: renderHub, weight: renderWeight, scale: renderScale, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
+  ({ hub: renderHub, weight: renderWeight, scale: renderScale, entry: renderEntry, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
   document.body.scrollTop = 0;
 }
 
@@ -384,20 +403,48 @@ function dayDone(d) { // every exercise logged (in the sheet or this session) or
 }
 
 // Menu: one tile per daily check in field, then Workouts. A new field kind = one more tile here.
-function renderHub() {
-  var c = data.checkIn, today = localIso(), t = ciDay(today);
-  var tiles = c.fields.filter(function (f) { return f.kind === 'weight' || f.kind === 'scale'; }).map(function (f) {
-    var v = t && t.values[f.id];
-    return { go: f.kind === 'weight' ? 'weight' : 'scale:' + f.id, name: f.label, done: !!v,
-      sub: !v ? 'Not logged yet today' : f.kind === 'scale' ? v + ' out of 5 today' : v + ' ' + f.unit + ' logged today' };
+// Menu: one tile per daily check in item, in the sheet's order, then Workouts. The day counts as done when the
+// core items are in (weight, steps, nutrition, hunger, energy, habits); cardio, IG Post and comments are extras.
+var CORE = { weight: 1, steps: 1, nutrition: 1, hunger: 1, energy: 1, habits: 1 };
+function hubTiles(t) {
+  var tiles = [], seen = {};
+  data.checkIn.fields.forEach(function (f) {
+    var v = t ? t.values[f.id] || '' : '';
+    if (f.kind === 'training' || seen[f.group || f.id]) return;
+    seen[f.group || f.id] = 1;
+    if (f.group) {
+      var g = groupFields(f.group), have = g.filter(function (x) { return t && t.values[x.id]; });
+      return tiles.push({ key: f.group, go: 'g:' + f.group, name: 'Nutrition', done: have.length === g.length,
+        sub: !have.length ? 'Not logged yet today' : have.length < g.length ? have.length + ' of ' + g.length + ' logged today'
+          : fmtNum(t.values.calories) + ' kcal, ' + fmtNum(t.values.protein) + 'g protein' });
+    }
+    var tile = { key: f.id === 'bodyweight' ? 'weight' : f.id, name: f.label, done: !!v, sub: v ? v + (f.unit ? ' ' + f.unit : '') + ' today' : 'Not logged yet today' };
+    if (f.kind === 'weight') { tile.go = 'weight'; tile.sub = v ? v + ' ' + f.unit + ' logged today' : tile.sub; }
+    else if (f.kind === 'scale') { tile.go = 'scale:' + f.id; tile.sub = v ? v + ' out of 5 today' : tile.sub; }
+    else {
+      tile.go = 'f:' + f.id;
+      if (f.kind === 'number') tile.sub = v ? fmtNum(v) + ' ' + f.unit + ' today' : tile.sub;
+      if (f.kind === 'toggle') { tile.done = v === 'TRUE'; tile.sub = tile.done ? 'Done today' : 'Not yet today'; }
+      if (f.kind === 'text') tile.sub = v ? 'Note added today' : 'Anything Adam should know';
+      if (f.kind === 'habits') {
+        var hk = data.checkIn.habits && data.checkIn.habits.days[localIso()];
+        tile.done = v === 'Yes';
+        tile.sub = !hk ? 'Not set up for today yet' : hk.filter(Boolean).length + ' of ' + hk.length + ' done today';
+      }
+    }
+    tiles.push(tile);
   });
-  var doneN = tiles.filter(function (x) { return x.done; }).length;
+  return tiles;
+}
+function renderHub() {
+  var today = localIso(), t = ciDay(today), tiles = hubTiles(t);
+  var core = tiles.filter(function (x) { return CORE[x.key]; }), doneN = core.filter(function (x) { return x.done; }).length;
   var trained = t && /^train/i.test(t.values.training || '');
   var sessions = data.days.filter(dayDone).length;
   tiles.push({ go: 'home', name: 'Workouts', done: trained,
     sub: (trained ? 'Trained today · ' : '') + 'Week ' + data.week + ' · ' + sessions + ' of ' + data.days.length + ' sessions done' });
   var html = '<section class="week"><h1 class="date">' + esc(new Date(today + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })) + '</h1>' +
-    '<p>' + (doneN === tiles.length - 1 ? 'Check in done for today.' : doneN + ' of ' + (tiles.length - 1) + ' check in' + (tiles.length > 2 ? 's' : '') + ' done today.') + '</p></section>' +
+    '<p>' + (doneN === core.length ? 'Check in done for today.' : doneN + ' of ' + core.length + ' check ins done today.') + '</p></section>' +
     '<p class="sync" id="sync"></p><ul class="days">';
   tiles.forEach(function (x) {
     html += '<li><button class="day' + (x.done ? ' has-done' : '') + '" data-go="' + x.go + '"><span class="grow"><b>' + esc(x.name) + '</b><span>' + esc(x.sub) + '</span></span>' +
@@ -476,7 +523,7 @@ function renderCheckIn() {
 }
 
 function fieldById(id) { return data.checkIn.fields.filter(function (f) { return f.id === id; })[0]; }
-function renderField() { return view.screen === 'scale' ? renderScaleCard() : renderCheckIn(); }
+function renderField() { return view.screen === 'scale' ? renderScaleCard() : view.screen === 'entry' ? renderEntryCard() : renderCheckIn(); }
 function weekStrip(f, today) {
   var c = data.checkIn, wk = c.thisWeek ? c.days.filter(function (d) { return d.week === c.thisWeek.week; }) : [];
   return !wk.length ? '' : '<div class="ci-week">' + wk.map(function (d) {
@@ -510,6 +557,109 @@ function renderScaleCard() {
   el.innerHTML = html + weekStrip(f, today) + '<div class="ci-lines">' + (line ? '<p>' + line + '</p>' : '') +
     '<p class="muted">Go with your gut for the day as a whole. It is the weekly pattern that counts.</p></div>';
 }
+/* ---------- entry screens: numbers (steps, cardio, nutrition group), habits, IG Post switch, comments ---------- */
+function groupFields(g) { return data.checkIn.fields.filter(function (f) { return f.group === g; }); }
+function entryFields() { var k = view.field.slice(2); return view.field.charAt(0) === 'g' ? groupFields(k) : [fieldById(k)].filter(Boolean); }
+function entryTitle() { var fs = entryFields(); return view.field === 'g:nutrition' ? 'Nutrition' : fs.length ? fs[0].label : ''; }
+function fmtNum(v) { var n = Number(String(v).replace(/,/g, '')); return v === '' || isNaN(n) ? String(v) : n.toLocaleString('en-GB'); }
+function targetLine(f) {
+  var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
+  if (n) return 'Target ' + fmtNum(n) + ' ' + f.unit + (f.weekly ? ' this week' : ' a day');
+  return txt ? 'Target: ' + txt : '';
+}
+function weekTotal(f) {
+  var c = data.checkIn, wk = c.thisWeek ? c.thisWeek.week : -1, sum = 0;
+  c.days.forEach(function (d) { if (d.week === wk) sum += Number(String(d.values[f.id] || '').replace(/,/g, '')) || 0; });
+  return sum;
+}
+function renderEntry() {
+  $('app').innerHTML = '<section class="ci" id="ci"></section><p class="sync" id="sync"></p>';
+  renderEntryCard();
+  renderSync();
+}
+function renderEntryCard() {
+  var el = $('ci'), c = data.checkIn, fs = entryFields(); if (!el || !fs.length) return;
+  var today = localIso();
+  if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
+  var day = ciDay(ciState.date), kind = fs[0].kind, title = entryTitle();
+  var html = '<div class="ci-head"><h2>' + esc(title) + (ciState.date === today ? ' today' : ' on ' + esc(shortDate(ciState.date))) + '</h2>' +
+    '<input type="date" id="ciDate" aria-label="Day to log" value="' + ciState.date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>';
+  var lines = [];
+  if (!day) html += '<p class="ci-status warn">' + esc(shortDate(ciState.date)) + ' is not in your Check In tab yet. Message Adam.</p>';
+  else if (kind === 'number') {
+    html += '<div class="entry' + (fs.length === 1 ? ' solo' : '') + '">' + fs.map(function (f) {
+      var tl = targetLine(f);
+      return '<div><label>' + (fs.length > 1 ? '<span>' + esc(f.label) + '</span>' : '') + '<span class="box"><input data-entry="' + f.id + '" inputmode="numeric" enterkeyhint="done" autocomplete="off" value="' + esc(day.values[f.id] || '') + '" placeholder="0" aria-label="' + esc(f.label + ' in ' + f.unit) + '"><i>' + esc(f.unit) + '</i></span></label>' +
+        (tl ? '<small>' + esc(tl) + '</small>' : '') + '</div>';
+    }).join('') + '<button class="btn primary" data-act="entry-save">Save</button></div>';
+    var f0 = fs[0], tw = c.thisWeek && c.thisWeek.avg[f0.id], lw = c.lastWeek && c.lastWeek.avg[f0.id];
+    if (f0.weekly) lines.push('This week so far <span class="num">' + fmtNum(weekTotal(f0)) + ' ' + esc(f0.unit) + '</span>.');
+    else if (tw) lines.push('Week ' + c.thisWeek.week + ' average <span class="num">' + esc(fmtNum(tw)) + ' ' + esc(f0.unit) + '</span>' + (lw ? ', week ' + c.lastWeek.week + ' was ' + esc(fmtNum(lw)) + '.' : '.'));
+    if (view.field === 'g:nutrition') lines.push('<span class="muted">Copy the totals from your food app at the end of the day.</span>');
+  } else if (kind === 'text') {
+    html += '<div class="entry solo"><label><textarea data-entry="' + fs[0].id + '" maxlength="1000" placeholder="How the day went, anything Adam should know" aria-label="Comments">' + esc(day.values[fs[0].id] || '') + '</textarea></label>' +
+      '<button class="btn primary" data-act="entry-save">Save</button></div>';
+  } else if (kind === 'toggle') {
+    var on = day.values[fs[0].id] === 'TRUE';
+    html += '<div class="entry"><button class="sw' + (on ? ' on' : '') + '" data-sw="' + fs[0].id + '" role="switch" aria-checked="' + on + '"><span>' + esc(fs[0].prompt) + '</span><span class="knob"></span></button></div>';
+  } else if (kind === 'habits') {
+    var hb = c.habits, ticks = hb && hb.days[ciState.date];
+    if (!hb || !hb.names.length) html += '<p class="ci-status warn">No habits found on your Habits tab. Message Adam.</p>';
+    else if (!ticks) html += '<p class="ci-status warn">Your Habits tab is not showing ' + esc(shortDate(ciState.date)) + ' yet. Message Adam.</p>';
+    else {
+      html += '<div class="entry">' + hb.names.map(function (n, i) {
+        return '<button class="sw' + (ticks[i] ? ' on' : '') + '" data-sw="habit:' + i + '" role="switch" aria-checked="' + !!ticks[i] + '"><span>' + esc(n) + '</span><span class="knob"></span></button>';
+      }).join('') + '</div>';
+      var done = ticks.filter(Boolean).length;
+      lines.push('<span class="num">' + done + ' of ' + ticks.length + '</span> done (' + Math.round(done / ticks.length * 100) + '%). 85% or more counts the day as a habits day.');
+    }
+  }
+  if (day) html += '<p class="ci-status' + (ciState.warn ? ' warn' : '') + '" id="ciMsg" aria-live="polite">' + esc(ciState.msg) + '</p>';
+  el.innerHTML = html + (kind === 'number' ? weekStrip(fs[0], today) : '') + (lines.length ? '<div class="ci-lines"><p>' + lines.join('</p><p>') + '</p></div>' : '');
+}
+function entrySave() {
+  var date = ciState.date, day = ciDay(date), errs = [], n = 0; if (!day) return;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-entry]'), function (inp) {
+    var f = fieldById(inp.dataset.entry), raw = inp.value, have = day.values[f.id] || '';
+    if (f.kind === 'number' && String(raw).trim() === '') return; // blank = leave the sheet alone
+    var r = f.kind === 'text' ? { value: String(raw).trim() } : parseNumberField(raw, f);
+    if (r.error) return errs.push(r.error);
+    if (String(r.value) === String(have).replace(/,/g, '')) return;
+    enqueue({ type: 'ci', date: date, field: f.id, value: r.value, replace: true, prev: have });
+    day.values[f.id] = String(r.value); n++;
+  });
+  store('cw:data', data);
+  ciState.warn = !!errs.length;
+  ciState.msg = errs.length ? errs[0] : n ? 'Saving…' : 'Nothing changed.';
+  renderEntryCard();
+}
+// Copy of Logic.js parseNumber (the server checks again).
+var NUM_MAX = { steps: 100000, calories: 10000, protein: 1000, carbs: 1500, fats: 600, cardio: 600 };
+function parseNumberField(input, f) {
+  var s = String(input).replace(/[,\s]/g, '').replace(/(kcal|cals?|g|mins?|steps)$/i, '');
+  if (!/^\d+(\.\d+)?$/.test(s)) return { error: 'Type ' + f.label.toLowerCase() + ' as a number.' };
+  var v = Math.round(Number(s));
+  if (v > (NUM_MAX[f.id] || 1e9)) return { error: v + ' ' + f.unit + ' looks too high. Check the number.' };
+  return { value: v };
+}
+function switchSave(key) {
+  var date = ciState.date, day = ciDay(date); if (!day) return;
+  var hm = /^habit:(\d+)$/.exec(key);
+  if (hm) {
+    var ticks = data.checkIn.habits.days[date], i = +hm[1], was = !!ticks[i], prevVerdict = day.values.habits || '';
+    ticks[i] = !was;
+    day.values.habits = ticks.filter(Boolean).length / ticks.length >= 0.85 ? 'Yes' : 'No';
+    enqueue({ type: 'ci', date: date, field: key, value: !was, replace: true, prev: was, prevVerdict: prevVerdict });
+  } else {
+    var on = day.values[key] === 'TRUE';
+    enqueue({ type: 'ci', date: date, field: key, value: !on, replace: true, prev: day.values[key] || '' });
+    day.values[key] = on ? 'FALSE' : 'TRUE';
+  }
+  store('cw:data', data);
+  ciState.warn = false; ciState.msg = 'Saving…';
+  renderEntryCard();
+}
+
 function scaleSave(n) {
   var f = fieldById(view.field), date = ciState.date, day = ciDay(date);
   if (!day) { ciState.warn = true; ciState.msg = shortDate(date) + ' is not in your Check In tab yet. Message Adam.'; return renderScaleCard(); }
@@ -548,17 +698,21 @@ function checkInSaved(p, res) {
   if (!data || !data.checkIn) return;
   if (res.ok && res.checkIn) {
     data.checkIn = res.checkIn;
-    var pf = fieldById(p.field);
-    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = 'Saved ' + p.value + (pf && pf.unit ? ' ' + pf.unit : '') + ' to ' + SAVED_TO + '.'; }
+    var pf = fieldById(p.field) || (/^habit:/.test(p.field) ? { unit: '' } : null);
+    if (ciState.date === p.date && !ciState.confirm) { ciState.warn = false; ciState.msg = typeof p.value === 'boolean' || pf.kind === 'text' ? 'Saved to ' + SAVED_TO + '.' : 'Saved ' + p.value + (pf && pf.unit ? ' ' + pf.unit : '') + ' to ' + SAVED_TO + '.'; }
   }
   else {
-    var day = ciDay(p.date); if (day) day.values[p.field] = p.prev || ''; // undo the early display
+    var day = ciDay(p.date), hm = /^habit:(\d+)$/.exec(p.field);
+    if (hm) { var hd = data.checkIn.habits && data.checkIn.habits.days[p.date]; if (hd) hd[+hm[1]] = !!p.prev; if (day) day.values.habits = p.prevVerdict || ''; }
+    else if (day) day.values[p.field] = p.prev || ''; // undo the early display
     ciState.date = p.date; ciState.warn = true;
     if (res.conflict) { ciState.confirm = 'replace'; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type the number again and tap Replace to change it.'; }
     else ciState.msg = res.error || 'That didn\'t save. Try again.';
   }
   store('cw:data', data);
-  if (view.screen === 'weight' || view.screen === 'scale') renderField(); else if (view.screen === 'hub') renderHub();
+  var typing = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.entry;
+  if (view.screen === 'entry' && typing) { if ($('ciMsg')) { $('ciMsg').textContent = ciState.msg; $('ciMsg').className = 'ci-status' + (ciState.warn ? ' warn' : ''); } }
+  else if (view.screen === 'weight' || view.screen === 'scale' || view.screen === 'entry') renderField(); else if (view.screen === 'hub') renderHub();
 }
 
 function lastCell(p, i) {
@@ -658,6 +812,8 @@ document.addEventListener('click', function (e) {
   if (b.dataset.go) return show(b.dataset.go);
   if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderField(); }
   if (b.dataset.scale) return scaleSave(+b.dataset.scale);
+  if (b.dataset.sw) return switchSave(b.dataset.sw);
+  if (b.dataset.act === 'entry-save') return entrySave();
   var act = b.dataset.act, n = b.dataset.n;
   if (act === 'ci-save') return ciSave();
   if (act === 'go' || act === 'edit') { sess.current = n; sess.done = sess.done.filter(function (x) { return x !== n; }); saveSess(); return show('ex'); }
@@ -667,7 +823,7 @@ document.addEventListener('click', function (e) {
   if (act === 'home') return show('home');
 });
 $('barBack').onclick = function () {
-  if (view.screen === 'weight' || view.screen === 'scale' || view.screen === 'home') return show(startScreen());
+  if (view.screen === 'weight' || view.screen === 'scale' || view.screen === 'entry' || view.screen === 'home') return show(startScreen());
   show(view.screen === 'ov' && sess.current && remaining().length ? 'ex' : 'home');
 };
 $('barList').onclick = function () { show('ov'); };
@@ -718,7 +874,7 @@ function boot() {
     if (data.savedTo) SAVED_TO = data.savedTo;
     if (data.title) document.title = data.title;
     if (first || view.screen === 'hub' || view.screen === 'home') resume();
-    else if ((view.screen === 'weight' && document.activeElement !== $('ciVal')) || view.screen === 'scale') renderField();
+    else if ((view.screen === 'weight' && document.activeElement !== $('ciVal')) || view.screen === 'scale' || (view.screen === 'entry' && !document.activeElement.dataset.entry)) renderField();
     flush();
   }, function (err) {
     if (!data) $('app').innerHTML = '<div class="err"><b>Couldn\'t load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
