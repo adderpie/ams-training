@@ -26,15 +26,15 @@
   --ease: cubic-bezier(.16, 1, .3, 1);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior-y: none; }
-html { scrollbar-width: none; } /* app feel: no page scroll bar while scrolling */
-::-webkit-scrollbar { display: none; width: 0; height: 0; }
-/* Dark strip pinned past the bottom edge: when the phone's browser bar slides away mid-scroll, Google's white
-   wrapper page showed through for a frame on the home screen (exercise screens hide it behind the dock). */
-body::after { content: ""; position: fixed; left: 0; right: 0; bottom: -120px; height: 240px; background: var(--bg); z-index: -1; pointer-events: none; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+/* App-style scrolling: the page itself never scrolls; body is a full-screen panel that does. So the phone's
+   browser bar never slides in and out (that caused the flash on scroll-up), there's no rubber-band past the
+   ends, and the scroll bar can be hidden (iPhones ignore that on a normal page, but obey it on a panel). */
+html { height: 100%; overflow: hidden; }
+body { position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body {
   font: 16px/1.4 Arial, Helvetica, sans-serif;
-  min-height: 100dvh;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   font-variant-numeric: tabular-nums;
 }
@@ -337,7 +337,7 @@ function show(screen, day) {
     $('barList').hidden = screen === 'ov';
   }
   ({ hub: renderHub, weight: renderWeight, home: renderHome, ex: renderEx, ov: renderOv, fin: renderFin })[screen]();
-  window.scrollTo(0, 0);
+  document.body.scrollTop = 0;
 }
 
 function fmtDate(iso) {
