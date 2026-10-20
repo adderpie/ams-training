@@ -302,6 +302,31 @@ button.row:active { background: var(--surface-2); transform: none; }
 .note.warn { color: var(--warn); }
 .note a { color: var(--ink); font-weight: var(--w-bold); }
 
+/* ---------- log sections: one card per group, its own colour on the rule and icon ---------- */
+.fs { --sec: var(--accent-strong); background: var(--surface); border-radius: var(--r-card); box-shadow: var(--elev-1); padding: var(--s-4); position: relative; overflow: hidden; }
+.fs::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--sec); }
+.fs .fsh { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.fs .fsh i { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--sec) 18%, transparent); color: var(--sec); }
+.fs .fsh i svg { width: 20px; height: 20px; }
+.fs .fsh b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.fs .fsh span { display: block; font-size: var(--fs-12); color: var(--ink-muted); margin-top: 2px; }
+.fs .fsh .done { margin-left: auto; flex: none; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--on-accent-strong); background: var(--sec); padding: 4px 10px; border-radius: var(--r-pill); }
+.fs .field input, .fs .field textarea { background: var(--canvas); box-shadow: none; }
+.fs .field input:focus, .fs .field textarea:focus { box-shadow: 0 0 0 2px var(--sec); }
+.fs .scale button { background: var(--canvas); box-shadow: none; }
+.fs .scale button.sel { background: var(--sec); color: var(--on-accent-strong); }
+.fs .sw { background: var(--canvas); border-radius: var(--r-card); }
+.fs .form { margin-top: 0; }
+.fs + .fs { margin-top: var(--s-4); }
+.habits { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--elev-1); padding: var(--s-2) 0; }
+.habits .hab { padding: 0 var(--s-4); }
+.habits .hab span { font-weight: var(--w-bold); }
+.habits .hab .tick:not(.off) + span { color: var(--ink-muted); font-weight: var(--w-regular); text-decoration: line-through; text-decoration-color: var(--line); }
+.sechead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin: var(--s-5) 0 var(--s-2); }
+.sechead b { font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); }
+.sechead span { font-size: var(--fs-14); color: var(--ink-muted); }
+.sechead span.on { color: var(--accent); font-weight: var(--w-bold); }
+
 /* ---------- sync line ---------- */
 .sync { display: flex; align-items: center; gap: 8px; font-size: var(--fs-12); color: var(--ink-muted); margin-top: var(--s-3); min-height: 20px; }
 .sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-strong); flex: none; }
@@ -473,6 +498,9 @@ button.row:active { background: var(--surface-2); transform: none; }
   <symbol id="i-plan" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 9a6 6 0 0 1 10 0M12 13l2.5-3"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 11h8M8 15h6"/></symbol>
   <symbol id="i-meal" viewBox="0 0 24 24"><path d="M3 11h18M5 11a7 7 0 0 1 14 0M4 15h16M12 4v1"/></symbol>
   <symbol id="i-supp" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-35 12 12)"/><path d="M8.5 17.5l7-11"/></symbol>
   <symbol id="i-steps" viewBox="0 0 24 24"><path d="M6 4c2.5 0 3.5 2 3.5 4.5S8.5 13 6.5 13 3 11 3 8.5 4 4 6 4zM5 15h4l-.5 4h-3zM16 9c2.5 0 3.5 2 3.5 4.5S18.5 18 16.5 18 13 16 13 13.5 14 9 16 9zM15 20h4l-.5 3h-3z"/></symbol>
@@ -773,8 +801,8 @@ function renderToday() {
   html += '<div style="margin-top:var(--s-3)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
     (core.done === 0 ? 'Log today' : core.done < core.of ? 'Log the rest of today' : 'Logged for today, change something') + '</button></div>';
   html += '<p class="sync" id="sync"></p>';
+  html += habitsCard(t);
   html += tasksCard();
-  html += nextSession(t);
   $('app').innerHTML = html + '</section>';
   renderSync();
   if (pts && $('pts')) { countUp($('pts'), window._ptsFrom != null ? window._ptsFrom : 0, pts.n); window._ptsFrom = null; }
@@ -792,7 +820,7 @@ function statCells(t) {
     }
     if (f.kind === 'habits') {
       var hk = data.checkIn.habits && t && data.checkIn.habits.days[t.date], done = hk ? hk.filter(Boolean).length : 0;
-      return cells.push('<div class="row wide"><b>Habits</b><div class="n' + (done ? '' : ' empty') + '">' + (hk ? done + '<small>of ' + hk.length + ' ticked</small>' : 'not set up for today') + '</div></div>');
+      return cells.push('<div class="row wide"><b>Habits</b><div id="habCell" class="n' + (done ? '' : ' empty') + '">' + (hk ? done + '<small>of ' + hk.length + ' ticked</small>' : 'not set up for today') + '</div></div>');
     }
     if (f.kind === 'scale') return cells.push('<div class="row"><b>' + esc(f.label) + '</b><div class="n' + (v ? ' on' : ' empty') + '">' + (v ? esc(v) + '<small>of 5</small>' : 'not yet') + '</div></div>');
     cells.push(cell(f.label, v, f.unit, targetOf(f)));
@@ -811,13 +839,25 @@ function nextSession(t) {
   return html + '<div class="session"><div><b>' + esc(nxt.name) + '</b><p class="meta">' + (beat || (nxt.exercises.length + ' exercises, first time logging')) + '</p><p class="meta">' + (trained ? 'Trained today. ' : '') + done + ' of ' + trainingTarget() + ' this week.</p></div>' +
     '<button class="btn auto strong" data-day="' + esc(nxt.name) + '">Start</button></div>';
 }
+// Habits live on Today, not inside Log: one tap each, saved straight to the Habits tab.
+function habitsCard(t) {
+  if (!fieldsOfKind('habits').length) return '';
+  var hb = data.checkIn.habits, today = localIso(), ticks = hb && hb.days[today];
+  var head = '<div class="sechead"><b>Habits</b><span id="habPill"' + (ticks && ticks.filter(Boolean).length ? ' class="on"' : '') + '>' + (ticks ? ticks.filter(Boolean).length + ' of ' + ticks.length : '') + '</span></div>';
+  if (!hb || !hb.names.length) return head + '<p class="note warn">No habits found on your Habits tab. ' + MESSAGE_ADAM + '.</p>';
+  if (!t) return head + '<p class="note warn">Today is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
+  if (!ticks) return head + '<p class="note warn">Your Habits tab is not showing ' + esc(shortDate(today)) + ' yet. ' + MESSAGE_ADAM + '.</p>';
+  return head + '<div class="habits">' + hb.names.map(function (n, i) {
+    return '<button class="hab" data-habit="' + i + '" data-date="' + today + '" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
+  }).join('') + '</div><p class="meta" style="margin-top:var(--s-2)">Tick as you go. 85% or more counts the day as a habits day.</p>';
+}
 var tickedNow = {};
 function tasksCard() {
   var t = data.tasks; if (!t || !(data.features || {}).tasks) return '';
   var show = t.tasks.filter(function (x) { return !x.done || tickedNow[t.week + '|' + x.idx]; });
   if (!show.length) return '';
   var left = t.tasks.filter(function (x) { return !x.done; }).length;
-  return '<h2 class="sec">This week\'s tasks<span class="meta" style="float:right;font-weight:500">' + (left ? left + ' to do' : 'All done') + '</span></h2><div class="list">' + show.map(function (x) {
+  return '<div class="sechead"><b>This week\'s tasks</b><span>' + (left ? left + ' to do' : 'All done') + '</span></div><div class="list">' + show.map(function (x) {
     return '<button class="hab" data-task="' + x.idx + '" role="switch" aria-checked="' + x.done + '"><i class="tick' + (x.done ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(x.text) + '</span></button>';
   }).join('') + '</div>';
 }
@@ -851,41 +891,39 @@ function renderLog() {
     '<div class="earlier"><span>Earlier day</span><input type="date" id="ciDate" aria-label="Day to log" value="' + date + '" min="' + esc(c.firstDate) + '" max="' + today + '"></div>';
   if (!day) { $('app').innerHTML = html + '<p class="note warn">' + esc(shortDate(date)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p><p class="sync" id="sync"></p></section>'; return renderSync(); }
   html += '<div class="form">';
+  var sec = function (color, ic, title, hint, body, donePill) {
+    return '<div class="fs" style="--sec:' + color + '"><div class="fsh"><i><svg class="i"><use href="#i-' + ic + '"/></svg></i><div><b>' + esc(title) + '</b>' + (hint ? '<span>' + esc(hint) + '</span>' : '') + '</div>' + (donePill ? '<span class="done">' + esc(donePill) + '</span>' : '') + '</div><div class="form">' + body + '</div></div>';
+  };
   if (wf) {
     var prev = ciPrev(date, wf.id), have = day.values[wf.id] || '';
-    html += '<label class="field"><span>Weight</span><div class="box"><input id="ciVal" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(have) + '" placeholder="' + esc(data.startWeight ? 'Started at ' + data.startWeight : '0.0') + '" aria-label="Weight in ' + esc(wf.unit) + '"><span class="unit">' + esc(wf.unit) + '</span></div>' +
-      '<small' + (ciState.warn ? ' class="warn"' : '') + ' id="ciMsg">' + (ciState.msg ? esc(ciState.msg) : prev ? 'Last ' + prev + ' ' + esc(wf.unit) + '. Weigh first thing, same scale.' : 'First weigh-in. Weigh first thing, same scale.') + '</small></label>';
+    html += sec('var(--accent-strong)', 'scale', 'Weight', prev ? 'Last ' + prev + ' ' + wf.unit : 'First weigh-in',
+      '<label class="field"><div class="box"><input id="ciVal" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(have) + '" placeholder="' + esc(data.startWeight ? 'Started at ' + data.startWeight : '0.0') + '" aria-label="Weight in ' + esc(wf.unit) + '"><span class="unit">' + esc(wf.unit) + '</span></div>' +
+      '<small' + (ciState.warn ? ' class="warn"' : '') + ' id="ciMsg">' + (ciState.msg ? esc(ciState.msg) : 'Weigh first thing, same scale.') + '</small></label>', have ? 'Logged' : '');
   }
-  fieldsOfKind('number').filter(function (f) { return !f.group && !f.weekly; }).forEach(function (f) { html += numberField(f, day); });
+  var moveFields = fieldsOfKind('number').filter(function (f) { return !f.group; });
+  if (moveFields.length) html += sec('var(--warn)', 'steps', 'Steps and cardio', 'Steps from your phone or watch, cardio in minutes',
+    moveFields.map(function (f) { return numberField(f, day); }).join(''), moveFields.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
   var groups = []; data.checkIn.fields.forEach(function (f) { if (f.group && groups.indexOf(f.group) < 0) groups.push(f.group); });
-  groups.forEach(function (g) { html += '<div class="grid2">' + groupFields(g).map(function (f) { return numberField(f, day, true); }).join('') + '</div>'; });
-  fieldsOfKind('scale').forEach(function (f) {
+  groups.forEach(function (g) {
+    var gf = groupFields(g), tg = targetOf(gf[0]);
+    html += sec('var(--coach)', 'meal', 'Food', tg ? 'Totals from your food app, target ' + tg.text : 'Totals from your food app',
+      '<div class="grid2">' + gf.map(function (f) { return numberField(f, day, true); }).join('') + '</div>', gf.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
+  });
+  var scales = fieldsOfKind('scale');
+  if (scales.length) html += sec('var(--forest)', 'heart', 'How you feel', 'Go with the day as a whole', scales.map(function (f) {
     var v = day.values[f.id];
-    html += '<div class="field"><span>' + esc(f.label) + '</span><div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
+    return '<div class="field"><span>' + esc(f.label) + '</span><div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
       return '<button data-scale="' + f.id + '" data-n="' + n + '" class="' + (String(n) === v ? 'sel' : '') + '" aria-pressed="' + (String(n) === v) + '">' + n + '</button>';
     }).join('') + '</div><div class="scale-ends"><span>' + esc(f.low) + '</span><span>' + esc(f.high) + '</span></div></div>';
-  });
-  fieldsOfKind('habits').forEach(function () {
-    var hb = c.habits, ticks = hb && hb.days[date];
-    html += '<div class="field"><span>Habits</span>';
-    if (!hb || !hb.names.length) html += '<p class="note warn">No habits found on your Habits tab. ' + MESSAGE_ADAM + '.</p>';
-    else if (!ticks) html += '<p class="note warn">Your Habits tab is not showing ' + esc(shortDate(date)) + ' yet. ' + MESSAGE_ADAM + '.</p>';
-    else html += '<div class="list">' + hb.names.map(function (n, i) {
-      return '<button class="hab" data-habit="' + i + '" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
-    }).join('') + '</div><small id="habCount" style="display:block;margin-top:var(--s-1);font-size:var(--fs-12);color:var(--ink-muted)">' + ticks.filter(Boolean).length + ' of ' + ticks.length + '. 85% or more counts the day as a habits day.</small>';
-    html += '</div>';
-  });
-  // extras: weekly cardio, IG switch, comment
-  var extras = '';
-  fieldsOfKind('number').filter(function (f) { return f.weekly; }).forEach(function (f) { extras += numberField(f, day); });
-  fieldsOfKind('toggle').forEach(function (f) { var on = day.values[f.id] === 'TRUE'; extras += '<div class="list"><button class="sw' + (on ? ' on' : '') + '" data-sw="' + f.id + '" role="switch" aria-checked="' + on + '"><span>' + esc(f.prompt || f.label) + '</span><span class="knob"></span></button></div>'; });
-  fieldsOfKind('text').forEach(function (f) { extras += '<label class="field"><span>' + esc(f.label) + '</span><textarea data-entry="' + f.id + '" maxlength="1000" placeholder="How the day went, anything Adam should know" aria-label="' + esc(f.label) + '">' + esc(day.values[f.id] || '') + '</textarea></label>'; });
-  if (extras) html += '<details' + (window._moreOpen ? ' open' : '') + ' id="more"><summary class="sec" style="cursor:pointer;list-style:none;margin:0">More: cardio, Instagram, a note</summary><div class="form" style="margin-top:var(--s-3)">' + extras + '</div></details>';
+  }).join(''), scales.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
+  var tail = '';
+  fieldsOfKind('toggle').forEach(function (f) { var on = day.values[f.id] === 'TRUE'; tail += '<button class="sw' + (on ? ' on' : '') + '" data-sw="' + f.id + '" role="switch" aria-checked="' + on + '"><span>' + esc(f.prompt || f.label) + '</span><span class="knob"></span></button>'; });
+  fieldsOfKind('text').forEach(function (f) { tail += '<label class="field"><textarea data-entry="' + f.id + '" maxlength="1000" placeholder="Anything about today: ill, travelling, slept badly, a win" aria-label="' + esc(f.label) + '">' + esc(day.values[f.id] || '') + '</textarea></label>'; });
+  if (tail) html += sec('var(--ink-muted)', 'note', 'Anything else', 'A note Adam will read, and your Instagram post', tail);
   html += '<button class="btn strong" id="saveBtn" data-act="save-log" data-state="' + (window._saveState || 'idle') + '">' +
     '<span class="st st-idle">' + (ciState.confirm ? 'Save anyway' : 'Save') + '</span><span class="st st-saving">Saving…</span><span class="st st-saved"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Saved to ' + esc(SAVED_TO) + '</span><span class="st st-failed">Not sent yet, kept on your phone</span></button>';
   html += '<p class="sync" id="sync"></p></div></section>';
   $('app').innerHTML = html;
-  var m = $('more'); if (m) m.addEventListener('toggle', function () { window._moreOpen = m.open; });
   renderSync();
 }
 function numberField(f, day, compact) {
@@ -948,8 +986,8 @@ function scaleSave(id, n) {
   day.values[id] = String(n); store('cw:data', data);
   Array.prototype.forEach.call(document.querySelectorAll('[data-scale="' + id + '"]'), function (b) { var on = +b.dataset.n === n; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); });
 }
-function switchSave(key) {
-  var date = ciState.date, day = ciDay(date); if (!day) return;
+function switchSave(key, dateOverride) {
+  var date = dateOverride || ciState.date, day = ciDay(date); if (!day) return;
   var hm = /^habit:(\d+)$/.exec(key);
   if (hm) {
     var ticks = data.checkIn.habits.days[date], i = +hm[1], was = !!ticks[i], prevVerdict = day.values.habits || '';
@@ -962,12 +1000,13 @@ function switchSave(key) {
     day.values[key] = on ? 'FALSE' : 'TRUE';
   }
   store('cw:data', data);
-  if (view.screen !== 'log') return;
-  // update in place: a full re-render would wipe numbers typed but not yet saved
+  if (view.screen !== 'log' && view.screen !== 'today') return;
+  // update in place: a full re-render would wipe numbers typed but not yet saved (Log) or restart the hero (Today)
   if (hm) {
     var tk = data.checkIn.habits.days[date], hb = document.querySelector('[data-habit="' + hm[1] + '"]');
     if (hb) { var tkEl = hb.querySelector('.tick'); tkEl.classList.toggle('off', !tk[+hm[1]]); tkEl.classList.remove('pop'); void tkEl.offsetWidth; if (tk[+hm[1]]) { tkEl.classList.add('pop'); buzz(10); } hb.setAttribute('aria-checked', !!tk[+hm[1]]); }
-    var cnt = $('habCount'); if (cnt) cnt.textContent = tk.filter(Boolean).length + ' of ' + tk.length + '. 85% or more counts the day as a habits day.';
+    var done = tk.filter(Boolean).length, pill = $('habPill'); if (pill) { pill.textContent = done + ' of ' + tk.length; pill.className = done ? 'on' : ''; }
+    var cell = $('habCell'); if (cell) { cell.className = 'n' + (done ? '' : ' empty'); cell.innerHTML = done + '<small>of ' + tk.length + ' ticked</small>'; }
   } else {
     var sw = document.querySelector('[data-sw="' + key + '"]'); if (sw) { var isOn = day.values[key] === 'TRUE'; sw.classList.toggle('on', isOn); sw.setAttribute('aria-checked', isOn); }
   }
@@ -1460,7 +1499,7 @@ document.addEventListener('click', function (e) {
   if (b.dataset.go) return show(b.dataset.go);
   if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderLog(); }
   if (b.dataset.scale) return scaleSave(b.dataset.scale, +b.dataset.n);
-  if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit);
+  if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit, b.dataset.date);
   if (b.dataset.sw) return switchSave(b.dataset.sw);
   if (b.dataset.task) return taskToggle(+b.dataset.task);
   if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
