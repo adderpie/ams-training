@@ -1045,11 +1045,14 @@ function sessionList() {
   if (!data.days.length) return '<p class="note warn">Week ' + data.week + ' is not in your plan yet. ' + MESSAGE_ADAM + '.</p>';
   return '<ul class="days">' + data.days.map(function (d, i) {
     var s = load(sessKey(d.name), null);
+    var names = d.exercises.map(function (x) { return x.name; });
     var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
+    var skipped = s ? s.skipped.filter(function (n) { return names.indexOf(n) > -1; }).length : 0;
+    var finished = dayDone(d); // every exercise logged or skipped: the session is done, the tick says so
     var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
-    var sub = doneN ? doneN + ' of ' + d.exercises.length + ' logged this week' : d.exercises.length + ' exercises, ' + (last ? 'last logged week ' + last : 'first time');
+    var sub = finished ? 'Done this week' + (skipped ? ', ' + skipped + ' skipped' : '') : doneN ? doneN + ' of ' + d.exercises.length + ' logged this week' : d.exercises.length + ' exercises, ' + (last ? 'last logged week ' + last : 'first time');
     return '<li><button class="day" data-day="' + esc(d.name) + '"><span class="num">' + (i + 1) + '</span><span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
-      (doneN === d.exercises.length ? '<i class="tick">' + icon('check') + '</i>' : icon('chev')) + '</button></li>';
+      (finished ? '<i class="tick">' + icon('check') + '</i>' : icon('chev')) + '</button></li>';
   }).join('') + '</ul>';
 }
 function renderWorkout() {
