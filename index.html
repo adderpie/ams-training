@@ -130,7 +130,8 @@ html, body { margin: 0; background: var(--canvas); color: var(--ink); }
 /* App-style scrolling: the page never scrolls; body is a full-screen panel that does. The phone's browser bar never
    slides in and out (that caused a flash on scroll-up), no rubber-band past the ends, scroll bars hidden. */
 html { height: 100%; overflow: hidden; }
-body { position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+body { position: fixed; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+#app { overflow-x: hidden; overflow-wrap: anywhere; }
 * { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body { font: var(--w-regular) var(--fs-16)/var(--lh-body) var(--font); font-variant-numeric: tabular-nums; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
@@ -377,16 +378,45 @@ button.row:active { background: var(--surface-2); transform: none; }
 .fin li span { color: var(--ink-muted); text-align: right; }
 .fin li.up span { color: var(--accent); font-weight: var(--w-bold); }
 
-/* ---------- plan ---------- */
-details.meal { background: var(--surface); border-radius: var(--r-card); margin-top: var(--s-2); }
-details.meal summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); min-height: 52px; cursor: pointer; font-weight: var(--w-bold); }
-details.meal summary::-webkit-details-marker { display: none; }
-details.meal summary span { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-14); white-space: nowrap; }
-details.meal ul { list-style: none; margin: 0; padding: 0 var(--s-4) var(--s-3); display: grid; gap: 6px; }
-details.meal li { display: flex; justify-content: space-between; gap: var(--s-3); font-size: var(--fs-14); }
-details.meal li span { color: var(--ink-muted); white-space: nowrap; }
-details.meal p { margin: 0; padding: 0 var(--s-4) var(--s-3); font-size: var(--fs-14); color: var(--ink-muted); white-space: pre-line; }
-details.meal p b { color: var(--ink); display: block; }
+/* ---------- plan: a hub of three entries, then one screen per thing ---------- */
+.entries { display: grid; gap: var(--s-3); margin-top: var(--s-4); }
+.entry { display: flex; align-items: center; gap: var(--s-4); width: 100%; text-align: left; padding: var(--s-4); min-height: 88px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--elev-1); }
+.entry .ic { flex: none; width: 52px; height: 52px; border-radius: var(--r-card); display: grid; place-items: center; background: var(--surface-2); color: var(--accent); }
+.entry .ic svg { width: 26px; height: 26px; }
+.entry .tx { flex: 1; min-width: 0; }
+.entry .tx b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.entry .tx span { display: block; font-size: var(--fs-14); color: var(--ink-muted); margin-top: 4px; }
+.entry > svg.i { color: var(--ink-muted); }
+.entry:active { background: var(--surface-2); }
+.pcard { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--elev-1); margin-top: var(--s-4); overflow: hidden; }
+.pcard .hd { padding: var(--s-4); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); border-bottom: 1px solid var(--line); }
+.pcard .hd b { font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.pcard .hd .tag { display: block; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--accent); margin-bottom: 4px; }
+.pcard .hd .kcal { flex: none; text-align: right; font-size: var(--fs-20); font-weight: var(--w-black); color: var(--accent); letter-spacing: var(--track-tight); }
+.pcard .hd .kcal small { display: block; font-size: var(--fs-12); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; }
+.pcard .food { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); }
+.pcard .food + .food { border-top: 1px solid var(--line); }
+.pcard .food b { font-weight: var(--w-bold); }
+.pcard .food span { color: var(--ink); font-weight: var(--w-bold); white-space: nowrap; }
+.pcard .tot { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface-2); padding: var(--s-3) var(--s-4); }
+.pcard .tot div { font-size: var(--fs-12); color: var(--ink-muted); }
+.pcard .tot div b { display: block; font-size: var(--fs-16); color: var(--ink); font-weight: var(--w-black); }
+.kv { display: grid; grid-template-columns: 72px 1fr; gap: var(--s-2) var(--s-3); padding: var(--s-3) var(--s-4); }
+.kv span { font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); padding-top: 3px; }
+.kv div { font-size: var(--fs-16); }
+.kv div.big { font-size: var(--fs-20); font-weight: var(--w-black); color: var(--accent); letter-spacing: var(--track-tight); }
+.kv div.txt { color: var(--ink-muted); font-size: var(--fs-14); white-space: pre-line; }
+.planrow { display: flex; align-items: center; gap: var(--s-3); width: 100%; text-align: left; padding: var(--s-4); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--elev-1); }
+.planrow .n { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); color: var(--accent); display: grid; place-items: center; font-weight: var(--w-black); }
+.planrow .tx { flex: 1; min-width: 0; }
+.planrow .tx b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
+.planrow .tx span { font-size: var(--fs-14); color: var(--ink-muted); }
+.planrow > svg.i { color: var(--ink-muted); }
+.planrow:active { background: var(--surface-2); }
+.targets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: var(--s-3); }
+.targets div { background: var(--surface); border-radius: var(--r-card); padding: var(--s-3) var(--s-2); text-align: center; }
+.targets div b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); color: var(--accent); }
+.targets div span { font-size: var(--fs-12); color: var(--ink-muted); }
 .shop { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
 .shop li button { width: 100%; display: flex; justify-content: space-between; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; }
 .shop li.got button { opacity: .45; }
@@ -443,6 +473,9 @@ details.meal p b { color: var(--ink); display: block; }
   <symbol id="i-plan" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-meal" viewBox="0 0 24 24"><path d="M3 11h18M5 11a7 7 0 0 1 14 0M4 15h16M12 4v1"/></symbol>
+  <symbol id="i-supp" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-35 12 12)"/><path d="M8.5 17.5l7-11"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 24 24"><path d="M6 4c2.5 0 3.5 2 3.5 4.5S8.5 13 6.5 13 3 11 3 8.5 4 4 6 4zM5 15h4l-.5 4h-3zM16 9c2.5 0 3.5 2 3.5 4.5S18.5 18 16.5 18 13 16 13 13.5 14 9 16 9zM15 20h4l-.5 3h-3z"/></symbol>
   <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--emerald)"/><stop offset="1" style="stop-color:var(--forest)"/></linearGradient>
   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--emerald);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--emerald);stop-opacity:0"/></linearGradient>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
@@ -701,8 +734,10 @@ function startRings() { requestAnimationFrame(function () { Array.prototype.forE
 /* ---------- navigation ---------- */
 var TABS = { today: 1, workout: 1, plan: 1, progress: 1 };
 var RENDER = { today: renderToday, log: renderLog, workout: renderWorkout, ex: renderEx, ov: renderOv, fin: renderFin, plan: renderPlan, shop: renderShop,
+  meals: renderMeals, mealplan: renderMealPlan, supps: renderSupps, cardio: renderCardio,
   progress: renderProgress, weekly: renderWeekly, measure: renderMeasure, photos: renderPhotos };
 function show(screen, day) {
+  if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
   view.screen = screen; if (day) view.day = day;
   if (TABS[screen]) view.tab = screen;
   var inSession = screen === 'ex';
@@ -1071,30 +1106,75 @@ function loadPlan() {
   var ft = data.features || {}; if (!(ft.plan || ft.supps) || !api.getPlan) return;
   api.getPlan().then(function (p) {
     if (!p) return; plan = p; store('cw:plan', plan);
-    if (view.screen === 'plan' || view.screen === 'shop') show(view.screen);
+    if (['plan', 'shop', 'meals', 'mealplan', 'supps', 'cardio'].indexOf(view.screen) > -1) show(view.screen === 'mealplan' ? 'mealplan:' + (view.mealTab || 0) : view.screen);
     else if (view.screen === 'log' && !(document.activeElement && document.activeElement.dataset.entry)) renderLog();
   }, function () {});
 }
+function planTargets() { var mp = plan && plan.plans && plan.plans[0]; return (mp && mp.targets) || (plan && plan.targets) || {}; }
+function num0(v) { return Math.round(num(v)); }
+function mealKcal(m) { return m.totals ? num0(m.totals.calories) : m.foods.reduce(function (n, f) { return n + num(f.calories); }, 0); }
+function planKcal(p) { return p.meals.reduce(function (n, m) { return n + mealKcal(m); }, 0); }
+// Plan hub: three doors. Each opens its own screen, so a client with six meal plans never scrolls a wall.
 function renderPlan() {
-  var ft = data.features || {};
-  if (!(ft.plan || ft.supps)) { $('app').innerHTML = '<section class="screen"><h1 class="t l">Plan</h1><p class="note">Your meal plan and supplements are not switched on in the app yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
-  if (!plan) { $('app').innerHTML = '<section class="screen"><h1 class="t l">Plan</h1><p class="loading">Loading your plan…</p></section>'; return; }
-  var i = Math.min(view.mealTab || 0, (plan.plans || []).length - 1), mp = (plan.plans || [])[i], t = mp && mp.targets || {}, html = '<section class="screen"><h1 class="t l">Plan</h1>';
-  if (mp) {
-    html += '<p class="meta">' + (t.calories ? '<b>' + fmtNum(t.calories) + ' kcal</b>, ' + esc(t.protein) + ' g protein, ' + esc(t.carbs) + ' g carbs, ' + esc(t.fats) + ' g fats a day.' : 'Your meals for the day.') + '</p>';
-    if (plan.plans.length > 1) html += '<div class="chips" style="margin-top:var(--s-3)">' + plan.plans.map(function (p, k) { return '<button class="' + (k === i ? 'sel' : '') + '" data-mealtab="' + k + '">' + esc(p.tab) + '</button>'; }).join('') + '</div>';
-    html += '<h2 class="sec">Meals</h2>' + mp.meals.map(function (m, k) {
-      return '<details class="meal"' + (k === 0 ? ' open' : '') + '><summary>' + esc(m.name || 'Meal') + (m.totals ? '<span>' + esc(fmtNum(m.totals.calories)) + ' kcal, ' + esc(m.totals.protein) + ' g P</span>' : '') + '</summary><ul>' +
-        m.foods.map(function (x) { return '<li><b>' + esc(x.food) + '</b><span>' + esc(x.portion) + '</span></li>'; }).join('') + '</ul></details>';
-    }).join('');
-    html += '<div style="margin-top:var(--s-3)"><button class="btn quiet" data-go="shop">Shopping list</button></div>';
-  } else if (ft.plan) html += '<p class="note">No meals in your plan yet. ' + MESSAGE_ADAM + '.</p>';
-  if (plan.supplements && plan.supplements.length) html += '<h2 class="sec">Supplements</h2>' + plan.supplements.map(function (x) {
-    return '<details class="meal"><summary>' + esc(x.name) + '<span>' + esc([x.serving, x.timing].filter(Boolean).join(', ')) + '</span></summary>' +
-      [['Dose', x.serving], ['When', x.timing], ['Notes', x.notes]].filter(function (r) { return r[1]; }).map(function (r) { return '<p><b>' + r[0] + '</b>' + esc(r[1]) + '</p>'; }).join('') + '</details>';
+  var ft = data.features || {}, html = '<section class="screen"><h1 class="t l">Plan</h1>';
+  if (!(ft.plan || ft.supps)) { $('app').innerHTML = html + '<p class="note">Your meal plan and supplements are not switched on in the app yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
+  if (!plan) { $('app').innerHTML = html + '<div class="skel"><i style="height:88px"></i><i style="height:88px"></i><i style="height:88px"></i></div></section>'; return; }
+  var t = planTargets(), plans = plan.plans || [], supps = plan.supplements || [], cardio = plan.cardio || [];
+  html += '<p class="meta">What Adam has set for you.</p>';
+  if (t.calories) html += '<div class="targets"><div><b>' + esc(fmtNum(t.calories)) + '</b><span>kcal</span></div><div><b>' + esc(t.protein) + '</b><span>protein g</span></div><div><b>' + esc(t.carbs) + '</b><span>carbs g</span></div><div><b>' + esc(t.fats) + '</b><span>fats g</span></div></div>';
+  html += '<div class="entries">';
+  if (ft.plan) html += entry('meals', 'meal', 'Meal plans', plans.length ? plans.length + (plans.length === 1 ? ' plan, ' : ' plans, ') + plans.reduce(function (n, p) { return n + p.meals.length; }, 0) + ' meals, plus your shopping list' : 'No meals in your sheet yet');
+  if (ft.supps) html += entry('supps', 'supp', 'Supplements', supps.length ? supps.length + ' to take, with doses and timing' : 'Nothing listed yet');
+  if (ft.plan) html += entry('cardio', 'steps', 'Cardio and steps', cardio.length ? cardio.map(function (r) { return r.duration; }).filter(Boolean).join(', ') : 'Nothing listed yet');
+  $('app').innerHTML = html + '</div></section>';
+}
+function entry(go, ic, title, sub) {
+  return '<button class="entry" data-go="' + go + '"><span class="ic"><svg class="i"><use href="#i-' + ic + '"/></svg></span><span class="tx"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' + icon('chev') + '</button>';
+}
+function renderMeals() {
+  var plans = (plan && plan.plans) || [];
+  var html = '<section class="screen">' + topBar('Meal plans', plans.length ? 'Tap a plan to see every meal in it.' : '', 'plan');
+  if (!plans.length) { $('app').innerHTML = html + '<p class="note">No meals in your plan yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
+  html += '<div class="entries">' + plans.map(function (p, i) {
+    return '<button class="planrow" data-go="mealplan:' + i + '"><span class="n">' + (i + 1) + '</span><span class="tx"><b>' + esc(p.tab) + '</b><span>' + p.meals.length + (p.meals.length === 1 ? ' meal, ' : ' meals, ') + fmtNum(planKcal(p)) + ' kcal a day</span></span>' + icon('chev') + '</button>';
+  }).join('') + '</div>';
+  html += '<h2 class="sec">Shopping</h2><button class="entry" data-go="shop"><span class="ic"><svg class="i"><use href="#i-list"/></svg></span><span class="tx"><b>Shopping list</b><span>Pick your days, tick things off in the shop</span></span>' + icon('chev') + '</button>';
+  $('app').innerHTML = html + '</section>';
+}
+function renderMealPlan() {
+  var plans = (plan && plan.plans) || [], i = Math.min(view.mealTab || 0, plans.length - 1), mp = plans[i];
+  if (!mp) return show('meals');
+  var t = mp.targets || {}, sum = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+  mp.meals.forEach(function (m) { ['calories', 'protein', 'carbs', 'fats'].forEach(function (k) { sum[k] += num(m.totals && m.totals[k]); }); });
+  var html = '<section class="screen">' + topBar(mp.tab, mp.meals.length + ' meals, ' + fmtNum(Math.round(sum.calories)) + ' kcal a day', 'meals');
+  if (t.calories) html += '<div class="targets"><div><b>' + esc(fmtNum(t.calories)) + '</b><span>kcal</span></div><div><b>' + esc(t.protein) + '</b><span>protein g</span></div><div><b>' + esc(t.carbs) + '</b><span>carbs g</span></div><div><b>' + esc(t.fats) + '</b><span>fats g</span></div></div>';
+  html += mp.meals.map(function (m, k) {
+    return '<div class="pcard"><div class="hd"><div><span class="tag">Meal ' + (k + 1) + '</span><b>' + esc(m.name || 'Meal') + '</b></div>' +
+      (m.totals ? '<div class="kcal">' + esc(fmtNum(m.totals.calories)) + '<small>kcal</small></div>' : '') + '</div>' +
+      m.foods.map(function (x) { return '<div class="food"><b>' + esc(x.food) + '</b><span>' + esc(x.portion) + '</span></div>'; }).join('') +
+      (m.totals ? '<div class="tot"><div>Protein<b>' + esc(m.totals.protein) + ' g</b></div><div>Carbs<b>' + esc(m.totals.carbs) + ' g</b></div><div>Fats<b>' + esc(m.totals.fats) + ' g</b></div><div>Kcal<b>' + esc(fmtNum(m.totals.calories)) + '</b></div></div>' : '') + '</div>';
   }).join('');
-  if (plan.cardio && plan.cardio.length) html += '<h2 class="sec">Steps and cardio</h2>' + plan.cardio.map(function (r) {
-    return '<details class="meal"><summary>' + esc(r.type) + '<span>' + esc(r.duration) + '</span></summary>' + (r.notes ? '<p>' + esc(r.notes) + '</p>' : '') + '</details>';
+  $('app').innerHTML = html + '</section>';
+}
+function renderSupps() {
+  var supps = (plan && plan.supplements) || [];
+  var html = '<section class="screen">' + topBar('Supplements', supps.length ? supps.length + ' to take' : '', 'plan');
+  if (!supps.length) { $('app').innerHTML = html + '<p class="note">No supplements in your plan.</p></section>'; return; }
+  html += supps.map(function (x, k) {
+    return '<div class="pcard"><div class="hd"><div><span class="tag">' + (k + 1) + ' of ' + supps.length + '</span><b>' + esc(x.name) + '</b></div></div><div class="kv">' +
+      (x.serving ? '<span>Dose</span><div class="big">' + esc(x.serving) + '</div>' : '') +
+      (x.timing ? '<span>When</span><div>' + esc(x.timing) + '</div>' : '') +
+      (x.notes ? '<span>Notes</span><div class="txt">' + esc(x.notes) + '</div>' : '') + '</div></div>';
+  }).join('');
+  $('app').innerHTML = html + '</section>';
+}
+function renderCardio() {
+  var rows = (plan && plan.cardio) || [];
+  var html = '<section class="screen">' + topBar('Cardio and steps', rows.length ? 'Your targets and how Adam wants them done.' : '', 'plan');
+  if (!rows.length) { $('app').innerHTML = html + '<p class="note">Nothing on your Cardio tab yet.</p></section>'; return; }
+  html += rows.map(function (r) {
+    return '<div class="pcard"><div class="hd"><div><b>' + esc(r.type) + '</b></div>' + (r.duration ? '<div class="kcal">' + esc(r.duration) + '<small>target</small></div>' : '') + '</div>' +
+      (r.notes ? '<div class="kv"><span>How</span><div class="txt">' + esc(r.notes) + '</div></div>' : '') + '</div>';
   }).join('');
   $('app').innerHTML = html + '</section>';
 }
@@ -1131,11 +1211,11 @@ function shopItems() { var st = shopState(), meals = []; plan.plans.forEach(func
 function planDays(tab, step) { var st = shopState(); st.days[tab] = Math.max(0, Math.min(14, (st.days[tab] || 0) + step)); saveShopState(); renderShop(); }
 function shopMake() { var st = shopState(); st.made = true; st.got = {}; saveShopState(); renderShop(); document.body.scrollTop = 0; }
 function renderShop() {
-  if (!plan || !plan.plans) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'plan') + '<p class="loading">Loading your plan…</p></section>'; return; }
-  if (!plan.plans.length) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'plan') + '<p class="note">No meal plan to build a list from yet.</p></section>'; return; }
+  if (!plan || !plan.plans) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'meals') + '<p class="loading">Loading your plan…</p></section>'; return; }
+  if (!plan.plans.length) { $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', '', 'meals') + '<p class="note">No meal plan to build a list from yet.</p></section>'; return; }
   var st = shopState(), total = plan.plans.reduce(function (n, p) { return n + (st.days[p.tab] || 0); }, 0);
   if (!st.made || !total) {
-    $('app').innerHTML = '<section class="screen">' + topBar('Plan your shop', 'How many days of each meal plan?', 'plan') + '<div class="list">' + plan.plans.map(function (p) {
+    $('app').innerHTML = '<section class="screen">' + topBar('Plan your shop', 'How many days of each meal plan?', 'meals') + '<div class="list">' + plan.plans.map(function (p) {
       var d = st.days[p.tab] || 0;
       return '<div class="row"><span class="l">' + esc(p.tab) + '<span>' + p.meals.length + (p.meals.length === 1 ? ' meal' : ' meals') + ' a day</span></span><span class="stepper"><button data-plan="' + esc(p.tab) + '" data-step="-1" aria-label="One day fewer of ' + esc(p.tab) + '">&minus;</button><b aria-live="polite">' + d + '</b><button data-plan="' + esc(p.tab) + '" data-step="1" aria-label="One day more of ' + esc(p.tab) + '">+</button></span></div>';
     }).join('') + '</div><div style="margin-top:var(--s-3)"><button class="btn strong"' + (total ? '' : ' disabled') + ' data-act="shop-make">' + (total ? 'Make my list for ' + total + (total === 1 ? ' day' : ' days') : 'Pick at least one day') + '</button></div></section>';
@@ -1143,7 +1223,7 @@ function renderShop() {
   }
   var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
   var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return esc(p.tab) + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
-  $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'plan', '<button class="pill" data-act="shop-change">Change</button>') +
+  $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'meals', '<button class="pill" data-act="shop-change">Change</button>') +
     '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
 }
 function shopTick(i) { var st = shopState(); st.got[i] = !st.got[i]; saveShopState(); renderShop(); }
@@ -1387,7 +1467,6 @@ document.addEventListener('click', function (e) {
   if (b.dataset.copy !== undefined) return copyLast(+b.dataset.copy);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
   if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
-  if (b.dataset.mealtab !== undefined) { view.mealTab = +b.dataset.mealtab; return renderPlan(); }
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
   var act = b.dataset.act, n = b.dataset.n;
   if (act === 'save-log') return saveLog();
