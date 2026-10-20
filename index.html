@@ -11,8 +11,9 @@
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="AMS Training">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" media="print" onload="this.media='all'">
 <style>
 /* tokens:start */
 /* AMS Johnston Coaching client app: design tokens. Source of truth for every colour, size, radius, elevation and
@@ -161,7 +162,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 #app.today-bg { background: radial-gradient(70% 36% at 50% -4%, rgba(43, 168, 74, .16), transparent 72%); }
 button, .press { transition: transform var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
 button:active, .press:active { transform: scale(.97); }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition: none !important; } }
 
 /* ---------- type ---------- */
 h1.t { font-size: var(--fs-24); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); margin: 0; }
@@ -259,7 +260,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .strip button:disabled { opacity: .35; cursor: default; }
 .strip button:disabled span { box-shadow: inset 0 0 0 2px var(--line); }
 .earlier { margin-top: var(--s-2); display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-14); color: var(--ink-muted); }
-.earlier input { height: 36px; padding: 0 10px; border-radius: var(--r-chip); background: var(--surface); border: 0; color: var(--ink); color-scheme: dark; font-size: var(--fs-14); }
+.earlier input { height: var(--tap); padding: 0 10px; border-radius: var(--r-chip); background: var(--surface); border: 0; color: var(--ink); color-scheme: dark; font-size: var(--fs-16); }
 
 /* ---------- fields ---------- */
 .form { display: grid; gap: var(--s-4); margin-top: var(--s-4); }
@@ -310,11 +311,11 @@ button.row:active { background: var(--surface-2); transform: none; }
 .fs .fsh i svg { width: 20px; height: 20px; }
 .fs .fsh b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
 .fs .fsh span { display: block; font-size: var(--fs-12); color: var(--ink-muted); margin-top: 2px; }
-.fs .fsh .done { margin-left: auto; flex: none; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--on-accent-strong); background: var(--sec); padding: 4px 10px; border-radius: var(--r-pill); }
+.fs .fsh .done { margin-left: auto; flex: none; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--on-sec, var(--on-accent-strong)); background: var(--sec); padding: 4px 10px; border-radius: var(--r-pill); }
 .fs .field input, .fs .field textarea { background: var(--canvas); box-shadow: none; }
 .fs .field input:focus, .fs .field textarea:focus { box-shadow: 0 0 0 2px var(--sec); }
 .fs .scale button { background: var(--canvas); box-shadow: none; }
-.fs .scale button.sel { background: var(--sec); color: var(--on-accent-strong); }
+.fs .scale button.sel { background: var(--sec); color: var(--on-sec, var(--on-accent-strong)); }
 .fs .sw { background: var(--canvas); border-radius: var(--r-card); }
 .fs .form { margin-top: 0; }
 .fs + .fs { margin-top: var(--s-4); }
@@ -417,12 +418,12 @@ button.row:active { background: var(--surface-2); transform: none; }
 .pcard .hd { padding: var(--s-4); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); border-bottom: 1px solid var(--line); }
 .pcard .hd b { font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
 .pcard .hd .tag { display: block; font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--accent); margin-bottom: 4px; }
-.pcard .hd .kcal { flex: none; text-align: right; font-size: var(--fs-20); font-weight: var(--w-black); color: var(--accent); letter-spacing: var(--track-tight); }
+.pcard .hd .kcal { flex: none; max-width: 60%; overflow-wrap: normal; text-align: right; font-size: var(--fs-20); font-weight: var(--w-black); color: var(--accent); letter-spacing: var(--track-tight); }
 .pcard .hd .kcal small { display: block; font-size: var(--fs-12); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; }
 .pcard .food { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); }
 .pcard .food + .food { border-top: 1px solid var(--line); }
 .pcard .food b { font-weight: var(--w-bold); }
-.pcard .food span { color: var(--ink); font-weight: var(--w-bold); white-space: nowrap; }
+.pcard .food span { color: var(--ink); font-weight: var(--w-bold); max-width: 60%; overflow-wrap: normal; text-align: right; }
 .pcard .tot { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface-2); padding: var(--s-3) var(--s-4); }
 .pcard .tot div { font-size: var(--fs-12); color: var(--ink-muted); }
 .pcard .tot div b { display: block; font-size: var(--fs-16); color: var(--ink); font-weight: var(--w-black); }
@@ -446,7 +447,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .shop li button { width: 100%; display: flex; justify-content: space-between; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; }
 .shop li.got button { opacity: .45; }
 .shop li.got b { text-decoration: line-through; }
-.shop li span { color: var(--ink-muted); white-space: nowrap; }
+.shop li span { color: var(--ink-muted); max-width: 60%; overflow-wrap: normal; text-align: right; }
 .stepper { display: flex; align-items: center; gap: var(--s-2); }
 .stepper button { width: 40px; height: 40px; border-radius: var(--r-pill); background: var(--surface-2); font-size: var(--fs-20); display: grid; place-items: center; }
 .stepper b { width: 28px; text-align: center; }
@@ -548,8 +549,11 @@ function gs(fn) { return function (p) { return new Promise(function (ok, no) { g
 var FNS = { getData: 'getData', save: 'saveExercise', saveCheckIn: 'saveCheckIn', getPlan: 'getPlan', saveTask: 'saveTask', saveMeasurement: 'saveMeasurement',
   uploadPhoto: 'uploadPhoto', getWeeklyForm: 'getWeeklyForm', saveWeeklyCheckIn: 'saveWeeklyCheckIn' };
 var api = {};
+function timed(fn) { // a call that never settles would pin the queue: give up after 90 s and let the retry timer try again
+  return function (p) { return Promise.race([fn(p), new Promise(function (_, no) { setTimeout(function () { no(new Error('No reply from the sheet yet. Will retry.')); }, 90000); })]); };
+}
 Object.keys(FNS).forEach(function (k) {
-  api[k] = (typeof google !== 'undefined' && google.script) ? gs(FNS[k]) : SCRIPT ? function (p) { return post(FNS[k], p); } : null;
+  api[k] = (typeof google !== 'undefined' && google.script) ? timed(gs(FNS[k])) : SCRIPT ? timed(function (p) { return post(FNS[k], p); }) : null;
 });
 if (!api.getData) api = mockApi();
 function post(fn, p) { // text/plain body: no CORS preflight, Apps Script answers with JSON {ok, result|error}
@@ -564,6 +568,7 @@ var queue = load('cw:q', []);
 var view = { screen: '', tab: 'today', day: null };
 var sess = null;
 var syncState = { busy: false, error: '' };
+var lastWrite = 0, fetchedOn = '', fetchedAt = 0; // a save that landed after boot's snapshot was taken must win over it
 var plan = load('cw:plan', null);
 
 function dayByName(n) { return data.days.filter(function (d) { return d.name === n; })[0]; }
@@ -594,11 +599,10 @@ function openSession(dayName) {
 function saveSess() { store(sessKey(sess.day), sess); }
 function remaining() { return sess.order.filter(function (n) { return sess.done.indexOf(n) < 0 && sess.skipped.indexOf(n) < 0; }); }
 function draft(name) { return sess.drafts[name] || (sess.drafts[name] = { kg: ['', '', '', ''], reps: ['', '', '', ''], comment: '' }); }
-function dayDone(d) {
+function dayDone(d) { // every exercise logged or skipped, and at least one logged: an all-skipped day is not a session
   var s = load(sessKey(d.name), null);
-  return d.exercises.length && d.exercises.every(function (x) {
-    return hasNums(x.history[data.week]) || (s && (s.done.indexOf(x.name) > -1 || s.skipped.indexOf(x.name) > -1));
-  });
+  var logged = function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); };
+  return d.exercises.length && d.exercises.some(logged) && d.exercises.every(function (x) { return logged(x) || (s && s.skipped.indexOf(x.name) > -1); });
 }
 
 /* ---------- save queue: nothing is lost if the signal drops. Same keys and payloads as before. ---------- */
@@ -618,20 +622,20 @@ function flush() {
   syncState.busy = true; renderSync();
   var p = queue[0];
   var call = p.type === 'ci' ? api.saveCheckIn(p) : p.type === 'task' ? api.saveTask(p) : p.type === 'ms' ? api.saveMeasurement(p) : p.type === 'wc' ? api.saveWeeklyCheckIn(p) : api.save(p);
+  function fin() { syncState.busy = false; if (queue.length && !syncState.error) flush(); else renderSync(); }
   call.then(function (res) {
-    queue.shift(); store('cw:q', queue); syncState.error = '';
+    var i = queue.indexOf(p); if (i > -1) queue.splice(i, 1); // by identity: a superseded in-flight item is already gone, never shift the newer one
+    store('cw:q', queue); syncState.error = '';
     if (p.type === 'ci') return checkInSaved(p, res || {});
     if (p.type === 'task' || p.type === 'ms') return otherSaved(p, res || {});
     if (p.type === 'wc') return weeklySaved(p, res || {});
+    if (res && res.ok === false) { toast(res.error || 'That workout did not save.'); return; } // a permanent refusal is dropped and said, not retried forever
     var x = data && dayByName(p.day) && exByName(dayByName(p.day), p.exercise);
     if (x && !p.skip) { x.history[p.week] = { kg: p.kg, reps: p.reps, comment: p.comment }; store('cw:data', data); }
   }, function (err) {
     syncState.error = (err && err.message) || 'No connection';
     if (p.type === 'ci') setSaveState('failed');
-  }).then(function () {
-    syncState.busy = false;
-    if (queue.length && !syncState.error) flush(); else renderSync();
-  });
+  }).then(fin, function (e) { syncState.error = (e && e.message) || 'Something went wrong showing that save'; fin(); }); // a render error must never pin the queue
 }
 setInterval(function () { if (queue.length) { syncState.error = ''; flush(); } }, 30000);
 window.addEventListener('online', function () { syncState.error = ''; flush(); });
@@ -675,11 +679,11 @@ function moment(o, hold) {
   setTimeout(close, reduced() ? 600 : (hold || 1900));
 }
 var MILESTONES = [7, 14, 30, 60, 100];
-function milestoneCheck(st) {
-  var hit = MILESTONES.filter(function (m) { return st.n === m && !load('cw:ms:' + m, false); })[0]; if (!hit) return false;
-  store('cw:ms:' + hit, true); buzz([30, 40, 60]);
+function milestoneCheck(st) { // the highest unseen milestone at or below the run, so a day logged by taps alone is not lost
+  var due = MILESTONES.filter(function (m) { return st.n >= m && !load('cw:ms:' + m, false); }), hit = due[due.length - 1]; if (!hit) return false;
+  due.forEach(function (m) { store('cw:ms:' + m, true); }); buzz([30, 40, 60]);
   var nxt = MILESTONES.filter(function (m) { return m > hit; })[0];
-  moment({ huge: hit, from: Math.max(0, hit - 6), small: 'days in a row', line: 'That is a run.', sub: nxt ? 'Next milestone at ' + nxt + ' days.' : 'Nobody beats that.' }, 2600);
+  moment({ huge: st.n, from: Math.max(0, st.n - 6), small: 'days in a row', line: 'That is a run.', sub: nxt ? 'Next milestone at ' + nxt + ' days.' : 'Nobody beats that.' }, 2600);
   return true;
 }
 function toast(msg) { var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2200); }
@@ -712,7 +716,7 @@ function fieldById(id) { return data.checkIn.fields.filter(function (f) { return
 function fieldsOfKind(k) { return data.checkIn.fields.filter(function (f) { return f.kind === k; }); }
 function groupFields(g) { return data.checkIn.fields.filter(function (f) { return f.group === g; }); }
 function weightField() { return fieldsOfKind('weight')[0]; }
-function ciDay(date) { return data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null; }
+function ciDay(date) { return data.checkIn ? data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null : null; }
 function ciPrev(date, id) { var p = null; data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; }); return p; }
 function targetOf(f) { // the block menu, then the Cardio tab text, then the meal plan
   var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
@@ -741,6 +745,7 @@ function streak() { // consecutive days with something logged, counted back from
   var today = localIso(), n = 0, d = today;
   if (!dayLogged(ciDay(d))) d = addDaysIso(d, -1);
   while (dayLogged(ciDay(d))) { n++; d = addDaysIso(d, -1); }
+  if (n && d < data.checkIn.firstDate) n += data.checkIn.streakBefore || 0; // walked off the 14-day window still logged: the sheet counted the rest
   var best = Math.max(n, load('cw:best', 0)); store('cw:best', best);
   return { n: n, best: best };
 }
@@ -768,6 +773,7 @@ function show(screen, day) {
   if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
   view.screen = screen; if (day) view.day = day;
   if (TABS[screen]) view.tab = screen;
+  if (screen === 'log' && view.screen !== 'log' && !ciState.msg) ciState = { date: localIso(), confirm: '', msg: '', warn: false, replace: false }; // Log opens on today, never the last back-filled day
   var inSession = screen === 'ex';
   $('dock').hidden = false; $('actbar').hidden = !inSession;
   $('app').className = 'wrap' + (inSession ? ' in-session' : '') + (screen === 'today' ? ' today-bg' : '');
@@ -803,9 +809,10 @@ function renderToday() {
   html += '<p class="sync" id="sync"></p>';
   html += habitsCard(t);
   html += tasksCard();
+  var was = $('pts') ? parseInt($('pts').textContent, 10) : null;
   $('app').innerHTML = html + '</section>';
-  renderSync();
-  if (pts && $('pts')) { countUp($('pts'), window._ptsFrom != null ? window._ptsFrom : 0, pts.n); window._ptsFrom = null; }
+  renderSync(); startRings();
+  if (pts && $('pts')) { countUp($('pts'), window._ptsFrom != null ? window._ptsFrom : (was != null && !isNaN(was) ? was : 0), pts.n); window._ptsFrom = null; }
 }
 function statCells(t) {
   var cells = [], seen = {};
@@ -848,7 +855,7 @@ function habitsCard(t) {
   if (!t) return head + '<p class="note warn">Today is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
   if (!ticks) return head + '<p class="note warn">Your Habits tab is not showing ' + esc(shortDate(today)) + ' yet. ' + MESSAGE_ADAM + '.</p>';
   return head + '<div class="habits">' + hb.names.map(function (n, i) {
-    return '<button class="hab" data-habit="' + i + '" data-date="' + today + '" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
+    return '<button class="hab" data-habit="' + i + '" data-today="1" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
   }).join('') + '</div><p class="meta" style="margin-top:var(--s-2)">Tick as you go. 85% or more counts the day as a habits day.</p>';
 }
 var tickedNow = {};
@@ -871,9 +878,10 @@ function otherSaved(p, res) {
   if (res.ok) {
     if (p.type === 'task' && res.tasks) data.tasks = res.tasks;
     if (p.type === 'ms' && res.measurements) { data.measurements = res.measurements; msMsg = 'Saved to ' + SAVED_TO + '.'; }
+    lastWrite = Date.now();
   } else if (p.type === 'task') {
     var x = data.tasks && data.tasks.tasks.filter(function (y) { return y.idx === p.idx; })[0]; if (x) x.done = !p.value;
-    syncState.error = res.error || 'That task did not save';
+    toast(res.error || 'That task did not save');
   } else { msMsg = res.error || 'That did not save. Try again.'; }
   store('cw:data', data);
   if (view.screen === 'today') renderToday(); else if (view.screen === 'measure' && !(document.activeElement && document.activeElement.dataset.cm)) renderMeasure();
@@ -883,6 +891,15 @@ function otherSaved(p, res) {
    Scales, habits and the IG switch save on the tap (one tap, no Save). Typed numbers and the comment save together
    on Save. Each saved field is its own saveCheckIn call, queued and retried, exactly as before. */
 var ciState = { date: '', confirm: '', msg: '', warn: false, replace: false };
+function logDirty() { // anything on Log focused or typed but not yet in day.values: never rebuild the form over it
+  var a = document.activeElement; if (a && (a.id === 'ciVal' || (a.dataset && a.dataset.entry))) return true;
+  var day = ciDay(ciState.date), wf = weightField(); if (!day) return false;
+  var w = $('ciVal'); if (w && wf && String(w.value).trim() !== String(day.values[wf.id] || '')) return true;
+  return Array.prototype.some.call(document.querySelectorAll('[data-entry]'), function (i) {
+    var f = fieldById(i.dataset.entry), have = String(day.values[i.dataset.entry] || '');
+    return String(i.value).trim() !== (f && f.kind === 'number' ? have.replace(/,/g, '') : have.trim());
+  });
+}
 function renderLog() {
   var c = data.checkIn, today = localIso();
   if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
@@ -910,7 +927,7 @@ function renderLog() {
       '<div class="grid2">' + gf.map(function (f) { return numberField(f, day, true); }).join('') + '</div>', gf.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
   });
   var scales = fieldsOfKind('scale');
-  if (scales.length) html += sec('var(--forest)', 'heart', 'How you feel', 'Go with the day as a whole', scales.map(function (f) {
+  if (scales.length) html += sec('var(--forest); --on-sec: var(--offwhite)', 'heart', 'How you feel', 'Go with the day as a whole', scales.map(function (f) {
     var v = day.values[f.id];
     return '<div class="field"><span>' + esc(f.label) + '</span><div class="scale" role="group" aria-label="' + esc(f.label) + ' from 1 to 5">' + [1, 2, 3, 4, 5].map(function (n) {
       return '<button data-scale="' + f.id + '" data-n="' + n + '" class="' + (String(n) === v ? 'sel' : '') + '" aria-pressed="' + (String(n) === v) + '">' + n + '</button>';
@@ -941,7 +958,7 @@ function weekStrip(today) {
 function setSaveState(s) { window._saveState = s; var b = $('saveBtn'); if (b) b.dataset.state = s; if (s === 'saved' || s === 'failed') setTimeout(function () { if (window._saveState === s) { window._saveState = 'idle'; var b2 = $('saveBtn'); if (b2) b2.dataset.state = 'idle'; } }, 2400); }
 function saveLog() {
   var c = data.checkIn, date = ciState.date, day = ciDay(date), wf = weightField(); if (!day) return;
-  var errs = [], n = 0, pts = points(); window._ptsFrom = pts ? pts.n : null;
+  var errs = [], n = 0, pending = [], bad = null, pts = points(); window._ptsFrom = pts ? pts.n : null;
   if (wf) {
     var typed = $('ciVal').value, have = day.values[wf.id] || '';
     if (String(typed).trim() !== '' && String(typed).trim() !== String(have)) {
@@ -953,8 +970,7 @@ function saveLog() {
       } else {
         var warn = weightWarning(r.value, ciPrev(date, wf.id));
         if (warn && ciState.confirm !== 'jump') { ciState.replace = ciState.confirm === 'replace' || !!have; ciState.confirm = 'jump'; ciState.warn = true; ciState.msg = warn; return confirmInPlace(); }
-        enqueue({ type: 'ci', date: date, field: wf.id, value: r.value, replace: ciState.confirm === 'replace' || !!ciState.replace || !!have, prev: have });
-        day.values[wf.id] = String(r.value); n++;
+        pending.push({ q: { type: 'ci', date: date, field: wf.id, value: r.value, replace: ciState.confirm === 'replace' || !!ciState.replace || !!have, prev: have }, el: $('ciVal') });
       }
     }
   }
@@ -962,14 +978,19 @@ function saveLog() {
     var f = fieldById(inp.dataset.entry), raw = inp.value, have = day.values[f.id] || '';
     if (f.kind === 'number' && String(raw).trim() === '') return; // blank = leave the sheet alone
     var r = f.kind === 'text' ? { value: String(raw).trim() } : parseNumberField(raw, f);
-    if (r.error) return errs.push(r.error);
-    if (String(r.value) === String(have).replace(/,/g, '')) return;
-    enqueue({ type: 'ci', date: date, field: f.id, value: r.value, replace: true, prev: have });
-    day.values[f.id] = String(r.value); n++;
+    if (r.error) { errs.push(r.error); bad = bad || inp; return; }
+    if (String(r.value) === (f.kind === 'number' ? String(have).replace(/,/g, '') : String(have).trim())) return;
+    pending.push({ q: { type: 'ci', date: date, field: f.id, value: r.value, replace: true, prev: have }, el: inp });
   });
+  if (errs.length) { // nothing is sent until every box is valid, and nothing typed is lost
+    ciState.warn = true; ciState.msg = errs[0]; toast(errs[0]);
+    var m = $('ciMsg'); if (m && bad && bad.id === 'ciVal') { m.textContent = errs[0]; m.className = 'warn'; }
+    if (bad) bad.focus();
+    return;
+  }
+  pending.forEach(function (x) { enqueue(x.q); day.values[x.q.field] = String(x.q.value); n++; });
   store('cw:data', data);
-  ciState.confirm = ''; ciState.replace = false; ciState.warn = !!errs.length; ciState.msg = errs.length ? errs[0] : '';
-  if (errs.length) { renderLog(); return; }
+  ciState.confirm = ''; ciState.replace = false; ciState.warn = false; ciState.msg = '';
   if (!n) { toast('Nothing changed'); return; }
   window._saveMoment = true;
   setSaveState('saving'); renderLog();
@@ -987,10 +1008,11 @@ function scaleSave(id, n) {
   Array.prototype.forEach.call(document.querySelectorAll('[data-scale="' + id + '"]'), function (b) { var on = +b.dataset.n === n; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); });
 }
 function switchSave(key, dateOverride) {
-  var date = dateOverride || ciState.date, day = ciDay(date); if (!day) return;
+  var date = dateOverride || ciState.date, day = ciDay(date); if (!day) { toast('Reopen the app for today'); return refresh(); }
   var hm = /^habit:(\d+)$/.exec(key);
   if (hm) {
-    var ticks = data.checkIn.habits.days[date], i = +hm[1], was = !!ticks[i], prevVerdict = day.values.habits || '';
+    var ticks = data.checkIn.habits.days[date], i = +hm[1]; if (!ticks) { toast('Reopen the app for today'); return refresh(); }
+    var was = !!ticks[i], prevVerdict = day.values.habits || '';
     ticks[i] = !was;
     day.values.habits = ticks.filter(Boolean).length / ticks.length >= 0.85 ? 'Yes' : 'No';
     enqueue({ type: 'ci', date: date, field: key, value: !was, replace: true, prev: was, prevVerdict: prevVerdict });
@@ -1014,9 +1036,10 @@ function switchSave(key, dateOverride) {
 function checkInSaved(p, res) {
   if (!data || !data.checkIn) return;
   if (res.ok && res.checkIn) {
-    data.checkIn = res.checkIn;
+    data.checkIn = res.checkIn; lastWrite = Date.now();
     if (!queue.some(function (q) { return q.type === 'ci'; })) {
-      setSaveState('saved');
+      if (window._saveState === 'saving') setSaveState('saved'); // only a real Save press turns the button green
+      if (!window._saveMoment) milestoneCheck(streak());
       if (window._saveMoment) { window._saveMoment = false; buzz(20); var pts = points(), st = streak(), from = window._ptsFrom || 0; window._ptsFrom = null;
         moment({ ring: pts ? pts.n / pts.of : 1, tick: true, huge: pts ? pts.n : st.n, from: pts ? from : 0, small: pts ? 'of ' + pts.of + ' points this week' : 'days in a row',
           line: 'Saved to ' + SAVED_TO, sub: st.n ? st.n + (st.n === 1 ? ' day' : ' days') + ' in a row' : '', then: function () { if (view.screen === 'log') show('today'); milestoneCheck(st); } });
@@ -1026,15 +1049,16 @@ function checkInSaved(p, res) {
   else {
     var day = ciDay(p.date), hm = /^habit:(\d+)$/.exec(p.field);
     if (hm) { var hd = data.checkIn.habits && data.checkIn.habits.days[p.date]; if (hd) hd[+hm[1]] = !!p.prev; if (day) day.values.habits = p.prevVerdict || ''; }
-    else if (day) day.values[p.field] = p.prev || '';
-    ciState.date = p.date; ciState.warn = true;
-    if (res.conflict) { ciState.confirm = 'replace'; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type the number again and tap Save anyway to change it.'; }
+    else if (day) day.values[p.field] = res.conflict != null ? String(res.conflict) : (p.prev || ''); // show the sheet's number so the normal Save anyway flow takes over
+    var dirty = logDirty();
+    if (!dirty) ciState.date = p.date;
+    ciState.warn = true;
+    if (res.conflict) { ciState.confirm = ''; ciState.msg = 'Your sheet already has ' + res.conflict + ' for ' + shortDate(p.date) + '. Type your number and tap Save anyway to change it.'; }
     else ciState.msg = res.error || 'That did not save. Try again.';
     setSaveState('failed');
   }
   store('cw:data', data);
-  var typing = document.activeElement && document.activeElement.dataset && (document.activeElement.dataset.entry || document.activeElement.id === 'ciVal');
-  if (view.screen === 'log' && !typing && !res.ok) renderLog();
+  if (view.screen === 'log' && !res.ok && !logDirty()) renderLog();
   else if (view.screen === 'log' && $('ciMsg') && ciState.msg) { $('ciMsg').textContent = ciState.msg; $('ciMsg').className = ciState.warn ? 'warn' : ''; }
   else if (view.screen === 'today') renderToday();
   else if (view.screen === 'progress') renderProgress();
@@ -1124,9 +1148,9 @@ function renderFin() {
     var best = d.kg.map(function (k, i) { return k || d.reps[i] ? (k ? k + ' kg' : '') + (d.reps[i] ? ' x ' + d.reps[i] : '') : ''; }).filter(Boolean).join(', ');
     return '<li class="' + (up ? 'up' : '') + '" style="--i:' + idx + '"><b>' + esc(name) + '</b><span>' + esc(best || 'Done') + (up ? ', up' : '') + '</span></li>';
   }).join('');
-  var done = sessionsDone(), of = trainingTarget();
-  $('app').innerHTML = '<section class="screen fin"><div class="hero" style="margin-top:0">' + ringSvg(of ? done / of : 0, 'hero') + '<div><div class="n on"><span id="finDone">0</span><span class="of"> of ' + of + '</span></div><p class="meta">sessions this week.</p><p class="meta">Training day marked in your sheet.</p></div></div>' +
-    '<h1 class="t l" style="margin-top:var(--s-5)">' + esc(sess.day) + ' done</h1>' +
+  var done = sessionsDone(), of = trainingTarget(), trained = sess.done.length > 0;
+  $('app').innerHTML = '<section class="screen fin"><div class="hero" style="margin-top:0">' + ringSvg(of ? done / of : 0, 'hero') + '<div><div class="n on"><span id="finDone">0</span><span class="of"> of ' + of + '</span></div><p class="meta">sessions this week.</p><p class="meta">' + (trained ? 'Training day marked in your sheet.' : 'Nothing logged, so your sheet is unchanged.') + '</p></div></div>' +
+    '<h1 class="t l" style="margin-top:var(--s-5)">' + esc(sess.day) + (trained ? ' done' : ' skipped') + '</h1>' +
     '<p class="meta">' + sets + ' sets, <b><span id="finKg">0</span> kg</b> moved' + (ups ? ', beat last time on ' + ups + (ups === 1 ? ' exercise' : ' exercises') : '') + '.</p>' +
     '<p class="sync" id="sync"></p><ul>' + rows + '</ul>' +
     '<button class="btn quiet" data-go="today">Back to today</button></section>';
@@ -1149,7 +1173,7 @@ function loadPlan() {
   api.getPlan().then(function (p) {
     if (!p) return; plan = p; store('cw:plan', plan);
     if (['plan', 'shop', 'meals', 'mealplan', 'supps', 'cardio'].indexOf(view.screen) > -1) show(view.screen === 'mealplan' ? 'mealplan:' + (view.mealTab || 0) : view.screen);
-    else if (view.screen === 'log' && !(document.activeElement && document.activeElement.dataset.entry)) renderLog();
+    else if (view.screen === 'log' && !logDirty()) renderLog();
   }, function () {});
 }
 function planTargets() { var mp = plan && plan.plans && plan.plans[0]; return (mp && mp.targets) || (plan && plan.targets) || {}; }
@@ -1264,7 +1288,7 @@ function renderShop() {
     return;
   }
   var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
-  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return esc(p.tab) + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
+  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return p.tab + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
   $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'meals', '<button class="pill" data-act="shop-change">Change</button>') +
     '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
 }
@@ -1345,10 +1369,11 @@ function autoAnswers(items) { // what the app already knows from the sheet, answ
     var t = norm(q.title); if (!q.choices.length) return;
     if (/complete all scheduled workouts/.test(t)) { var a = yesNo(q, allSessions); if (a) out[q.id] = a; }
     if (/circumference|measurements tab/.test(t)) { var b = yesNo(q, !!mdone); if (b) out[q.id] = b; }
-    if (/coaching sheet.*check in tab|check in tab/.test(t)) { var cdn = coreDone(ciDay(localIso())); var cc = yesNo(q, cdn.done > 0); if (cc) out[q.id] = cc; }
+    if (/coaching sheet.*check in tab|check in tab/.test(t)) { var cc = yesNo(q, loggedDays() > 0); if (cc) out[q.id] = cc; }
   });
   return out;
 }
+function loggedDays() { var c = data.checkIn, wk = c && c.thisWeek ? c.thisWeek.week : -1; return c ? c.days.filter(function (d) { return d.week === wk && dayLogged(d); }).length : 0; }
 function renderWeekly() {
   var html = '<section class="screen">' + topBar('Week ' + data.week + ' check in', 'About a minute. Adam reads it Sunday night.', 'progress');
   if (load('cw:wsent:' + data.week, false)) { $('app').innerHTML = html + '<div class="hero"><i class="tick" style="width:56px;height:56px"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><div><b>Sent to Adam</b><p class="meta">Week ' + data.week + ' check in is in. You can send another if something changes.</p></div></div><div style="margin-top:var(--s-4)"><button class="btn quiet" data-act="weekly-again">Fill it in again</button></div></section>'; return; }
@@ -1357,7 +1382,8 @@ function renderWeekly() {
     api.getWeeklyForm().then(function (f) { if (f) { wform = f; store('cw:wf', f); if (view.screen === 'weekly') renderWeekly(); } }, function (e) { if (view.screen === 'weekly') $('app').innerHTML = html + '<p class="note warn">Could not load your check in questions. ' + esc((e && e.message) || 'Check your signal.') + '</p></section>'; });
     return;
   }
-  var d = load(wdKey(), null) || { answers: autoAnswers(wform.items), more: false }, a = d.answers;
+  var d = load(wdKey(), null) || { answers: {}, more: false, touched: {} }, a = d.answers;
+  var live = autoAnswers(wform.items); Object.keys(live).forEach(function (id) { if (!(d.touched || {})[id]) a[id] = live[id]; }); // sheet facts stay live until the client overrides them
   var quick = wform.items.filter(function (q) { return q.choices.length || q.type === 'SCALE'; }), text = wform.items.filter(function (q) { return q.type === 'TEXT' || q.type === 'PARAGRAPH_TEXT'; }), dates = wform.items.filter(function (q) { return q.type === 'DATE'; });
   var auto = autoAnswers(wform.items), autoN = Object.keys(auto).length;
   if (autoN) {
@@ -1370,7 +1396,7 @@ function renderWeekly() {
     var v = a[q.id], required = q.required ? '' : '<small>Optional</small>';
     html += '<div class="q"><p>' + esc(q.title) + required + (q.help ? '<small>' + esc(q.help) + '</small>' : '') + '</p>';
     if (q.type === 'SCALE') {
-      var lo = q.low || 1, hi = q.high || 10, ns = []; for (var n = lo; n <= hi; n++) ns.push(n);
+      var lo = typeof q.low === 'number' ? q.low : 1, hi = typeof q.high === 'number' ? q.high : 10, ns = []; for (var n = lo; n <= hi; n++) ns.push(n);
       html += '<div class="scale' + (ns.length > 6 ? ' ten' : '') + '" style="' + (ns.length > 6 && ns.length < 10 ? 'grid-template-columns:repeat(' + ns.length + ',1fr)' : '') + '">' + ns.map(function (n) { return '<button data-wq="' + q.id + '" data-v="' + n + '" class="' + (String(v) === String(n) ? 'sel' : '') + '">' + n + '</button>'; }).join('') + '</div>' +
         (q.lowLabel || q.highLabel ? '<div class="scale-ends"><span>' + esc(q.lowLabel || '') + '</span><span>' + esc(q.highLabel || '') + '</span></div>' : '');
     } else if (q.type === 'CHECKBOX') {
@@ -1396,7 +1422,7 @@ function renderWeekly() {
   renderSync();
 }
 function weeklyAnswer(id, v, multi) {
-  var d = load(wdKey(), { answers: {} });
+  var d = load(wdKey(), { answers: {} }); d.touched = d.touched || {}; d.touched[id] = 1;
   if (multi) { var arr = Array.isArray(d.answers[id]) ? d.answers[id] : []; var i = arr.indexOf(v); if (i > -1) arr.splice(i, 1); else arr.push(v); d.answers[id] = arr; }
   else d.answers[id] = d.answers[id] === v ? '' : v;
   store(wdKey(), d);
@@ -1429,7 +1455,7 @@ function renderMeasure() {
   if (!tw) { $('app').innerHTML = html + '<p class="note warn">Week ' + data.week + ' is not on your Measurements tab yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
   html += '<p class="meta">Sunday morning, before food, tape snug not tight, same spot each week.</p><div class="form"><div class="grid2">' + m.fields.map(function (x) {
     var last = lw && lw.values[x.id];
-    return '<label class="field"><span>' + esc(x.label) + '</span><div class="box"><input data-cm="' + x.id + '" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(tw.values[x.id] || '') + '" placeholder="' + esc(last || '0.0') + '" aria-label="' + esc(x.label) + ' in cm"><span class="unit">cm</span></div>' + (last ? '<small>Last week ' + esc(last) + '</small>' : '') + '</label>';
+    return '<label class="field"><span>' + esc(x.label) + '</span><div class="box"><input data-cm="' + esc(x.id) + '" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + esc(tw.values[x.id] || '') + '" placeholder="' + esc(last || '0.0') + '" aria-label="' + esc(x.label) + ' in cm"><span class="unit">cm</span></div>' + (last ? '<small>Last week ' + esc(last) + '</small>' : '') + '</label>';
   }).join('') + '</div>' +
     '<p class="note' + (/did not|wrong|number|not on/i.test(msMsg) ? ' warn' : '') + '" id="msMsg" aria-live="polite"' + (msMsg ? '' : ' hidden') + '>' + esc(msMsg) + '</p>' +
     '<button class="btn strong" data-act="ms-save">Save week ' + tw.week + '</button><p class="sync" id="sync"></p></div></section>';
@@ -1455,6 +1481,7 @@ function measureSave() {
 /* ---------- Photos: shrunk on the phone, uploaded one at a time, never shown back ---------- */
 var photos = [];
 function renderPhotos() {
+  if (view.screen !== 'photos') return;
   var done = photos.filter(function (p) { return p.status === 'done'; }).length;
   $('app').innerHTML = '<section class="screen">' + topBar('Progress photos', 'Week ' + data.week, 'progress') +
     '<p class="meta">Front, side and back, same light and spot each week. They go straight into your Week ' + data.week + ' photos folder.' + (done ? ' <b>' + done + ' uploaded.</b>' : '') + '</p>' +
@@ -1498,11 +1525,11 @@ document.addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
-  if (b.dataset.day) { openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
+  if (b.dataset.day) { view.tab = 'workout'; openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
   if (b.dataset.go) return show(b.dataset.go);
   if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderLog(); }
   if (b.dataset.scale) return scaleSave(b.dataset.scale, +b.dataset.n);
-  if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit, b.dataset.date);
+  if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit, b.dataset.today ? localIso() : undefined);
   if (b.dataset.sw) return switchSave(b.dataset.sw);
   if (b.dataset.task) return taskToggle(+b.dataset.task);
   if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
@@ -1531,14 +1558,14 @@ function copyLast(i) { // one tap fills a set with last time's numbers
 $('skipBtn').onclick = function () { var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next(); };
 $('doneBtn').onclick = function () {
   var n = sess.current, d = draft(n);
-  var any = d.kg.concat(d.reps).some(function (v) { return String(v).trim() !== ''; });
+  var any = d.kg.concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
   if (!any && !sess.confirmEmpty) {
     sess.confirmEmpty = true;
     $('hint').hidden = false; $('hint').textContent = 'No numbers entered. Tap Complete again to mark it done anyway, or Skip.';
     this.lastChild.textContent = 'Complete anyway';
     return;
   }
-  sess.done.push(n); if (any) commit(n, false); next();
+  sess.done.push(n); if (!any) d.comment = 'Done'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
 };
 document.addEventListener('change', function (e) {
   if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderLog(); }
@@ -1547,14 +1574,15 @@ document.addEventListener('input', function (e) {
   if (e.target.id === 'ciVal' && ciState.confirm) { ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false; var sb = $('saveBtn'); if (sb) sb.querySelector('.st-idle').textContent = 'Save'; if ($('ciMsg')) { $('ciMsg').textContent = ''; $('ciMsg').className = ''; } }
   var f = e.target.dataset && e.target.dataset.f; if (!f || !sess || !sess.current) return;
   var d = draft(sess.current);
-  if (f === 'comment') d.comment = e.target.value; else d[f][+e.target.dataset.i] = e.target.value;
+  var val = e.target.value; if (f === 'kg') val = val.replace(/^(\d+),(\d+)$/, '$1.$2');
+  if (f === 'comment') d.comment = val; else d[f][+e.target.dataset.i] = val;
   saveSess();
   if (f !== 'comment') { var i = +e.target.dataset.i, p = prevOf(exByName(dayByName(sess.day), sess.current)), row = $('set' + i), was = row.classList.contains('beaten'), now = beats(p, i, d.kg[i], d.reps[i]);
     row.classList.toggle('beaten', now); if (now && !was) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); buzz(15); } }
 });
 document.addEventListener('keydown', function (e) { // Enter moves to the next box; on the last box it saves
   if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
-  var inForm = e.target.closest('.form'), inEx = e.target.closest('.ex');
+  var inForm = e.target.closest('.screen > .form') || e.target.closest('.form'), inEx = e.target.closest('.ex');
   if (!inForm && !inEx) return;
   e.preventDefault();
   var all = Array.prototype.slice.call((inForm || inEx).querySelectorAll('input:not([type="date"]):not([type="file"])'));
@@ -1563,22 +1591,34 @@ document.addEventListener('keydown', function (e) { // Enter moves to the next b
 });
 
 /* ---------- boot ---------- */
-function boot() {
-  if (data) resume();
+function boot() { if (data) resume(); refresh(); }
+var refreshing = false;
+function refresh() {
+  if (refreshing) return; refreshing = true;
+  var bootAt = Date.now();
   api.getData().then(function (fresh) {
-    var first = !data; data = fresh; store('cw:data', data);
+    refreshing = false;
+    if (data && lastWrite > bootAt) { fresh.checkIn = data.checkIn; fresh.tasks = data.tasks; fresh.measurements = data.measurements; } // a save landed after this snapshot was taken
+    var first = !data; data = fresh; store('cw:data', data); fetchedOn = localIso(); fetchedAt = Date.now();
     if (data.savedTo) SAVED_TO = data.savedTo;
     if (data.title) document.title = data.title;
     loadPlan();
     if (first || TABS[view.screen]) resume();
-    else if (view.screen === 'log' && !(document.activeElement && (document.activeElement.dataset.entry || document.activeElement.id === 'ciVal'))) renderLog();
+    else if (view.screen === 'log' && !logDirty()) renderLog();
     flush();
   }, function (err) {
+    refreshing = false;
     if (!data) $('app').innerHTML = '<div class="err"><b>Could not load your plan.</b>' + esc((err && err.message) || 'Check your signal and reopen the link.') + '</div>';
     else { syncState.error = 'offline'; renderSync(); }
   });
 }
 function resume() { var v = view.screen; if (!v || !TABS[v]) return show('today'); show(v); }
+function onResume() { // a page left open overnight: new day, new data, but never under a half-typed form or an open session
+  if (document.hidden || !data || !TABS[view.screen]) return;
+  if (localIso() !== fetchedOn || Date.now() - fetchedAt > 6e5) refresh();
+}
+document.addEventListener('visibilitychange', onResume);
+window.addEventListener('pageshow', function (e) { if (e.persisted) onResume(); });
 boot();
 
 function mockApi() { // public copy: a link without ?s and ?k has nothing to load
