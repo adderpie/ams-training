@@ -887,7 +887,8 @@ function renderToday() {
       : '<div class="n on">' + core.done + '<span class="of"> of ' + core.of + '</span></div><p class="meta">logged today.</p>') +
     '<p class="meta">' + streakLine(st) + '</p></div></div>';
   if (!t) html += '<p class="note warn">' + esc(shortDate(today)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
-  if (!on) html += '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>';
+  html += on ? '<div class="sechead"><b>Logged today</b></div><div class="list two">' + statCells(t, { bodyweight: 1, hunger: 1, energy: 1 }) + '</div>'
+    : '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>';
   html += '<div style="margin-top:var(--s-3)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
     (core.done === 0 ? 'Log today' : core.done < core.of ? 'Log the rest of today' : 'Logged for today, change something') + '</button></div>';
   html += '<p class="sync" id="sync"></p>';
@@ -1063,10 +1064,10 @@ function ctFlip(wk) { // rotateY over --t-draw, the content swaps at the half tu
     cur.outerHTML = ctTile(ws[i], i, ' ct-flipin'); startRings();
   }, tok('--t-draw') / 2);
 }
-function statCells(t) {
+function statCells(t, only) { // only = {id: 1}: just those cells (the Contract keeps weight, hunger and energy: unscored, but Adam coaches from them)
   var cells = [], seen = {};
   data.checkIn.fields.forEach(function (f) {
-    var key = f.group || f.id; if (!CORE[key] || seen[key]) return; seen[key] = 1;
+    var key = f.group || f.id; if (!CORE[key] || seen[key] || (only && !only[key])) return; seen[key] = 1;
     var v = t ? t.values[f.id] || '' : '', tg;
     if (f.group) {
       var g = groupFields(f.group), cal = g.filter(function (x) { return x.id === 'calories'; })[0] || g[0], pro = g.filter(function (x) { return x.id === 'protein'; })[0];
