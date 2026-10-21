@@ -125,7 +125,7 @@
 }
 /* tokens:end */
 /* ember colours for the Today hero, rgb triplets: read by its keyframes and its canvas */
-:root { --ember: 43, 168, 74; --amber: 255, 170, 90; }
+:root { --ember: 43, 168, 74; --amber: 255, 170, 90; --web-ink: 168, 176, 186; --web-slate: 222, 226, 232; } /* embers, and the recipes site's particle web greys */
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -948,11 +948,28 @@ function embers(canvas, heat) {
   var ctx = canvas.getContext('2d'), cs = getComputedStyle(document.documentElement), EM = cs.getPropertyValue('--ember').trim(), AM = cs.getPropertyValue('--amber').trim();
   var still = reduced() || !tok('--t-hero'), intro = tok('--t-hero') * 7, W = 0, H = 0, particles = [], t0 = 0, lastLogo = 0;
   var E = EMB = { canvas: canvas, heat: heat, raf: 0, vis: null };
+  // The particle web from the recipes site (ParticleField): slow dots, faint lines between near ones, drawn under the embers.
+  var INK = cs.getPropertyValue('--web-ink').trim(), SLATE = cs.getPropertyValue('--web-slate').trim(), web = [], CONNECT = 90;
+  function mixc(a, b, t) { a = a.split(','); b = b.split(','); return a.map(function (v, i) { return Math.round(+v + (+b[i] - v) * t); }).join(','); }
+  function seedWeb() { // ponytail: the web ignores heat; the embers carry the day
+    web = []; var n = Math.min(28, Math.round(W * H / 9000));
+    for (var i = 0; i < n; i++) web.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.24, vy: (Math.random() - 0.5) * 0.24, size: Math.random() * 1.6 + 1, tint: Math.random() });
+  }
+  function moveWeb(dt) { web.forEach(function (p) { if (p.x > W || p.x < 0) p.vx = -p.vx; if (p.y > H || p.y < 0) p.vy = -p.vy; p.x += p.vx * dt; p.y += p.vy * dt; }); }
+  function drawWeb() {
+    ctx.lineWidth = 1;
+    for (var a = 0; a < web.length; a++) for (var b = a + 1; b < web.length; b++) {
+      var dx = web[a].x - web[b].x, dy = web[a].y - web[b].y, d2 = dx * dx + dy * dy;
+      if (d2 < CONNECT * CONNECT) { ctx.strokeStyle = 'rgba(' + mixc(INK, SLATE, 0.5) + ',' + ((1 - Math.sqrt(d2) / CONNECT) * 0.28).toFixed(3) + ')'; ctx.beginPath(); ctx.moveTo(web[a].x, web[a].y); ctx.lineTo(web[b].x, web[b].y); ctx.stroke(); }
+    }
+    web.forEach(function (p) { ctx.fillStyle = 'rgba(' + mixc(INK, SLATE, p.tint) + ',0.55)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
+  }
   E.resize = function () {
     var z = canvas.parentNode, dpr = Math.min(window.devicePixelRatio || 1, 2); if (!z) return;
     W = z.clientWidth; H = z.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seedWeb();
     if (still) draw(); // setting the width wipes the canvas: put the still back
   };
   function caps() { return { bg: Math.round(3 + 8 * E.heat), logo: Math.round(2 + 6 * E.heat) }; }
@@ -971,6 +988,7 @@ function embers(canvas, heat) {
   function draw() {
     var bright = 0.6 + 0.4 * E.heat;
     ctx.clearRect(0, 0, W, H);
+    drawWeb();
     for (var i = particles.length - 1; i >= 0; i--) {
       var p = particles[i], phase = p.life / p.maxLife;
       if (phase >= 1 || p.y < -12) { particles.splice(i, 1); continue; }
@@ -1006,6 +1024,7 @@ function embers(canvas, heat) {
     var cap = first ? k.logo : Math.max(1, Math.round(k.logo / 2.5)), gap = first ? 160 + Math.random() * 300 : 900 + Math.random() * 1400;
     if (particles.length - bg < cap && t - lastLogo > gap) { spawnLogo(first); lastLogo = t; }
     particles.forEach(function (p, i) { step(p, i, dt); });
+    moveWeb(dt);
     draw();
     E.raf = requestAnimationFrame(tick);
   }
