@@ -421,33 +421,82 @@ button.row:active { background: var(--surface-2); transform: none; }
 .session { margin-top: var(--s-4); background: var(--surface); border-radius: var(--r-card); padding: var(--s-4); display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
 .session .meta { margin-top: 2px; }
 .days { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
-.day { width: 100%; text-align: left; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-card); background: var(--surface); }
-.day .num { font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--accent); width: 24px; }
-.day b { font-size: var(--fs-20); display: block; letter-spacing: var(--track-tight); }
+.day { width: 100%; text-align: left; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-card); background: var(--surface); position: relative; overflow: hidden; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2); }
+.day > * { position: relative; z-index: 1; }
+.day b { font-size: var(--fs-20); display: block; letter-spacing: var(--track-tight); color: var(--ink); }
 .day span { font-size: var(--fs-14); color: var(--ink-muted); }
 .day .grow { flex: 1; min-width: 0; }
+.day.is-done b { color: var(--ink-muted); }
+/* the next session is lit: the Today pool, still, behind the card (no embers) */
+.day.next { box-shadow: 0 0 0 1px var(--accent); }
+.day > .pool { position: absolute; z-index: 0; --heat: .6; width: calc(var(--s-7) * 5); height: calc(var(--s-7) * 5); left: 18%; margin: calc(var(--s-7) * -2.5) 0 0 calc(var(--s-7) * -2.5); animation: none; }
+.day .mini { flex: none; width: 44px; height: 44px; display: grid; place-items: center; }
+.day .mini .ring { position: absolute; inset: 0; width: 44px; height: 44px; }
+.day .mini .ring circle { stroke-width: 12; }
+.day .mini .tick { position: relative; }
+.day .go { flex: none; height: 40px; padding: 0 var(--s-4); border-radius: var(--r-pill); display: grid; place-items: center; background: var(--surface-2); color: var(--ink-muted); font-size: var(--fs-14); font-weight: var(--w-bold); }
+.day .go.start { background: var(--accent-strong); color: var(--on-accent-strong); box-shadow: var(--glow-soft); }
 .ex h1 { font-size: var(--fs-32); line-height: var(--lh-tight); margin: 0; letter-spacing: var(--track-tight); font-weight: var(--w-black); text-wrap: balance; }
 .target { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: var(--s-3) 0 0; padding: 0; list-style: none; }
 .target li { font-size: var(--fs-14); color: var(--ink-muted); }
 .target b { color: var(--ink); font-size: var(--fs-20); margin-right: 4px; }
 .video { margin-top: var(--s-3); display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-pill); background: var(--surface); text-decoration: none; font-weight: var(--w-bold); font-size: var(--fs-14); }
 .video svg { color: var(--accent); }
-.sets { margin-top: var(--s-4); background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
-.sets .hd, .set { display: grid; grid-template-columns: 32px 1fr 84px 84px; align-items: center; gap: 8px; padding: 8px var(--s-3); }
-.sets .hd { font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); padding-top: var(--s-3); }
-.set { border-top: 1px solid var(--line); }
-.set .no { font-weight: var(--w-bold); color: var(--ink-muted); }
-.set.beaten .no { color: var(--accent); }
-.set.beaten { box-shadow: inset 3px 0 0 var(--accent-strong); }
-.set.flash { animation: setflash var(--t-draw) var(--ease); }
-@keyframes setflash { 0% { background: rgba(43, 168, 74, .25); } 100% { background: transparent; } }
-.set .last { font-size: var(--fs-14); line-height: 1.2; text-align: left; width: 100%; padding: 6px 0; border-radius: var(--r-chip); }
-.set .last small { display: block; font-size: var(--fs-12); color: var(--ink-muted); }
-.set .last.none { color: var(--ink-muted); }
-.set .last:not(.none):active { background: var(--surface-2); }
-.set input { width: 100%; height: 48px; padding: 0 4px; text-align: center; font-size: var(--fs-20); font-weight: var(--w-bold); border-radius: var(--r-chip); border: 0; background: var(--canvas); color: var(--ink); caret-color: var(--accent); }
-.set input::placeholder { color: var(--ink-muted); font-weight: var(--w-regular); font-size: var(--fs-14); }
-.set input:focus { outline: none; box-shadow: 0 0 0 2px var(--focus); }
+/* the ledger: one row per set (number | kg | reps | tick), last week's set as the ghost in the boxes, the target under them */
+.ex.still { animation: none; } /* a re-render after a tap: no slide in again */
+.ledger { margin-top: var(--s-4); background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
+.ledger .hd { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); padding: var(--s-3) var(--s-4) var(--s-2); font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); }
+.ledger .hd .on { color: var(--accent); }
+.lrow { position: relative; display: grid; grid-template-columns: 20px 1fr 1fr var(--tap); grid-template-areas: "no kg reps ok" "no tgt tgt ok"; column-gap: var(--s-2); row-gap: 6px; align-items: center; padding: var(--s-3) var(--s-2) var(--s-3) var(--s-4); border-top: 1px solid var(--line);
+  scroll-margin: var(--s-4) 0 calc(180px + env(safe-area-inset-bottom)); transition: padding var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
+#app.resting .lrow { scroll-margin-bottom: calc(270px + env(safe-area-inset-bottom)); }
+.lrow > * { position: relative; z-index: 1; }
+.lrow .no { grid-area: no; font-weight: var(--w-bold); color: var(--ink-muted); }
+.lrow .box { position: relative; display: block; min-width: 0; }
+.lrow .box.kg { grid-area: kg; } .lrow .box.reps { grid-area: reps; }
+.lrow input { width: 100%; height: var(--tap); padding: 0 32px 0 10px; text-align: right; font-size: var(--fs-20); font-weight: var(--w-bold); border-radius: var(--r-chip); border: 0; background: var(--canvas); color: var(--ink); caret-color: var(--accent);
+  transition: height var(--t-micro) var(--ease), font-size var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
+.lrow input::placeholder { color: var(--ink-muted); font-weight: var(--w-regular); }
+.lrow input:focus { outline: none; box-shadow: 0 0 0 2px var(--focus); }
+.lrow .box.reps input { padding-right: 44px; }
+.lrow .unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: var(--fs-12); color: var(--ink-muted); pointer-events: none; }
+.lrow .tgt { grid-area: tgt; display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: var(--fs-12); color: var(--ink-muted); line-height: var(--lh-body); }
+.lrow .tgt b { color: var(--ink); font-weight: var(--w-bold); }
+.lrow .ok { grid-area: ok; width: var(--tap); height: var(--tap); display: grid; place-items: center; }
+.lrow .ok i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--line); color: var(--on-accent-strong); transition: background-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
+.lrow .ok svg { width: 18px; height: 18px; stroke-width: 3; opacity: 0; }
+.lrow .log { grid-area: log; display: none; }
+.lrow .edit { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); }
+.lrow.done { box-shadow: inset 3px 0 0 var(--accent-strong); cursor: pointer; }
+.lrow.done .no { color: var(--accent); }
+.lrow.done input { background: rgba(var(--ember), .12); color: var(--accent); cursor: pointer; }
+.lrow.done .ok i { background: var(--accent-strong); box-shadow: none; }
+.lrow.done .ok svg { opacity: 1; stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw var(--t-micro) var(--ease) forwards; }
+.lrow .word { font-weight: var(--w-bold); color: var(--ink-muted); }
+.lrow.lit .word { color: var(--accent); }
+/* the current set is the stage: same row, big numbers, the unit under them, one Log button that says what it will log */
+.lrow.cur { grid-template-columns: 20px 3fr 2fr; /* kg gets the wider box: a 5-character load (122.5) fits at --fs-44 */ grid-template-areas: "no kg reps" "tgt tgt tgt" "log log log"; row-gap: var(--s-3); padding: var(--s-4); }
+.lrow.cur::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, rgba(var(--ember), .24) 0%, rgba(var(--ember), .09) 45%, transparent 75%); } /* inside the row: overflow here would make the ledger scroll itself on focus */
+.lrow.cur .no { font-size: var(--fs-20); font-weight: var(--w-black); color: var(--ink); }
+.lrow.cur .ok { display: none; }
+.lrow.cur input { height: 88px; padding: 0 var(--s-2) var(--s-4); text-align: center; font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); border-radius: var(--r-card); box-shadow: var(--elev-1); }
+.lrow.cur .box.reps input { padding-right: var(--s-2); }
+.lrow.cur input::placeholder { color: var(--ink-faint); font-weight: var(--w-bold); }
+.lrow.cur input:focus { box-shadow: 0 0 0 2px var(--focus), var(--glow-soft); }
+.lrow.cur .unit { top: auto; bottom: var(--s-2); left: 0; right: 0; transform: none; text-align: center; font-weight: var(--w-bold); }
+.lrow.cur .tgt { justify-content: center; text-align: center; font-size: var(--fs-16); }
+.lrow.cur .log { display: flex; height: 56px; font-size: var(--fs-20); }
+.lrow.cur .log svg { stroke-width: 3; }
+.alldone { display: flex; align-items: center; gap: var(--s-3); margin: var(--s-3) 0 0; font-size: var(--fs-14); font-weight: var(--w-bold); }
+/* rest: a bar pinned above the action bar, the time big, -15 / +15 / Skip, a track draining */
+#app.resting { padding-bottom: calc(270px + env(safe-area-inset-bottom)); }
+.restbar { position: fixed; left: 0; right: 0; margin: 0 auto; width: 100%; max-width: 520px; bottom: calc(160px + env(safe-area-inset-bottom)); z-index: 6; padding: 0 var(--gutter); animation: sheet-in var(--t-screen) var(--ease) both; }
+.restbar .in { position: relative; overflow: hidden; background: var(--surface); border-radius: var(--r-card); box-shadow: var(--elev-1); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); display: flex; align-items: center; gap: var(--s-2); }
+.restbar .t { flex: 1; min-width: 0; font-size: var(--fs-32); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; color: var(--accent); }
+.restbar .t small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-12); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; line-height: var(--lh-tight); margin-top: var(--s-1); }
+.restbar .chip { height: var(--tap); min-width: var(--tap); padding: 0 10px; }
+.restbar .chip.skip { background: transparent; color: var(--ink-muted); }
+.restbar .track { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent-strong); transition: width var(--t-draw) var(--ease); }
 .comment { margin-top: var(--s-3); }
 .comment input { width: 100%; height: 48px; padding: 0 var(--s-4); border-radius: var(--r-card); border: 0; background: var(--surface); color: var(--ink); }
 .comment input::placeholder { color: var(--ink-muted); }
@@ -467,12 +516,23 @@ button.row:active { background: var(--surface-2); transform: none; }
 .chip.go { color: var(--accent); }
 .chip.skip { color: var(--coach); }
 .fin { padding-top: var(--s-5); }
-.fin ul { list-style: none; padding: 0; margin: var(--s-4) 0; }
-.fin li { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--surface); font-size: var(--fs-14); animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms + 200ms); }
-.fin li + li { border-top: 1px solid var(--line); }
-.fin li:first-child { border-radius: var(--r-card) var(--r-card) 0 0; } .fin li:last-child { border-radius: 0 0 var(--r-card) var(--r-card); }
-.fin li span { color: var(--ink-muted); text-align: right; }
-.fin li.up span { color: var(--accent); font-weight: var(--w-bold); }
+.fin .moved { margin-top: var(--s-5); padding: var(--s-5) var(--s-4); border-radius: var(--r-sheet); background: var(--surface); text-align: center; position: relative; overflow: hidden; }
+.fin .moved::before { content: ""; position: absolute; inset: -40% -10%; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, rgba(var(--ember), .22) 0%, rgba(var(--ember), .08) 40%, transparent 68%); }
+.fin .moved > * { position: relative; }
+.fin .huge { display: block; font-size: var(--fs-64); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; color: var(--accent); }
+.fin .moved small { display: block; margin-top: var(--s-2); font-size: var(--fs-16); color: var(--ink-muted); }
+.fin .moved .meta { margin-top: var(--s-3); }
+.fin h1.t { margin-top: var(--s-5); }
+.recs { list-style: none; padding: 0; margin: 0 0 var(--s-4); background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
+.recs li { display: flex; align-items: center; gap: var(--s-3); min-height: 64px; padding: var(--s-3) var(--s-4); animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen)); }
+.recs li + li { border-top: 1px solid var(--line); }
+.recs .nm { flex: 1; min-width: 0; font-size: var(--fs-14); font-weight: var(--w-bold); line-height: var(--lh-tight); }
+.recs .nm span { display: block; margin-top: var(--s-1); font-size: var(--fs-16); letter-spacing: var(--track-tight); color: var(--ink-muted); }
+.recs li.lit { box-shadow: inset 3px 0 0 var(--accent-strong); }
+.recs li.lit .nm span { color: var(--accent); }
+.rchip { font-style: normal; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); display: grid; place-items: center; font-size: var(--fs-12); font-weight: var(--w-bold); text-transform: uppercase; letter-spacing: .04em; background: var(--surface-2); color: var(--ink-muted); }
+.rchip.lit { background: var(--accent-strong); color: var(--on-accent-strong); }
+.rchip.skipped { color: var(--coach); }
 
 /* ---------- plan: a hub of three entries, then one screen per thing ---------- */
 .entries { display: grid; gap: var(--s-3); margin-top: var(--s-4); }
@@ -588,6 +648,7 @@ button.row:active { background: var(--surface-2); transform: none; }
     <button class="btn strong" id="doneBtn"><svg class="i"><use href="#i-check"/></svg><span>Complete</span></button>
   </div>
 </div>
+<div id="rest"></div>
 <nav class="dock" id="dock" hidden aria-label="Sections">
   <button data-tab="today" class="on"><svg class="i"><use href="#i-home"/></svg>Today</button>
   <button data-tab="workout"><svg class="i"><use href="#i-bar"/></svg>Workout</button>
@@ -729,7 +790,7 @@ function num(v) { return Number(String(v == null ? '' : v).replace(/,/g, '')) ||
 function addDaysIso(iso, n) { var d = dateOf(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function countUp(el, from, to, suffix, ms) { // numbers that change count, they do not jump (300 ms unless told)
   var t0 = performance.now(), dur = reduced() ? 0 : (ms || 300);
-  function step(t) { var k = dur ? Math.max(0, Math.min(1, (t - t0) / dur)) : 1, e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e) + (suffix || ''); if (k < 1) requestAnimationFrame(step); }
+  function step(t) { var k = dur ? Math.max(0, Math.min(1, (t - t0) / dur)) : 1, e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e).toLocaleString('en-GB') + (suffix || ''); if (k < 1) requestAnimationFrame(step); }
   requestAnimationFrame(step);
 }
 function reduced() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
@@ -845,6 +906,7 @@ function show(screen, day) {
   if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
   view.screen = screen; if (day) view.day = day;
   if (screen !== 'today') emberStop();
+  if (screen !== 'ex') restEnd(); // the rest countdown lives on the exercise screen only
   if (TABS[screen]) view.tab = screen;
   if (screen === 'log' && view.screen !== 'log' && !ciState.msg) ciState = { date: localIso(), confirm: '', msg: '', warn: false, replace: false }; // Log opens on today, never the last back-filled day
   var inSession = screen === 'ex';
@@ -855,6 +917,10 @@ function show(screen, day) {
   var sc = document.querySelector('#app .screen'); if (sc && !TABS[screen]) sc.classList.add('sub');
   startRings();
   document.body.scrollTop = 0;
+  if (screen === 'ex') { // short phones: scroll just enough for the stage to clear the action bar, never past the exercise name
+    var cr = document.querySelector('.lrow.cur'), ab = $('actbar'), h1 = document.querySelector('#app h1');
+    if (cr && ab) { var need = cr.getBoundingClientRect().bottom - ab.getBoundingClientRect().top + 8, cap = h1 ? h1.getBoundingClientRect().top - 8 : need; if (need > 0) document.body.scrollTop += Math.max(0, Math.min(need, cap)); } // body is the scroller, not the window
+  }
 }
 function topBar(title, sub, backTo, pill) {
   return '<div class="top">' + (backTo ? '<button class="back" data-back="' + backTo + '" aria-label="Back">' + icon('back') + '</button>' : '') +
@@ -1286,57 +1352,172 @@ function checkInSaved(p, res) {
 /* ---------- Workout: sessions, set table, overview, done ---------- */
 function sessionList() {
   if (!data.days.length) return '<p class="note warn">Week ' + data.week + ' is not in your plan yet. ' + MESSAGE_ADAM + '.</p>';
+  var nextDay = data.days.filter(function (d) { return !dayDone(d); })[0];
   return '<ul class="days">' + data.days.map(function (d, i) {
-    var s = load(sessKey(d.name), null);
+    var s = load(sessKey(d.name), null), n = d.exercises.length;
     var names = d.exercises.map(function (x) { return x.name; });
     var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
-    var skipped = s ? s.skipped.filter(function (n) { return names.indexOf(n) > -1; }).length : 0;
-    var finished = dayDone(d); // every exercise logged or skipped: the session is done, the tick says so
+    var skipped = s ? s.skipped.filter(function (nm) { return names.indexOf(nm) > -1; }).length : 0;
+    var finished = dayDone(d), isNext = d === nextDay; // every exercise logged or skipped: the session is done, the tick says so
     var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
-    var sub = finished ? 'Done this week' + (skipped ? ', ' + skipped + ' skipped' : '') : doneN ? doneN + ' of ' + d.exercises.length + ' logged this week' : d.exercises.length + ' exercises, ' + (last ? 'last logged week ' + last : 'first time');
-    return '<li><button class="day" data-day="' + esc(d.name) + '"><span class="num">' + (i + 1) + '</span><span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
-      (finished ? '<i class="tick">' + icon('check') + '</i>' : icon('chev')) + '</button></li>';
+    var sub = finished ? doneN + ' of ' + n + ' logged' + (skipped ? ', ' + skipped + ' skipped' : '') + ', done ' + (s && s.lastAt && isoOfTime(s.lastAt) === localIso() ? 'today' : 'this week')
+      : doneN || last ? doneN + ' of ' + n + ' logged' + (last ? ', last logged week ' + last : '') : 'First time';
+    return '<li><button class="day' + (isNext ? ' next' : '') + (finished ? ' is-done' : '') + '" data-day="' + esc(d.name) + '" style="--i:' + i + '">' + (isNext ? '<span class="pool"></span>' : '') +
+      '<span class="mini">' + ringSvg(finished ? 1 : n ? doneN / n : 0) + (finished ? '<i class="tick">' + icon('check') + '</i>' : '') + '</span>' +
+      '<span class="grow"><b>' + esc(d.name) + '</b><span>' + sub + '</span></span>' +
+      '<span class="go' + (isNext ? ' start' : '') + '">' + (finished ? 'Edit' : isNext ? 'Start' : 'Open') + '</span></button></li>';
   }).join('') + '</ul>';
 }
+function isoOfTime(t) { var d = new Date(t); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 function renderWorkout() {
   $('app').innerHTML = '<section class="screen"><h1 class="t l">Week ' + data.week + '</h1><p class="meta">' + (data.weekStart ? 'Week starting ' + esc(fmtDate(data.weekStart)) + '. ' : '') + sessionsDone() + ' of ' + trainingTarget() + ' sessions done.</p>' +
     '<p class="sync" id="sync"></p>' + sessionList() + '</section>';
   renderSync();
 }
-function lastCell(p, i) {
-  if (!p) return '<span class="last none">No previous</span>';
-  var kg = p.kg[i], r = p.reps[i];
-  if (!kg && !r) return '<span class="last none">Not done</span>';
-  return '<button class="last" data-copy="' + i + '" aria-label="Copy last time into set ' + (i + 1) + '">' + (kg ? esc(kg) + ' kg' : 'No weight') + '<small>x ' + (r ? esc(r) : '?') + ', tap to copy</small></button>';
+
+/* ---------- workout targets (copies of Logic.js: display only, nothing here is written to the sheet) ---------- */
+// Workout targets: phone display only, never written to the sheet. A reps string ("5-9, 10-12") gives one range per
+// set, the last range repeating for extra sets; anything else ("AMRAP") gives null. Sheet values arrive as strings.
+function parseRanges(repsStr, setCount) {
+  var parts = String(repsStr == null ? '' : repsStr).split(',').map(function (s) { return s.trim(); }).filter(Boolean), out = [];
+  if (!parts.length) return null;
+  for (var i = 0; i < setCount; i++) {
+    var m = /^(\d+)\s*(?:[^\w\s]\s*(\d+))?$/.exec(parts[Math.min(i, parts.length - 1)]);
+    if (!m) return null;
+    out.push({ lo: +m[1], hi: +(m[2] || m[1]) });
+  }
+  return out;
 }
-function beats(p, i, kg, r) {
-  if (!p) return false;
-  var pk = parseFloat(p.kg[i]) || 0, pr = parseFloat(p.reps[i]) || 0, k = parseFloat(kg), rr = parseFloat(r);
-  if (isNaN(rr)) return false;
-  if (isNaN(k)) k = 0;
-  return k > pk || (k >= pk && rr > pr);
+// Below the top of the range: same load, one more rep. At the top: next load (+step kg) at the bottom of the range.
+function targetFor(last, range, step) {
+  step = parseFloat(step) || 2.5;
+  if (!last || !range) return null;
+  var kg = parseFloat(last.kg), reps = parseFloat(last.reps);
+  if (isNaN(kg) || isNaN(reps)) return null;
+  return reps < range.hi ? { kg: kg, reps: reps + 1 } : { kg: Math.round((kg + step) * 100) / 100, reps: range.lo };
 }
-function renderEx() {
+// 'beat' (more load, or same load more reps), 'held' (the same set) or '' (below, or nothing to compare).
+function resultOf(last, logged, phase) {
+  if (!last || !logged) return '';
+  var lk = parseFloat(last.kg), lr = parseFloat(last.reps), k = parseFloat(logged.kg), r = parseFloat(logged.reps);
+  if (isNaN(lk) || isNaN(lr) || isNaN(k) || isNaN(r)) return '';
+  if (k > lk || (k === lk && r > lr)) return 'beat';
+  return k === lk && r === lr ? 'held' : '';
+}
+// Which words are lit: a beat always, a held set only while dieting (holding strength in a deficit is a win).
+function resultLit(word, phase) { return word === 'beat' || (word === 'held' && /DIET/i.test(String(phase || ''))); }
+(function selfCheck() { // the smallest thing that fails if a copy drifts: the brief's own numbers
+  var r = parseRanges('8-10, 10-12', 2), t = targetFor({ kg: '49.5', reps: '10' }, r[0]);
+  console.assert(t.kg === 52 && t.reps === 8 && targetFor({ kg: '49.5', reps: '9' }, r[0]).reps === 10 && parseRanges('amrap', 1) === null, 'workout targets');
+  console.assert(resultOf({ kg: '100', reps: '9' }, { kg: '100', reps: '9' }) === 'held' && resultLit('held', 'DIETING') && !resultLit('held', 'LEAN BULKING'), 'workout words');
+})();
+function phaseNow() { return (data.roadmap && data.roadmap.phase) || ''; }
+function trimNum(v) { var n = parseFloat(v); return isNaN(n) ? String(v) : String(Math.round(n * 100) / 100); }
+function mmss(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
+function filled(v) { return String(v == null ? '' : v).trim() !== ''; }
+function lastSet(p, i) { return p && /\d/.test(p.kg[i]) && /\d/.test(p.reps[i]) ? { kg: p.kg[i], reps: p.reps[i] } : null; }
+function setTarget(x, p, i) { var r = parseRanges(x.reps, setCount(x)); return targetFor(lastSet(p, i), r && r[i]); }
+// A set is done when both numbers are in, or when Log marked it (the draft's doneSets).
+function setDone(d, i) { return (filled(d.kg[i]) && filled(d.reps[i])) || (d.doneSets || []).indexOf(i) > -1; }
+var exUi = { name: '', cur: null }; // the set on stage: the row the client tapped, else the first set not done
+function curSet(x, d) {
+  var n = setCount(x); if (exUi.name === x.name && exUi.cur != null && exUi.cur < n) return exUi.cur;
+  for (var i = 0; i < n; i++) if (!setDone(d, i)) return i;
+  return null;
+}
+function toLog(x, p, d, i) { // what Log writes, as a whole set: the typed numbers (one box typed: nothing to log yet), else the target, else last week's set
+  var k = filled(d.kg[i]), r = filled(d.reps[i]);
+  if (k || r) return { kg: k ? String(d.kg[i]).trim() : '', reps: r ? String(d.reps[i]).trim() : '' };
+  var f = setTarget(x, p, i) || lastSet(p, i);
+  return f ? { kg: trimNum(f.kg), reps: trimNum(f.reps) } : { kg: '', reps: '' };
+}
+function logLabel(v) { return v.kg && v.reps ? 'Log ' + trimNum(v.kg) + ' kg x ' + trimNum(v.reps) : 'Log what you did'; }
+function doneCount(x, d, cur) { var c = 0; for (var i = 0; i < setCount(x); i++) if (i !== cur && setDone(d, i)) c++; return c + ' of ' + setCount(x) + ' done'; }
+function setRow(x, p, d, i, cur) {
+  var isCur = i === cur, done = !isCur && setDone(d, i), l = lastSet(p, i), t = setTarget(x, p, i), ph = phaseNow();
+  var word = done ? resultOf(l, { kg: d.kg[i], reps: d.reps[i] }, ph) : '', lastTxt = l ? trimNum(l.kg) + ' x ' + trimNum(l.reps) : '';
+  var line = done ? '<span>' + (word ? '<span class="word">' + word + '</span> ' : '') + (l ? 'last week\'s ' + lastTxt : 'Logged') + '</span><button class="edit" aria-label="Edit set ' + (i + 1) + '">Edit</button>'
+    : t ? '<span>Beat ' + lastTxt + ': go <b>' + trimNum(t.kg) + ' x ' + trimNum(t.reps) + '</b></span>'
+    : l ? '<span>Last week <b>' + lastTxt + '</b></span>' : '<span>First time, log what you do</span>';
+  var box = function (f, mode, ghost) {
+    return '<label class="box ' + f + '"><input inputmode="' + mode + '" enterkeyhint="next" data-f="' + f + '" data-i="' + i + '" value="' + esc(d[f][i]) + '" placeholder="' + esc(ghost) + '" aria-label="Set ' + (i + 1) + ' ' + f + '"' + (done ? ' readonly' : '') + '><span class="unit">' + f + '</span></label>';
+  };
+  var v = toLog(x, p, d, i);
+  return '<div class="lrow' + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
+    box('kg', 'decimal', l ? trimNum(l.kg) : '') + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
+    (done ? '<span class="ok" aria-hidden="true"><i>' + icon('check') + '</i></span><span class="tgt">' + line + '</span>'
+      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + '</span>' +
+        '<button class="btn strong log" data-log="' + i + '"' + (v.kg && v.reps ? '' : ' disabled') + '>' + icon('check') + '<span>' + esc(logLabel(v)) + '</span></button>') + '</div>';
+}
+function renderEx(still) {
   var day = dayByName(sess.day), x = exByName(day, sess.current);
   if (!x) return show(remaining().length ? 'ov' : 'fin');
-  var p = prevOf(x), d = draft(x.name), n = setCount(x), left = remaining().length;
+  if (exUi.name !== x.name) exUi = { name: x.name, cur: null }; // the rest carries over to the next exercise ("then the next exercise"); show() clears it on any other screen
+  var p = prevOf(x), d = draft(x.name), n = setCount(x), left = remaining().length, cur = curSet(x, d);
   var rest = /^\d+$/.test(x.rest) ? x.rest + 's' : '';
-  var html = '<section class="screen ex">' + topBar(sess.day, 'Week ' + data.week + ', ' + (left ? left + (left === 1 ? ' exercise left' : ' exercises left') : 'all done'), 'workout', '<button class="pill" data-go="ov">Whole session</button>') +
+  var html = '<section class="screen ex' + (still ? ' still' : '') + '">' + topBar(sess.day, 'Week ' + data.week + ', ' + (left ? left + (left === 1 ? ' exercise left' : ' exercises left') : 'all done'), 'workout', '<button class="pill" data-go="ov">Whole session</button>') +
     '<h1>' + esc(x.name) + '</h1><ul class="target"><li><b>' + esc(x.sets || n) + '</b>sets</li><li><b>' + esc(x.reps) + '</b>reps</li>' + (rest ? '<li><b>' + esc(rest) + '</b>rest</li>' : '') + '</ul>' +
     (x.video ? '<a class="video" href="' + esc(x.video) + '" target="_blank" rel="noopener">' + icon('play') + 'Watch the demo</a>' : '') +
     '<p class="sync" id="sync"></p>' +
-    '<div class="sets"><div class="hd"><span>Set</span><span>' + (p ? 'Week ' + p.week : 'First time') + '</span><span style="text-align:center">kg</span><span style="text-align:center">reps</span></div>';
-  for (var i = 0; i < n; i++) {
-    html += '<div class="set' + (beats(p, i, d.kg[i], d.reps[i]) ? ' beaten' : '') + '" id="set' + i + '"><span class="no">' + (i + 1) + '</span>' + lastCell(p, i) +
-      '<input inputmode="decimal" enterkeyhint="next" data-f="kg" data-i="' + i + '" value="' + esc(d.kg[i]) + '" placeholder="kg" aria-label="Set ' + (i + 1) + ' kg">' +
-      '<input inputmode="numeric" enterkeyhint="next" data-f="reps" data-i="' + i + '" value="' + esc(d.reps[i]) + '" placeholder="reps" aria-label="Set ' + (i + 1) + ' reps"></div>';
-  }
-  html += '</div>' + (p && p.comment ? '<p class="meta" style="margin-top:var(--s-2)">You noted last time: "' + esc(p.comment) + '"</p>' : '') +
+    '<div class="ledger"><div class="hd"><span>Set</span><span>' + (p ? 'Last time week ' + p.week : 'First time') + '</span><span class="on" id="setsDone">' + doneCount(x, d, cur) + '</span></div>';
+  for (var i = 0; i < n; i++) html += setRow(x, p, d, i, cur);
+  html += '</div>' + (cur == null ? '<p class="alldone"><i class="tick">' + icon('check') + '</i>' + (n === 1 ? 'Set logged.' : 'All ' + n + ' sets logged.') + ' Add a note if you like, then tap Complete.</p>' : '') +
+    (p && p.comment ? '<p class="meta" style="margin-top:var(--s-2)">You noted last time: "' + esc(p.comment) + '"</p>' : '') +
     '<div class="comment"><input data-f="comment" value="' + esc(d.comment) + '" placeholder="Note for Adam (optional)" aria-label="Note for Adam" enterkeyhint="done"></div><p class="hint" id="hint" hidden></p></section>';
   $('app').innerHTML = html;
   $('doneBtn').lastChild.textContent = 'Complete';
   sess.confirmEmpty = false;
   renderSync();
+  paintRest();
+}
+function reEx() { var st = document.body.scrollTop; renderEx(true); document.body.scrollTop = st; startRings(); }
+function keepInView(row) { if (row && row.isConnected) row.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' }); }
+function exNow() { var x = sess && exByName(dayByName(sess.day), sess.current); return x ? { x: x, p: prevOf(x), d: draft(x.name) } : null; }
+function logSet(i) { // Log and the tick: fill the boxes if empty, mark the set done, start the rest, put the next set on stage
+  var e = exNow(); if (!e) return;
+  var v = toLog(e.x, e.p, e.d, i);
+  if (!v.kg || !v.reps) { var inp = document.querySelector('#set' + i + ' input[data-f="' + (v.kg ? 'reps' : 'kg') + '"]'); if (inp) inp.focus(); return; }
+  e.d.kg[i] = v.kg; e.d.reps[i] = v.reps;
+  e.d.doneSets = (e.d.doneSets || []).filter(function (k) { return k !== i; }).concat([i]);
+  var now = Date.now(); if (!sess.startedAt) sess.startedAt = now; sess.lastAt = now;
+  saveSess(); buzz(20);
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  exUi.cur = null;
+  if (/^\d+$/.test(e.x.rest) && +e.x.rest > 0) restStart(+e.x.rest);
+  reEx(); keepInView(document.querySelector('.lrow.cur'));
+}
+function editSet(i) { // a done row reopens on stage with its numbers in the boxes
+  var e = exNow(); if (!e) return;
+  e.d.doneSets = (e.d.doneSets || []).filter(function (k) { return k !== i; });
+  exUi = { name: e.x.name, cur: i }; saveSess(); reEx(); keepInView($('set' + i));
+}
+function makeCurrent(i) { // focusing a pending row puts it on stage in place: the focused box is never rebuilt, so the keyboard stays
+  var e = exNow(); if (!e) return;
+  var o = document.querySelector('.lrow.cur'), old = o ? +o.dataset.i : null; if (old === i) return; // the row on stage in the DOM, not the derived one: typing both boxes already moves curSet on
+  exUi = { name: e.x.name, cur: i };
+  if (o) o.outerHTML = setRow(e.x, e.p, e.d, old, i);
+  $('set' + i).classList.add('cur');
+  $('setsDone').textContent = doneCount(e.x, e.d, i);
+}
+
+/* ---------- rest countdown: state here, not in the DOM, so a re-render of the exercise keeps it ---------- */
+var REST = { endAt: 0, total: 0, timer: 0 };
+function restLeft() { return Math.max(0, Math.ceil((REST.endAt - Date.now()) / 1000)); }
+function restStart(secs) { clearInterval(REST.timer); REST.total = secs; REST.endAt = Date.now() + secs * 1000; REST.timer = setInterval(restTick, 1000); }
+function restTick() { if (restLeft() > 0) return paintRest(); buzz([30, 40, 30]); restEnd(); }
+function restEnd() { clearInterval(REST.timer); REST.endAt = 0; var r = $('rest'); if (r) r.innerHTML = ''; $('app').classList.remove('resting'); }
+function restNudge(s) { REST.endAt = Math.max(Date.now() + 1000, REST.endAt + s * 1000); REST.total = Math.max(REST.total, restLeft()); paintRest(); }
+function restNote() {
+  var e = exNow(), i = e && curSet(e.x, e.d); if (i == null) return 'then the next exercise';
+  var v = toLog(e.x, e.p, e.d, i); return 'then set ' + (i + 1) + (v.kg && v.reps ? ': ' + trimNum(v.kg) + ' x ' + trimNum(v.reps) : ''); // short: one line beside the chips
+}
+function paintRest() {
+  if (!REST.endAt || view.screen !== 'ex') return;
+  if (!$('restT')) $('rest').innerHTML = '<div class="restbar" role="timer"><div class="in"><div class="t"><span id="restT"></span><small id="restNext" aria-live="polite"></small></div>' +
+    '<button class="chip" data-rest="-15" aria-label="15 seconds less">-15</button><button class="chip" data-rest="15" aria-label="15 seconds more">+15</button><button class="chip skip" data-rest="skip">Skip</button><i class="track" id="restTrack"></i></div></div>';
+  var left = restLeft();
+  $('restT').textContent = mmss(left); $('restNext').textContent = restNote(); $('restTrack').style.width = (100 * left / REST.total) + '%';
+  $('app').classList.add('resting');
 }
 function renderOv() {
   var day = dayByName(sess.day), left = remaining();
@@ -1355,28 +1536,37 @@ function renderOv() {
   $('app').innerHTML = html;
   renderSync();
 }
+function bestSet(kg, reps) { // the highest kg, then the most reps
+  var b = null;
+  (kg || []).forEach(function (k, i) { var kk = parseFloat(k), rr = parseFloat(reps[i]); if (isNaN(kk) || isNaN(rr)) return; if (!b || kk > b.k || (kk === b.k && rr > b.r)) b = { k: kk, r: rr, kg: k, reps: reps[i] }; });
+  return b;
+}
 function renderFin() {
-  var day = dayByName(sess.day), ups = 0, moved = 0, sets = 0;
+  var day = dayByName(sess.day), ph = phaseNow(), moved = 0, beat = 0, held = 0, skipN = 0, lastWk = 0;
   var rows = sess.order.map(function (name, idx) {
     var x = exByName(day, name), d = sess.drafts[name], p = prevOf(x);
-    if (sess.skipped.indexOf(name) > -1) return '<li style="--i:' + idx + '"><b>' + esc(name) + '</b><span>Skipped</span></li>';
+    if (sess.skipped.indexOf(name) > -1) { skipN++; return '<li style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>Not done today</span></span><i class="rchip skipped">skipped</i></li>'; }
     if (!d) return '';
-    var up = d.kg.some(function (_, i) { return beats(p, i, d.kg[i], d.reps[i]); });
-    if (up) ups++;
-    d.kg.forEach(function (k, i) { var kk = parseFloat(k) || 0, rr = parseFloat(d.reps[i]) || 0; if (kk || rr) sets++; moved += kk * rr; });
-    var best = d.kg.map(function (k, i) { return k || d.reps[i] ? (k ? k + ' kg' : '') + (d.reps[i] ? ' x ' + d.reps[i] : '') : ''; }).filter(Boolean).join(', ');
-    return '<li class="' + (up ? 'up' : '') + '" style="--i:' + idx + '"><b>' + esc(name) + '</b><span>' + esc(best || 'Done') + (up ? ', up' : '') + '</span></li>';
+    d.kg.forEach(function (k, i) { moved += (parseFloat(k) || 0) * (parseFloat(d.reps[i]) || 0); });
+    if (p && p.week > lastWk) lastWk = p.week;
+    var b = bestSet(d.kg, d.reps), w = b && p ? resultOf(bestSet(p.kg, p.reps), b, ph) : '', on = resultLit(w, ph);
+    if (w === 'beat') beat++;
+    if (w === 'held') held++;
+    return '<li class="' + (w === 'beat' ? 'lit' : '') + '" style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>' + (b ? esc(trimNum(b.kg)) + ' kg x ' + esc(trimNum(b.reps)) : 'Done') + '</span></span>' +
+      (w ? '<i class="rchip' + (on ? ' lit' : '') + '">' + w + '</i>' : '') + '</li>';
   }).join('');
-  var done = sessionsDone(), of = trainingTarget(), trained = sess.done.length > 0;
+  var done = sessionsDone(), of = trainingTarget(), trained = sess.done.length > 0, n = sess.order.length;
+  var mins = sess.startedAt && sess.lastAt ? Math.round((sess.lastAt - sess.startedAt) / 60000) : -1;
+  var parts = [n + (n === 1 ? ' exercise' : ' exercises')].concat(beat ? [beat + ' beat'] : [], held ? [held + ' held'] : [], skipN ? [skipN + ' skipped'] : []);
   $('app').innerHTML = '<section class="screen fin"><div class="hero" style="margin-top:0">' + ringSvg(of ? done / of : 0, 'hero') + '<div><div class="n on"><span id="finDone">0</span><span class="of"> of ' + of + '</span></div><p class="meta">sessions this week.</p><p class="meta">' + (trained ? 'Training day marked in your sheet.' : 'Nothing logged, so your sheet is unchanged.') + '</p></div></div>' +
-    '<h1 class="t l" style="margin-top:var(--s-5)">' + esc(sess.day) + (trained ? ' done' : ' skipped') + '</h1>' +
-    '<p class="meta">' + sets + ' sets, <b><span id="finKg">0</span> kg</b> moved' + (ups ? ', beat last time on ' + ups + (ups === 1 ? ' exercise' : ' exercises') : '') + '.</p>' +
-    '<p class="sync" id="sync"></p><ul>' + rows + '</ul>' +
+    '<div class="moved"><span class="huge" id="finKg">0</span><small>kg moved</small>' + (mins < 0 ? '' : '<p class="meta">' + (mins < 1 ? 'Under a minute' : mins + ' min') + ', first set to last set</p>') + '</div>' +
+    '<h1 class="t l">' + esc(sess.day) + (trained ? ' done' : ' skipped') + '</h1><p class="meta">' + parts.join(', ') + '.</p>' +
+    '<p class="sync" id="sync"></p><div class="sechead"><b>Records</b>' + (lastWk ? '<span>Best set, against week ' + lastWk + '</span>' : '') + '</div><ul class="recs">' + rows + '</ul>' +
     '<button class="btn quiet" data-go="today">Back to today</button></section>';
   renderSync();
   if (window._finShown !== sess.day + data.week) { window._finShown = sess.day + data.week; buzz([20, 30, 40]); }
   countUp($('finDone'), Math.max(0, done - 1), done);
-  var kgEl = $('finKg'), kgTo = Math.round(moved); countUp(kgEl, 0, kgTo); setTimeout(function () { if (kgEl.isConnected) kgEl.textContent = fmtNum(kgTo); }, 340);
+  countUp($('finKg'), 0, Math.round(moved), '', tok('--t-hero'));
 }
 function commit(name, skip) {
   var d = draft(name), today = localIso();
@@ -1742,7 +1932,11 @@ function retryPhoto(i) { var x = photos[i]; if (x && x.data) { x.status = 'waiti
 
 /* ---------- events ---------- */
 document.addEventListener('click', function (e) {
+  var dr = e.target.closest('.lrow.done'); if (dr && sess && !e.target.closest('.ok')) return editSet(+dr.dataset.i); // a tap on a done set (not its tick) reopens it
   var b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.log !== undefined) return logSet(+b.dataset.log);
+  if (b.dataset.tick !== undefined) return logSet(+b.dataset.tick);
+  if (b.dataset.rest) return b.dataset.rest === 'skip' ? restEnd() : restNudge(+b.dataset.rest);
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
   if (b.dataset.day) { view.tab = 'workout'; openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
@@ -1753,7 +1947,6 @@ document.addEventListener('click', function (e) {
   if (b.dataset.sw) return switchSave(b.dataset.sw);
   if (b.dataset.task) return taskToggle(+b.dataset.task);
   if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
-  if (b.dataset.copy !== undefined) return copyLast(+b.dataset.copy);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
   if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
@@ -1769,12 +1962,6 @@ document.addEventListener('click', function (e) {
   if (act === 'unskip') { sess.skipped = sess.skipped.filter(function (x) { return x !== n; }); saveSess(); return show('ov'); }
   if (act === 'finish') return show('fin');
 });
-function copyLast(i) { // one tap fills a set with last time's numbers
-  var p = prevOf(exByName(dayByName(sess.day), sess.current)), d = draft(sess.current); if (!p) return;
-  d.kg[i] = p.kg[i] || ''; d.reps[i] = p.reps[i] || ''; saveSess();
-  var row = $('set' + i); row.querySelector('[data-f="kg"]').value = d.kg[i]; row.querySelector('[data-f="reps"]').value = d.reps[i];
-  row.classList.toggle('beaten', beats(p, i, d.kg[i], d.reps[i]));
-}
 $('skipBtn').onclick = function () { var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next(); };
 $('doneBtn').onclick = function () {
   var n = sess.current, d = draft(n);
@@ -1785,6 +1972,7 @@ $('doneBtn').onclick = function () {
     this.lastChild.textContent = 'Complete anyway';
     return;
   }
+  var now = Date.now(); if (!sess.startedAt) sess.startedAt = now; sess.lastAt = now; // typed-then-Complete still counts for duration and "done today"
   sess.done.push(n); if (!any) d.comment = 'Done'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
 };
 document.addEventListener('change', function (e) {
@@ -1797,15 +1985,23 @@ document.addEventListener('input', function (e) {
   var val = e.target.value; if (f === 'kg') val = val.replace(/^(\d+),(\d+)$/, '$1.$2');
   if (f === 'comment') d.comment = val; else d[f][+e.target.dataset.i] = val;
   saveSess();
-  if (f !== 'comment') { var i = +e.target.dataset.i, p = prevOf(exByName(dayByName(sess.day), sess.current)), row = $('set' + i), was = row.classList.contains('beaten'), now = beats(p, i, d.kg[i], d.reps[i]);
-    row.classList.toggle('beaten', now); if (now && !was) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); buzz(15); } }
+  if (f !== 'comment') { var ex = exNow(), i = +e.target.dataset.i, btn = document.querySelector('#set' + i + ' .log'); // the Log button says what it will log, as you type
+    if (ex && btn) { var v = toLog(ex.x, ex.p, ex.d, i); btn.disabled = !(v.kg && v.reps); btn.lastChild.textContent = logLabel(v); } }
 });
+document.addEventListener('focusin', function (e) { // a box in a pending set: that set takes the stage, and stays clear of the keyboard and the bars
+  if (!e.target.matches || !e.target.matches('input')) return; // only a box takes the stage: a focused tick (Chrome focuses on mousedown) must keep its box until the click lands
+  var row = e.target.closest('.lrow'); if (!row || row.classList.contains('done') || !sess) return;
+  makeCurrent(+row.dataset.i); keepInView(row);
+});
+if (window.visualViewport) visualViewport.addEventListener('resize', function () { var a = document.activeElement, row = a && a.closest && a.closest('.lrow'); if (row) keepInView(row); });
 document.addEventListener('keydown', function (e) { // Enter moves to the next box; on the last box it saves
   if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
   var inForm = e.target.closest('.screen > .form') || e.target.closest('.form'), inEx = e.target.closest('.ex');
   if (!inForm && !inEx) return;
   e.preventDefault();
-  var all = Array.prototype.slice.call((inForm || inEx).querySelectorAll('input:not([type="date"]):not([type="file"])'));
+  var cur = inEx && e.target.dataset.f === 'reps' && e.target.closest('.lrow.cur'), ex = cur && exNow();
+  if (ex) { var v = toLog(ex.x, ex.p, ex.d, +cur.dataset.i); if (v.kg && v.reps) return logSet(+cur.dataset.i); } // Enter on the stage's reps box is Log: rest and timestamps on the keyboard path too
+  var all = Array.prototype.slice.call((inForm || inEx).querySelectorAll('input:not([type="date"]):not([type="file"]):not([readonly])'));
   var nx = all[all.indexOf(e.target) + 1];
   if (nx) nx.focus(); else { e.target.blur(); if (inForm && $('saveBtn')) saveLog(); }
 });
