@@ -124,6 +124,8 @@
   :root { --t-micro: 0ms; --t-screen: 0ms; --t-draw: 0ms; --t-hero: 0ms; }
 }
 /* tokens:end */
+/* ember colours for the Today hero, rgb triplets: read by its keyframes and its canvas */
+:root { --ember: 43, 168, 74; --amber: 255, 170, 90; }
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -249,82 +251,74 @@ button.row:active { background: var(--surface-2); transform: none; }
 .hero .n { font-size: var(--fs-44); }
 .hero .n { font-size: var(--fs-32); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; }
 .hero .n .of { font-size: var(--fs-16); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; }
-/* ---------- The Contract on Today: the sheet's points string, a pass notch, six weeks, what is still on the table ---------- */
-.logo { float: right; width: 40px; height: 40px; margin: var(--s-1) 0 0 var(--s-3); opacity: .9; }
-.ct-head { margin-top: var(--s-4); }
-.sechead .ct-pill, .ct-pill { display: inline-block; padding: var(--s-1) var(--s-2); border-radius: var(--r-pill); font-size: var(--fs-12); font-weight: var(--w-bold); line-height: var(--lh-tight); white-space: nowrap; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-.ct-hero { display: grid; place-items: center; margin-top: var(--s-4); }
-.ct-hero > * { grid-area: 1 / 1; }
-.ring.ct-notched { overflow: visible; }
-.ct-notch { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
-.ct-in { display: grid; justify-items: center; text-align: center; }
-.ct-num { font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; color: var(--accent); }
-.ct-in small { font-size: var(--fs-14); color: var(--ink-muted); }
-.ct-in .ct-pill { margin-top: var(--s-1); }
-.ct-ns { font-size: var(--fs-16); color: var(--ink-muted); }
-.ct-calm .track, .ct-notset .track { stroke: var(--line); stroke-dasharray: 3 4; }
-.ct-calm .bar, .ct-notset .bar, .ct-pending .bar, .ct-future .bar { display: none; }
-.ring.hero.ct-calm { filter: none; animation: none; } /* no glow on an empty ring */
-.ct-verdict { margin: var(--s-4) 0 var(--s-2); font-size: var(--fs-32); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: var(--lh-tight); text-align: center; text-wrap: balance; animation: rise var(--t-draw) var(--ease) var(--t-draw) both; }
-.ct-verdict.ct-long { font-size: var(--fs-24); }
-.ct-verdict small { display: block; margin-top: var(--s-1); font-size: var(--fs-14); font-weight: var(--w-regular); letter-spacing: 0; color: var(--ink-muted); }
-.ct-hero-tap { display: block; width: 100%; }
-.ct-line.ct-plain { grid-template-columns: 1fr auto auto; }
-.ct-line.ct-plain .ct-lv { font-size: var(--fs-16); font-weight: var(--w-regular); color: var(--ink-muted); }
-.ct-line.ct-plain .ct-lv b { font-size: var(--fs-20); }
-.moment.ct-how .sub { max-width: 32ch; line-height: var(--lh-body); }
-.ct-verdict.ct-quiet { color: var(--ink-muted); }
-.ct-fact { margin: 0; text-align: center; font-size: var(--fs-14); color: var(--ink-muted); animation: rise var(--t-draw) var(--ease) calc(var(--t-draw) + var(--t-micro)) both; }
-.ct-fact + .ct-fact { margin-top: var(--s-1); }
-.ct-chip { display: inline-block; margin-top: var(--s-2); padding: var(--s-1) var(--s-3); border-radius: var(--r-pill); font-size: var(--fs-12); font-weight: var(--w-bold); background: var(--surface-2); color: var(--ink-muted); }
-.ct-chip.ct-pass { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-.ct-chip.ct-miss { background: color-mix(in srgb, var(--coach) 18%, transparent); color: var(--coach); }
-.ct-ledger { display: flex; gap: var(--s-1); margin: var(--s-5) calc(-1 * var(--gutter)) 0; padding: 0 var(--gutter); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; } /* every week, newest on the right, scrolled to the end */
-.ct-ledger::-webkit-scrollbar { display: none; }
-.ct-tile { display: grid; justify-items: center; align-content: start; gap: var(--s-1); flex: 0 0 calc(var(--tap) + var(--s-2)); scroll-snap-align: end; min-width: 0; min-height: var(--tap); padding: var(--s-1) 0; border-radius: var(--r-chip); font-size: var(--fs-12); font-weight: var(--w-bold); color: var(--ink-muted); animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-draw) + var(--i) * var(--t-micro) / 2); }
-.ct-tile:active { background: var(--surface); }
-.ct-ring { display: grid; place-items: center; }
-.ct-ring > * { grid-area: 1 / 1; }
-.ct-tile .ring { width: calc(var(--tap) + var(--s-1)); height: calc(var(--tap) + var(--s-1)); }
-.ct-tile .ct-notch { stroke-width: 6; }
-.ct-tn { font-size: var(--fs-14); font-weight: var(--w-bold); color: var(--ink); line-height: 1; }
-.ct-notset .ct-tn { width: min-content; overflow-wrap: normal; font-size: var(--fs-12); font-weight: var(--w-regular); color: var(--ink-muted); line-height: var(--lh-tight); text-align: center; }
-.ct-passed .ct-tn { color: var(--accent); }
-.ct-missed .bar { stroke: var(--coach); }
-.ct-missed .ct-tn { color: var(--coach); }
-.ct-live .ring { filter: drop-shadow(var(--glow)); animation: glowpulse calc(var(--t-hero) * 3) var(--ease) infinite; }
-.ct-live b { color: var(--accent); }
-.ct-future { opacity: .4; }
-.ct-tile.ct-out { animation: ct-out calc(var(--t-draw) / 2) var(--ease) forwards; }
-.ct-tile.ct-flipin { animation: ct-in calc(var(--t-draw) / 2) var(--ease) both; }
-@keyframes ct-out { to { transform: rotateY(90deg); } }
-@keyframes ct-in { from { transform: rotateY(-90deg); } }
-.ct-foot { margin: var(--s-2) 0 0; text-align: center; font-size: var(--fs-12); color: var(--ink-muted); }
-.ct-lines { background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
-.ct-line { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: var(--s-2) var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
-.ct-line + .ct-line { border-top: 1px solid var(--line); }
-.ct-line:active { background: var(--surface-2); transform: none; }
-.ct-lt { min-width: 0; }
-.ct-lt b { display: block; font-size: var(--fs-16); font-weight: var(--w-bold); }
-.ct-lt span { display: block; font-size: var(--fs-14); color: var(--ink-muted); }
-.ct-lv { text-align: right; white-space: nowrap; font-size: var(--fs-20); font-weight: var(--w-bold); letter-spacing: var(--track-tight); line-height: var(--lh-tight); }
-.ct-lv b, .ct-lv i { color: var(--accent); }
-.ct-lv i { display: block; font-style: normal; font-size: var(--fs-12); letter-spacing: 0; margin-top: var(--s-1); }
-.ct-off .ct-lv b, .ct-off .ct-lv i { color: var(--coach); }
-.ct-line > svg.i { color: var(--ink-muted); }
-.ct-bar { grid-column: 1 / -1; height: 3px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
-.ct-bar i { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width var(--t-draw) var(--ease); }
-.ct-off .ct-bar i { background: var(--coach); }
-/* a re-render of Today (tap, save, plan) is a still: no slide, no cascade, rings and bars land at their value */
-.screen.ct-again, .ct-again .ct-verdict, .ct-again .ct-fact, .ct-again .ct-tile:not(.ct-flipin):not(.ct-out), .ct-again .ct-line { animation: none; }
-.ct-again .ct-bar i, .ct-again .ring .bar { transition: none; }
-/* settlement: the app's moment with a week tag; a miss is coach-tinted and has no glow (the glow token is emerald) */
-.ct-tag { font-size: var(--fs-12); font-weight: var(--w-bold); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
-.moment.ct-settle .line { font-size: var(--fs-24); font-weight: var(--w-black); letter-spacing: var(--track-tight); }
-.moment.miss .ring.hero { filter: none; animation: none; }
-.moment.ct-settle { background: var(--canvas); } /* the settlement is a full stop: nothing shows through */
-.moment.miss .ring .bar { stroke: var(--coach); }
-.moment.miss .huge { color: var(--coach); }
+/* ---------- Today: the monogram is the one light. Embers rise from behind it; heat (daily targets hit today) feeds it ---------- */
+.fire { position: relative; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); overflow: hidden; }
+.fire > * { position: relative; z-index: 2; }
+.pool { position: absolute; z-index: 0; left: 50%; top: 50%; width: calc(var(--s-7) * 9); height: calc(var(--s-7) * 9); margin: calc(var(--s-7) * -4.5) 0 0 calc(var(--s-7) * -4.5); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(var(--ember), 0.38) 0%, rgba(var(--ember), 0.14) 32%, rgba(var(--ember), 0.05) 52%, transparent 68%);
+  opacity: calc(0.45 + 0.55 * var(--heat)); will-change: transform; animation: drift1 calc(var(--t-hero) * 48) var(--ease) infinite alternate; }
+.fire > .embers { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+.logo-stage { width: calc(var(--s-7) * 3); height: calc(var(--s-7) * 3); margin: var(--s-3) auto 0; } /* air under the date; the png's own letterbox spaces it from the lines */
+.logo-icon { position: absolute; inset: 0; opacity: 0;
+  animation: logoIn calc(var(--t-hero) * 2) var(--ease) var(--t-screen) forwards, logoIgnite calc(var(--t-hero) * 4) var(--ease) calc(var(--t-hero) * 2) 1, logoGlow calc(var(--t-hero) * 6) var(--ease) calc(var(--t-hero) * 6) infinite;
+  will-change: opacity, filter; }
+.logo-icon img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.logo-heat { position: absolute; inset: 0; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat;
+  background: linear-gradient(115deg, transparent 20%, rgba(var(--ember), 0.77) 40%, rgba(var(--amber), 0.49) 50%, rgba(var(--ember), 0.77) 60%, transparent 80%);
+  background-size: 300% 100%; opacity: 0; animation: heatSweep calc(var(--t-hero) * 6) var(--ease) var(--t-hero) infinite; will-change: background-position, opacity; }
+@keyframes logoIn {
+  from { opacity: 0; filter: drop-shadow(0 0 0 rgba(var(--ember), 0)); }
+  to   { opacity: 1; filter: drop-shadow(0 0 calc(var(--s-1) * 4.5) rgba(var(--ember), 0.5)); }
+}
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 calc(var(--s-1) * 2.5) rgba(var(--ember), 0.25)); }
+  50%      { filter: drop-shadow(0 0 calc(var(--s-1) * 5.5) rgba(var(--ember), calc(0.3 + 0.4 * var(--heat)))) drop-shadow(0 0 calc(var(--s-1) * 10) rgba(var(--amber), 0.12)); }
+}
+@keyframes logoIgnite {
+  0%   { filter: drop-shadow(0 0 var(--s-4) rgba(var(--ember), 0.45)); }
+  35%  { filter: drop-shadow(0 0 var(--s-6) rgba(var(--ember), 0.75)) drop-shadow(0 0 calc(var(--s-1) * 15.5) rgba(var(--amber), 0.3)); }
+  70%  { filter: drop-shadow(0 0 var(--s-5) rgba(var(--ember), 0.55)) drop-shadow(0 0 calc(var(--s-1) * 11) rgba(var(--amber), 0.17)); }
+  100% { filter: drop-shadow(0 0 calc(var(--s-1) * 2.5) rgba(var(--ember), 0.25)); }
+}
+@keyframes heatSweep {
+  0%   { background-position: 120% 0; opacity: 0; }
+  15%  { opacity: 1; }
+  45%  { opacity: 0.7; }
+  70%  { background-position: -60% 0; opacity: 0; }
+  100% { background-position: -60% 0; opacity: 0; }
+}
+@keyframes drift1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(8vw, 6vh, 0) scale(1.12); }
+  100% { transform: translate3d(-4vw, 10vh, 0) scale(0.95); }
+}
+.lines { text-align: center; margin: 0; }
+.lines p { margin: 0; font-size: var(--fs-20); line-height: var(--lh-tight); letter-spacing: var(--track-tight); text-wrap: balance; animation: rise var(--t-draw) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro)); }
+.lines p + p { margin-top: var(--s-2); }
+.lines .well { font-weight: var(--w-bold); }
+.lines .focus b { color: var(--accent); font-weight: var(--w-bold); }
+.lines .streak { font-size: var(--fs-14); color: var(--ink-muted); letter-spacing: 0; margin-top: var(--s-3); }
+.sechead.first { margin-top: var(--s-2); }
+.tlist { animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-hero); } /* the card arrives with its first row: never an empty box while the rows wait */
+@keyframes appear { from { opacity: 0; } }
+.trow { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-2) var(--s-4); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
+.trow + .trow { border-top: 1px solid var(--line); }
+.trow:active { background: var(--surface-2); transform: none; }
+.trow .tl { flex: 1; min-width: 0; }
+.trow .tl span { display: block; font-size: var(--fs-14); color: var(--ink-muted); line-height: var(--lh-tight); }
+.trow .tl b { display: block; font-size: var(--fs-20); font-weight: var(--w-bold); letter-spacing: var(--track-tight); line-height: var(--lh-tight); margin-top: var(--s-1); }
+.trow .tick { width: calc(var(--s-5) + var(--s-1)); height: calc(var(--s-5) + var(--s-1)); }
+.trow .tick svg { width: var(--s-4); height: var(--s-4); }
+.trow > svg.i { color: var(--ink-muted); }
+/* a re-render of Today (a tap, a save landing, the data or plan arriving) carries every animation on from where it was: mid-cascade it keeps rising, after it a still */
+.screen.again { animation-delay: var(--since); }
+.again .lines p { animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) + var(--since)); }
+.again .tlist { animation-delay: calc(var(--t-hero) + var(--since)); }
+.again .trow { animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2 + var(--since)); }
+.again .pool { animation-delay: var(--since); }
+.again .logo-icon { animation-delay: calc(var(--t-screen) + var(--since)), calc(var(--t-hero) * 2 + var(--since)), calc(var(--t-hero) * 6 + var(--since)); }
+.again .logo-heat { animation-delay: calc(var(--t-hero) + var(--since)); }
+@media (prefers-reduced-motion: reduce) { .again, .again * { animation-delay: var(--since) !important; } } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
 
 /* ---------- week strip ---------- */
 .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--s-3); }
@@ -740,12 +734,12 @@ function countUp(el, from, to, suffix, ms) { // numbers that change count, they 
 }
 function reduced() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function buzz(p) { try { if (navigator.vibrate && !reduced()) navigator.vibrate(p); } catch (e) {} }
-// One full-screen beat. o = {ring: 0..1, huge, small, line, sub, tick, cls, tag, extra (svg inside the ring), dur (count ms), buzz (fired as the count lands)}.
+// One full-screen beat. o = {ring: 0..1, huge, from, small, line, sub, tick, cls, dur (count ms), buzz (fired as the count lands)}.
 // Dismissed by a tap or after `hold` ms.
 function moment(o, hold) {
   var el = document.createElement('div'); el.className = 'moment' + (o.cls ? ' ' + o.cls : '');
-  el.innerHTML = '<div class="in">' + (o.tag ? '<div class="ct-tag">' + esc(o.tag) + '</div>' : '') + (o.tick ? '<i class="tick pop"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>' : '') +
-    (o.ring !== undefined ? ringSvg(o.ring, 'hero' + (o.extra ? ' ct-notched' : ''), o.extra) : '') +
+  el.innerHTML = '<div class="in">' + (o.tick ? '<i class="tick pop"><svg class="tickdraw" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>' : '') +
+    (o.ring !== undefined ? ringSvg(o.ring, 'hero') : '') +
     (o.huge !== undefined ? '<div class="huge"><span id="momentN">' + esc(o.huge) + '</span>' + (o.small ? '<small>' + esc(o.small) + '</small>' : '') + '</div>' : '') +
     (o.line ? '<div class="line">' + esc(o.line) + '</div>' : '') + (o.sub ? '<div class="sub">' + esc(o.sub) + '</div>' : '') + '</div>';
   document.body.appendChild(el);
@@ -759,7 +753,7 @@ function moment(o, hold) {
 var MILESTONES = [7, 14, 30, 60, 100];
 function momentUp() { return !!document.querySelector('.moment:not(.out)'); }
 function milestoneCheck(st) { // the highest unseen milestone at or below the run, so a day logged by taps alone is not lost
-  if (momentUp()) return false; // never stacked: the settlement calls this again when it closes
+  if (momentUp()) return false; // never stacked: the Saved moment calls this again when it closes
   var due = MILESTONES.filter(function (m) { return st.n >= m && !load('cw:ms:' + m, false); }), hit = due[due.length - 1]; if (!hit) return false;
   due.forEach(function (m) { store('cw:ms:' + m, true); }); buzz([30, 40, 60]);
   var nxt = MILESTONES.filter(function (m) { return m > hit; })[0];
@@ -829,27 +823,16 @@ function streak() { // consecutive days with something logged, counted back from
   var best = Math.max(n, load('cw:best', 0)); store('cw:best', best);
   return { n: n, best: best };
 }
-function points() { // "3 / 88 (3%)" from the sheet's WYMB column, pass mark from the block menu
-  var c = data.checkIn, s = c && c.thisWeek && c.thisWeek.avg && c.thisWeek.avg.wymb, m = /(\d+)\s*\/\s*(\d+)/.exec(s || '');
-  if (!m) return null;
-  var t = c.thisWeek.targets || {}, pass = t.passrate && t.weeklypoints ? Math.round(t.passrate * t.weeklypoints) : 0;
-  return { n: +m[1], of: +m[2], pass: pass };
-}
 function sessionsDone() { return data.days.filter(dayDone).length; }
 function trainingTarget() { var t = data.checkIn && data.checkIn.thisWeek && data.checkIn.thisWeek.targets; return (t && t.trainingdays) || data.days.length; }
-function ringSvg(frac, cls, extra) {
+function ringSvg(frac, cls) {
   var r = 48, C = 2 * Math.PI * r, off = C * (1 - Math.max(0, Math.min(1, frac || 0)));
   return '<svg class="ring' + (cls ? ' ' + cls : '') + '" viewBox="0 0 112 112" aria-hidden="true"><circle class="track" cx="56" cy="56" r="' + r + '"/>' +
-    '<circle class="bar" cx="56" cy="56" r="' + r + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" data-off="' + off.toFixed(1) + '" transform="rotate(-90 56 56)"/>' + (extra || '') + '</svg>';
-}
-function ringsNow() { // set every ring and bar to its value at once (the .ct-again re-render has no transitions)
-  Array.prototype.forEach.call(document.querySelectorAll('#app .ring .bar'), function (b) { b.style.strokeDashoffset = b.dataset.off; });
-  Array.prototype.forEach.call(document.querySelectorAll('#app .ct-bar i'), function (b) { b.style.width = b.dataset.w; });
+    '<circle class="bar" cx="56" cy="56" r="' + r + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" data-off="' + off.toFixed(1) + '" transform="rotate(-90 56 56)"/></svg>';
 }
 function startRings() { // a timer, not requestAnimationFrame: frames do not run in a backgrounded tab, timers still do
   setTimeout(function () {
     Array.prototype.forEach.call(document.querySelectorAll('.ring .bar'), function (b) { b.style.strokeDashoffset = b.dataset.off; });
-    Array.prototype.forEach.call(document.querySelectorAll('.ct-bar i'), function (b) { b.style.width = b.dataset.w; });
   }, 30);
 }
 
@@ -861,6 +844,7 @@ var RENDER = { today: renderToday, log: renderLog, workout: renderWorkout, ex: r
 function show(screen, day) {
   if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
   view.screen = screen; if (day) view.day = day;
+  if (screen !== 'today') emberStop();
   if (TABS[screen]) view.tab = screen;
   if (screen === 'log' && view.screen !== 'log' && !ciState.msg) ciState = { date: localIso(), confirm: '', msg: '', warn: false, replace: false }; // Log opens on today, never the last back-filled day
   var inSession = screen === 'ex';
@@ -882,201 +866,152 @@ function weekLine() { var r = data.roadmap; return 'Week ' + data.week + (r && r
 var LOGO = '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'; // the AJ monogram from weekendmealfinder.netlify.app, 120px, white on transparent
 
 function renderToday() {
-  var today = localIso(), html = '<section class="screen">';
-  html += '<img class="logo" alt="AMS Johnston Coaching" src="data:image/png;base64,' + LOGO + '"><h1 class="t l">' + esc(weekday(today)) + '</h1><p class="meta">' + esc(fmtDate(today)) + ', ' + esc(weekLine()) + '.</p>';
+  var today = localIso(), head = '<h1 class="t l">' + esc(weekday(today)) + '</h1><p class="meta">' + esc(fmtDate(today)) + ', ' + esc(weekLine()) + '.</p>';
   if (!data.checkIn) { // a client whose sheet has no daily check in switched on: today is the session list
-    $('app').innerHTML = html + '<p class="sync" id="sync"></p>' + sessionList() + '</section>';
+    emberStop();
+    $('app').innerHTML = '<section class="screen">' + head + '<p class="sync" id="sync"></p>' + sessionList() + '</section>';
     return renderSync();
   }
-  var c = data.checkIn, t = ciDay(today), core = coreDone(t), st = streak(), pts = points(), on = ctOn(), settle = on ? ctSettleDue() : null;
-  var again = on && view.screen === 'today' && !!document.querySelector('#app .ct-head');
-  if (again) html = html.replace('<section class="screen">', '<section class="screen ct-again">');
-  if (on) html += ctToday(st, pts, today);
-  else html += '<div class="hero">' + (pts ? ringSvg(pts.n / pts.of, 'hero') : ringSvg(core.of ? core.done / core.of : 0, 'hero')) + '<div>' +
-    (pts ? '<div class="n on" id="pts">' + pts.n + '</div><p class="meta">of ' + pts.of + ' points this week' + (pts.pass ? '. Pass at ' + pts.pass + '.' : '.') + '</p>'
-      : '<div class="n on">' + core.done + '<span class="of"> of ' + core.of + '</span></div><p class="meta">logged today.</p>') +
-    '<p class="meta">' + streakLine(st) + '</p></div></div>';
+  var t = ciDay(today), core = coreDone(t), st = streak(), tl = todayLines(today);
+  var again = !!(EMB && document.querySelector('#app .fire')); // Today is already up: a still, the fire carries on
+  if (!again) { emberStop(); window._todayAt = Date.now(); }
+  var html = '<section class="screen' + (again ? ' again" style="--since:' + (window._todayAt - Date.now()) + 'ms' : '') + '">';
+  var well = tl.well.length ? 'Doing well: ' + joinAnd(tl.well) + '.' : tl.logged ? '' : 'Fresh week.';
+  html += '<div class="fire" style="--heat:' + tl.heat.toFixed(2) + '"><div class="pool" aria-hidden="true"></div><canvas class="embers" aria-hidden="true"></canvas>' + head +
+    '<div class="logo-stage" id="logoStage"><div class="logo-icon"><img alt="AMS Johnston Coaching" src="data:image/png;base64,' + LOGO + '"></div><div class="logo-heat" aria-hidden="true"></div></div>' +
+    '<div class="lines">' + (well ? '<p class="well" style="--i:0">' + esc(well) + '</p>' : '') +
+    (tl.rows.length ? '<p class="focus" style="--i:1">' + (tl.focus.length ? 'Focus today: <b>' + esc(joinAnd(tl.focus)) + '</b>.' : 'All hit today.') + '</p>' : '') +
+    '<p class="streak" style="--i:2">' + esc(streakLine(st)) + '</p></div></div>';
+  if (tl.rows.length) html += '<div class="sechead first"><b>This week\'s targets</b></div><div class="list tlist">' + tl.rows.map(function (r, i) {
+    return '<button class="trow" data-go="' + r.go + '" style="--i:' + i + '" aria-label="' + esc(r.name + ', ' + r.text + ', ' + (r.hit ? 'hit' : 'not yet')) + '"><span class="tl"><span>' + esc(r.name) + '</span><b>' + esc(r.text) + '</b></span>' +
+      '<i class="tick' + (r.hit ? '' : ' off') + '">' + icon('check') + '</i>' + icon('chev').replace('<svg', '<svg aria-hidden="true"') + '</button>';
+  }).join('') + '</div>';
   if (!t) html += '<p class="note warn">' + esc(shortDate(today)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
-  if (!on) html += '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>';
-  html += '<div style="margin-top:var(--s-3)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
+  if (!tl.rows.length) html += '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>'; // no targets at all: never a screen without numbers
+  html += '<div style="margin-top:var(--s-2)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
     (core.done === 0 ? 'Log today' : core.done < core.of ? 'Log the rest of today' : 'Logged for today, change something') + '</button></div>';
   html += '<p class="sync" id="sync"></p>';
   html += habitsCard(t);
   html += tasksCard();
-  var was = $('pts') ? parseInt($('pts').textContent, 10) : null;
   $('app').innerHTML = html + '</section>';
-  if (again) { ringsNow(); ctFit(); } else if (on) { window._ctRendered = Date.now(); ctFit(); ctFitOnFont(); }
-  renderSync(); startRings();
-  if (pts && $('pts')) { countUp($('pts'), window._ptsFrom != null ? window._ptsFrom : (was != null && !isNaN(was) ? was : 0), pts.n, '', on ? tok('--t-hero') : 0); window._ptsFrom = null; }
-  var lg = document.querySelector('#app .ct-ledger'); if (lg) lg.scrollLeft = lg.scrollWidth; // newest week in view
-  if (settle) ctSettle(settle);
-  else if (on && !again && !momentUp() && !load('cw:ptsSeen', false)) { store('cw:ptsSeen', true); ctHow(); } // first open with points: explain them once
+  var fire = document.querySelector('#app .fire'), sweep = fire.querySelector('.logo-heat');
+  sweep.style.webkitMaskImage = sweep.style.maskImage = 'url(data:image/png;base64,' + LOGO + ')';
+  if (again) { fire.replaceChild(EMB.canvas, fire.querySelector('.embers')); EMB.heat = tl.heat; EMB.resize(); } // the same canvas and loop, only the heat moves
+  else embers(fire.querySelector('.embers'), tl.heat);
+  renderSync();
 }
 function streakLine(st) { return st.n ? st.n + (st.n === 1 ? ' day' : ' days') + ' in a row' + (st.best > st.n ? ', best ' + st.best : '') + '.' : st.best ? 'Fresh start today. Best run ' + st.best + ' days.' : 'Day 1. Log something and the run starts.'; }
+function joinAnd(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
 
-/* ---------- The Contract: the sheet's own "n / total" per Check In block, the pass mark from its two config cells.
-   The app never computes points; the only arithmetic is days hit of days so far and "missed by" (two shown numbers). ---------- */
-var ctSettling = 0; // the week drawn as pending while its settlement moment is up
-function tok(n) { return parseInt(getComputedStyle(document.documentElement).getPropertyValue(n), 10) || 0; } // a duration token in ms (0 under reduced motion)
-function ctOn() {
-  var c = data.checkIn;
-  return !!c && c.fields.some(function (f) { return f.id === 'wymb'; }) &&
-    ((c.weeks || []).some(function (w) { return w.wymb; }) || !!(c.thisWeek && c.thisWeek.targets && c.thisWeek.targets.weeklypoints));
-}
-function ctLive() { var c = data.checkIn; return c.thisWeek ? c.thisWeek.week : data.week; }
-function ctLiveWeek() {
-  var c = data.checkIn, live = ctLive(), tw = c.thisWeek || {};
-  return (c.weeks || []).filter(function (w) { return w.week === live; })[0] || { week: live, wymb: tw.avg ? tw.avg.wymb : '', scored: true, targets: tw.targets || {} };
-}
-function ctPts(s) { var m = /(\d+)\s*\/\s*(\d+)/.exec(s || ''); return m && +m[2] ? { n: +m[1], of: +m[2] } : null; }
-function ctPass(t) { return t && t.passrate && t.weeklypoints ? Math.round(t.passrate * t.weeklypoints) : 0; }
-function ctPct() { var t = data.checkIn.thisWeek && data.checkIn.thisWeek.targets; return Math.round(((t && t.passrate) || 0.85) * 100); }
-function ctJoin(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
-function ctLeft(n) { return n < 1 ? 'Last day' : n === 1 ? '1 day left' : n + ' days left'; }
-function ctSays(p, pass) { // a settled week against its pass mark
-  var k = ctPct();
-  return p.n >= pass ? (data.wymb ? 'Passed.' : 'Above the ' + k + ' line.') : data.wymb ? 'Missed by ' + (pass - p.n) + '.' : (pass - p.n) + ' short of the ' + k + ' line.';
-}
-function ctNotch(frac) { // a tick across the ring at the pass mark, poking past the track on both sides (needs .ct-notched)
-  var a = 2 * Math.PI * Math.min(1, frac) - Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
-  return '<line class="ct-notch" x1="' + (56 + 40 * c).toFixed(1) + '" y1="' + (56 + 40 * s).toFixed(1) + '" x2="' + (56 + 58 * c).toFixed(1) + '" y2="' + (56 + 58 * s).toFixed(1) + '"/>';
-}
-function ctState(w, real) { // pending | future | notset | live | passed | missed
-  var live = ctLive(), p = ctPts(w.wymb), pass = ctPass(w.targets);
-  if (!real && w.week === ctSettling) return 'pending';
-  if (w.week > live || w.none) return 'future';
-  if (!w.scored || !p || !pass) return 'notset';
-  return w.week === live ? 'live' : p.n >= pass ? 'passed' : 'missed';
-}
-function ctWeeks() { // a wymb client's weeks 1 to 6 (the challenge), everyone else the six ending at the live week; short = future tiles
-  var live = ctLive(), by = {}, low = live, out = [];
-  (data.checkIn.weeks || []).forEach(function (w) { by[w.week] = w; low = Math.min(low, w.week); });
-  if (!by[live]) by[live] = ctLiveWeek();
-  for (var k = low; k <= live; k++) out.push(by[k] || { week: k, wymb: '', scored: false, targets: {}, none: true }); // every week so far, a missing block is a track-only tile
-  return out;
-}
-function ctDays(today) { // this week's Check In days from the week start to today, and the days left after today
-  var c = data.checkIn, live = ctLive(), start = data.weekStart || (c.days.filter(function (d) { return d.week === live; })[0] || {}).date || today;
-  return { so: c.days.filter(function (d) { return d.date >= start && d.date <= today; }), left: Math.max(0, Math.min(6, 6 - Math.round((dateOf(today) - dateOf(start)) / 864e5))) };
-}
-function ctLines(so, today) { // still on the table: a daily line is days hit of days so far, a weekly line its running total
-  var out = [], dir = String((data.roadmap && data.roadmap.calories) || '').toUpperCase(), hb = data.checkIn.habits;
-  function daily(id, name, cap, hit) { // today only counts once it is logged: an unlogged morning is not a missed day
+/* ---------- Today's lines and target rows. Nothing is scored on the phone (phase one): daily lines (calories, protein, steps) are
+   judged on today's logged value and the days so far this week, weekly lines (cardio, training) on the week's running total. ---------- */
+function todayLines(today) {
+  var c = data.checkIn, wk = c.thisWeek ? c.thisWeek.week : data.week, dir = String((data.roadmap && data.roadmap.calories) || '').toUpperCase();
+  var week = c.days.filter(function (d) { return d.week === wk && d.date <= today; }), past = week.filter(function (d) { return d.date < today; }), t = ciDay(today);
+  var DAILY = { calories: ['Calories', 'kcal'], protein: ['Protein', 'g'], steps: ['Steps', 'steps'] };
+  var rows = [], well = [], unlogged = [], under = [], behind = [], hits = 0, daily = 0;
+  Object.keys(DAILY).forEach(function (id) {
     var f = fieldById(id), tg = f && targetOf(f); if (!tg || !tg.n) return;
-    var days = so.filter(function (d) { return d.date < today || num(d.values[id]) > 0; });
-    out.push({ name: name, cap: cap(fmtNum(tg.n)), done: days.filter(function (d) { var v = num(d.values[id]); return v > 0 && hit(v, tg.n); }).length, of: days.length, daily: true, go: 'log' });
+    var hit = function (d) { // a deficit is hit at or under target, a surplus at or over, anything else within 5 percent; protein and steps at or over
+      var v = d ? num(d.values[id]) : 0; if (!(v > 0)) return false;
+      return id !== 'calories' ? v >= tg.n : dir === 'DEFICIT' ? v <= tg.n : dir === 'SURPLUS' ? v >= tg.n : Math.abs(v - tg.n) <= tg.n * 0.05;
+    };
+    var logged = !!t && num(t.values[id]) > 0, now = hit(t), so = past.concat(logged ? [t] : []), h = so.filter(hit).length; // an unlogged today is not a missed day
+    daily++; if (now) hits++;
+    if (h >= 1 && so.length - h <= 1) well.push(id);
+    if (!now) (logged ? under : unlogged).push(id);
+    rows.push({ name: DAILY[id][0], text: fmtNum(tg.n) + ' ' + DAILY[id][1], hit: now, go: 'log' });
+  });
+  var cf = fieldById('cardio'), cg = cf && targetOf(cf), tt = trainingTarget(), weekly = [];
+  if (cg && cg.n) weekly.push({ id: 'cardio', name: 'Cardio', of: cg.n, done: weekTotal(cf), text: fmtNum(cg.n) + ' mins this week', go: 'log' });
+  if (tt) weekly.push({ id: 'training', name: 'Training', of: tt, done: sessionsDone(), text: tt + (tt === 1 ? ' session' : ' sessions') + ' this week', go: 'workout' });
+  weekly.forEach(function (w) {
+    if (w.done >= w.of / 2) well.push(w.id); else if (past.length >= 3) behind.push(w.id); // nothing to chase on a Monday
+    rows.push({ name: w.name, text: w.text, hit: w.done >= w.of, go: w.go });
+  });
+  var focus = unlogged.concat(under, behind);
+  return { rows: rows, focus: focus, heat: daily ? hits / daily : 0,
+    well: well.filter(function (id) { return focus.indexOf(id) < 0; }), // a Focus line is not also doing well
+    logged: week.some(dayLogged) || sessionsDone() > 0 || (cf ? weekTotal(cf) > 0 : false) };
+}
+
+/* ---------- the ember canvas (the site's, via design/final/today2-A.html): background embers drifting up and embers rising off
+   the monogram, clipped to the hero and fading before its top. Heat sets the caps and brightness. One loop per Today: paused while
+   the page is hidden, stopped when another screen shows; under reduced motion one still frame and no loop. ---------- */
+var EMB = null;
+function tok(n) { return parseInt(getComputedStyle(document.documentElement).getPropertyValue(n), 10) || 0; } // a duration token in ms (0 under reduced motion)
+function emberStop() {
+  if (!EMB) return;
+  cancelAnimationFrame(EMB.raf); window.removeEventListener('resize', EMB.resize); document.removeEventListener('visibilitychange', EMB.vis); EMB = null;
+}
+function embers(canvas, heat) {
+  var ctx = canvas.getContext('2d'), cs = getComputedStyle(document.documentElement), EM = cs.getPropertyValue('--ember').trim(), AM = cs.getPropertyValue('--amber').trim();
+  var still = reduced() || !tok('--t-hero'), intro = tok('--t-hero') * 7, W = 0, H = 0, particles = [], t0 = 0, lastLogo = 0;
+  var E = EMB = { canvas: canvas, heat: heat, raf: 0, vis: null };
+  E.resize = function () {
+    var z = canvas.parentNode, dpr = Math.min(window.devicePixelRatio || 1, 2); if (!z) return;
+    W = z.clientWidth; H = z.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (still) draw(); // setting the width wipes the canvas: put the still back
+  };
+  function caps() { return { bg: Math.round(3 + 8 * E.heat), logo: Math.round(2 + 6 * E.heat) }; }
+  function spawnBackground() {
+    particles.push({ kind: 'bg', x: Math.random() * W, y: H + 10, vx: (Math.random() - 0.5) * 0.12, vy: -(0.15 + Math.random() * 0.3),
+      r: 1.2 + Math.random() * 2.2, life: 0, maxLife: 900 + Math.random() * 700, warm: Math.random() < 0.3 });
   }
-  daily('calories', 'Calories', function (n) { return dir === 'DEFICIT' ? 'days at ' + n + ' kcal or under' : dir === 'SURPLUS' ? 'days at ' + n + ' kcal or more' : 'days within 5 percent of ' + n + ' kcal'; },
-    function (v, n) { return dir === 'DEFICIT' ? v <= n : dir === 'SURPLUS' ? v >= n : Math.abs(v - n) <= n * 0.05; });
-  daily('protein', 'Protein', function (n) { return 'days at ' + n + ' g or more'; }, function (v, n) { return v >= n; });
-  daily('steps', 'Steps', function (n) { return 'days at ' + n + ' or more'; }, function (v, n) { return v >= n; });
-  var cf = fieldById('cardio'), cg = cf && targetOf(cf);
-  if (cg && cg.n) out.push({ name: 'Cardio', cap: 'mins this week', done: weekTotal(cf), of: cg.n, go: 'log' });
-  var tt = trainingTarget(); if (tt) out.push({ name: 'Training', cap: 'sessions this week', done: sessionsDone(), of: tt, go: 'workout' });
-  if (fieldsOfKind('habits').length) { // today counts for habits only once it is a habits day: ticks build up through the day
-    var hh = function (d) { var k = hb && hb.days[d.date]; return d.values.habits === 'Yes' || (!!k && k.length > 0 && k.filter(Boolean).length / k.length >= 0.85); };
-    var hd = so.filter(function (d) { return d.date < today || hh(d); });
-    out.push({ name: 'Habit days', cap: 'days with habits ticked', daily: true, go: 'habits', of: hd.length, done: hd.filter(hh).length });
+  function spawnLogo(first) {
+    var s = $('logoStage'), z = canvas.parentNode; if (!s || !z) return;
+    var r = s.getBoundingClientRect(), zr = z.getBoundingClientRect();
+    particles.push({ kind: 'logo', x: r.left - zr.left + r.width * (0.2 + Math.random() * 0.6), y: r.top - zr.top + r.height * (0.15 + Math.random() * 0.6),
+      vx: (Math.random() - 0.5) * 0.24, vy: -(first ? 0.45 + Math.random() * 0.5 : 0.3 + Math.random() * 0.4),
+      r: first ? 1.8 + Math.random() * 2.6 : 1.4 + Math.random() * 2.0, // the site's radii doubled: a phone is not a desktop
+      life: 0, maxLife: first ? 500 + Math.random() * 340 : 340 + Math.random() * 260, warm: Math.random() < 0.6 });
   }
-  return out;
-}
-function ctBehind(l) { return !!l.daily && l.of - l.done >= 2; } // one dropped day still clears 85 percent of a 7 day week
-function ctVerdict(lines) { // only from the days-so-far facts on screen, worst first; weekly lines never enter it
-  var b = lines.filter(ctBehind).sort(function (x, y) { return (y.of - y.done) - (x.of - x.done); });
-  if (b.length > 2) return 'Pick it up across the board.'; // three names will not fit two lines at 375px
-  if (b.length) return 'Pick it up: ' + ctJoin(b.map(function (l) { return l.name.toLowerCase(); })) + '.';
-  var d = lines.filter(function (l) { return l.daily; }), of = 0, hit = 0; d.forEach(function (l) { of += l.of; hit += l.done; });
-  return !of ? 'Fresh week. All to play for.' : hit < of ? 'Keep it tight.' : 'Dialled in.';
-}
-function ctHero(pts, notSet, pill) {
-  if (notSet) return '<div class="ct-hero">' + ringSvg(0, 'hero ct-calm') + '<div class="ct-in"><span class="ct-ns">not set</span></div></div>';
-  return '<div class="ct-hero">' + ringSvg(pts.n / pts.of, 'hero ct-notched', pts.pass ? ctNotch(pts.pass / pts.of) : '') +
-    '<div class="ct-in"><div class="ct-num" id="pts">' + pts.n + '</div><small>of ' + pts.of + '</small>' + (pill ? '<span class="ct-pill">' + esc(pill) + '</span>' : '') + '</div></div>';
-}
-function ctTile(w, i, cls) {
-  var st = ctState(w), p = ctPts(w.wymb), pass = ctPass(w.targets), lit = st === 'live' || st === 'passed' || st === 'missed';
-  var label = 'Week ' + w.week + ', ' + (st === 'notset' ? 'targets not set this week' : st === 'future' ? 'not started' : st === 'pending' ? 'settling' : (st === 'live' ? 'this week' : st) + ', ' + p.n + ' of ' + p.of);
-  return '<button class="ct-tile ct-' + st + (cls || '') + '" style="--i:' + i + '" data-ct-week="' + w.week + '" aria-label="' + esc(label) + '"><span class="ct-ring">' +
-    (lit ? ringSvg(p.n / p.of, 'ct-notched', ctNotch(pass / p.of)) : ringSvg(0)) + '<span class="ct-tn">' + (lit ? p.n : st === 'notset' ? 'not set' : '') + '</span></span><b>Week ' + w.week + '</b></button>';
-}
-function ctLedger(ws) { // six rings, then a footnote naming the weeks with no score
-  var ns = ws.filter(function (w) { return ctState(w) === 'notset'; }).map(function (w) { return w.week; }), run = ns.length > 2 && ns[ns.length - 1] - ns[0] === ns.length - 1;
-  return '<div class="ct-ledger">' + ws.map(function (w, i) { return ctTile(w, i); }).join('') + '</div>' +
-    (ns.length ? '<p class="ct-foot">' + (ns.length === 1 ? 'Week ' + ns[0] : 'Weeks ' + (run ? ns[0] + ' to ' + ns[ns.length - 1] : ctJoin(ns))) + ': targets not set, so no score.</p>' : '');
-}
-function ctTileTap(wk) {
-  var w = ctWeeks().filter(function (x) { return x.week === wk; })[0]; if (!w) return;
-  var st = ctState(w, true), p = ctPts(w.wymb);
-  toast(st === 'notset' ? 'Targets not set this week.' : st === 'future' ? 'Week ' + wk + ' has not started.' : st === 'live' ? p.n + ' of ' + p.of + ' so far this week.' : p.n + ' of ' + p.of + '. ' + ctSays(p, ctPass(w.targets)));
-}
-function ctLineHtml(l, i) {
-  var off = ctBehind(l), w = l.of ? Math.min(1, l.done / l.of) : 0;
-  return '<button class="ct-line' + (off ? ' ct-off' : '') + '" style="--i:' + i + '" data-ct-go="' + l.go + '"><span class="ct-lt"><b>' + esc(l.name) + '</b><span>' + esc(l.cap) + '</span></span>' +
-    '<span class="ct-lv"><b>' + fmtNum(l.done) + '</b> of ' + fmtNum(l.of) + (l.daily ? '<i>' + (off ? 'behind' : 'on track') + '</i>' : '') + '</span>' + icon('chev').replace('<svg', '<svg aria-hidden="true"') +
-    '<span class="ct-bar"><i data-w="' + Math.round(w * 100) + '%"></i></span></button>';
-}
-function ctToday(st, pts, today) { // sections 2 to 7 of Today when the Contract is on
-  var c = data.checkIn, lw = ctLiveWeek(), notSet = !pts || ctState(lw, true) === 'notset', pass = pts ? pts.pass : 0, k = ctPct(), wy = data.wymb;
-  var pill = pass ? (wy ? 'Pass at ' + pass : k + '% = ' + pass + ' points') : '';
-  var dd = ctDays(today), lines = ctLines(dd.so, today);
-  var verdict = notSet ? 'Targets not set this week.' : ctVerdict(lines);
-  // One line of text under the ring (Adam: the wall of sentences goes invisible). The hero is a tap: how points work.
-  var html = '<div class="sechead ct-head"><b>This week</b></div><button class="ct-hero-tap" data-ct-go="points" aria-label="How points work">' + ctHero(pts, notSet, pill) + '</button>' +
-    '<p class="ct-verdict' + (notSet ? ' ct-quiet' : '') + '">' + esc(verdict) + ' <small>' + esc(streakLine(st)) + '</small></p>';
-  html += ctLedger(ctWeeks());
-  // Targets first, then today's unscored numbers (weight, hunger, energy) in the same card: one list, one Log button under it.
-  var t = ciDay(today), wf = weightField(), rows = lines.map(ctLineHtml);
-  function todayRow(label, v, unit) {
-    return '<button class="ct-line ct-plain" data-ct-go="log"><span class="ct-lt"><b>' + esc(label) + '</b><span>today</span></span><span class="ct-lv">' +
-      (v ? '<b>' + esc(fmtNum(v)) + '</b> ' + esc(unit) : '<span class="ct-ns">not yet</span>') + '</span>' + icon('chev').replace('<svg', '<svg aria-hidden="true"') + '</button>';
+  function draw() {
+    var bright = 0.6 + 0.4 * E.heat;
+    ctx.clearRect(0, 0, W, H);
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i], phase = p.life / p.maxLife;
+      if (phase >= 1 || p.y < -12) { particles.splice(i, 1); continue; }
+      var a = (phase < 0.15 ? phase / 0.15 : 1 - (phase - 0.15) / 0.85) * (p.kind === 'logo' ? 1 : 0.6) * bright * Math.min(1, p.y / (H * 0.22)); // dies before the top
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + (p.warm ? AM : EM) + ', ' + Math.max(0, a).toFixed(3) + ')';
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(' + (p.warm ? AM : EM) + ', 0.6)';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   }
-  if (wf) rows.push(todayRow(wf.label, t && t.values[wf.id], wf.unit));
-  fieldsOfKind('scale').forEach(function (f) { rows.push(todayRow(f.label, t && t.values[f.id], 'of 5')); });
-  if (rows.length) html += '<div class="sechead"><b>This week\'s targets</b><span>' + ctLeft(dd.left) + '</span></div><div class="ct-lines">' + rows.join('') + '</div>';
-  return html;
-}
-function ctHow() { // the points, explained once in Adam's words; also on a tap of the ring
-  var pts = points(), of = pts ? pts.of : (data.checkIn.thisWeek && data.checkIn.thisWeek.targets && data.checkIn.thisWeek.targets.weeklypoints) || 88;
-  moment({ tag: 'How points work', line: 'Hit a target, earn a point.', cls: 'ct-how',
-    sub: 'Every day you hit calories, protein, steps, cardio, training or your habits, your Check In tab adds points. Each week is scored out of ' + of + '. ' +
-      'Clients who hold ' + ctPct() + '% or more week after week get the best results, so that is the line. Tap any week for its score. Tap here to close.' }, 60000);
-}
-function ctFit() { // the verdict stays at --fs-32 while it fits two lines; only a longer one drops to --fs-24
-  var v = document.querySelector('#app .ct-verdict'); if (!v) return;
-  v.classList.remove('ct-long');
-  if (v.offsetHeight > 2.8 * parseFloat(getComputedStyle(v).fontSize)) v.classList.add('ct-long');
-}
-function ctFitOnFont() { // refit once the verdict's own face lands: fonts.ready can resolve before a lazily requested Montserrat weight arrives
-  var v = document.querySelector('#app .ct-verdict'), cs = v && getComputedStyle(v); if (!cs || !document.fonts) return;
-  document.fonts.load(cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily).then(ctFit, function () {});
-  document.fonts.ready.then(ctFit);
-}
-function ctSettleDue() { // the newest scored week before the live one; plays once, when it is newer than the last one seen
-  if (view.screen !== 'today' || momentUp()) return null; // another moment is up: not stored, so it plays on the next clean render
-  var live = ctLive(), s = null;
-  (data.checkIn.weeks || []).forEach(function (w) { if (w.week < live && w.scored && ctPts(w.wymb) && ctPass(w.targets) && (!s || w.week > s.week)) s = w; });
-  if (!s) { if (load('cw:settled', null) === null) store('cw:settled', 0); return null; } // nothing settled yet: mark it, so the first closing week plays
-  if (window._ctForce) { window._ctForce = false; ctSettling = s.week; return s; } // mock ?settle=1: shown, never stored
-  var seen = load('cw:settled', null);
-  if (seen !== null && s.week <= seen) return null;
-  store('cw:settled', s.week);
-  if (seen === null) return null; // a first install never replays old weeks
-  ctSettling = s.week; return s;
-}
-function ctSettle(w) { // the moment, a buzz when the count lands, then the week's tile flips from pending to its real state
-  var p = ctPts(w.wymb), pass = ctPass(w.targets), miss = p.n < pass;
-  moment({ cls: 'ct-settle' + (miss ? ' miss' : ''), tag: 'Week ' + w.week, ring: p.n / p.of, extra: ctNotch(pass / p.of), huge: p.n, from: 0, dur: tok('--t-hero'), small: 'of ' + p.of,
-    line: 'Week ' + w.week + (data.wymb ? ' settled.' : ' closed.'), sub: ctSays(p, pass), buzz: miss ? [40, 30, 40] : [30, 40, 60],
-    then: function () { ctSettling = 0; ctFlip(w.week); milestoneCheck(streak()); } }, 3400);
-}
-function ctFlip(wk) { // rotateY over --t-draw, the content swaps at the half turn
-  var el = document.querySelector('[data-ct-week="' + wk + '"]'); if (!el) return;
-  el.classList.add('ct-out');
-  setTimeout(function () {
-    var cur = document.querySelector('[data-ct-week="' + wk + '"]'), ws = ctWeeks(), i = ws.map(function (w) { return w.week; }).indexOf(wk);
-    if (!cur || i < 0) return;
-    cur.outerHTML = ctTile(ws[i], i, ' ct-flipin'); startRings();
-  }, tok('--t-draw') / 2);
+  function step(p, i, dt) { dt = dt || 1; p.life += dt; p.x += (p.vx + Math.sin((p.life + i * 40) * 0.01) * 0.15) * dt; p.y += p.vy * dt; } // dt in 60 Hz frames: the drift reads the same at 120 Hz
+  E.resize();
+  window.addEventListener('resize', E.resize);
+  if (still) { // one still: seed the caps, scatter each ember along its own life, draw once
+    var k = caps();
+    for (var a = 0; a < k.logo * 3; a++) spawnLogo(true);
+    for (var b = 0; b < k.bg; b++) spawnBackground();
+    particles.forEach(function (p, i) { // each ember somewhere in its bright phase, none past the top
+      var top = 24 + Math.random() * H * 0.35, n = Math.min(Math.floor((0.12 + Math.random() * 0.5) * p.maxLife), Math.floor((p.y - top) / -p.vy));
+      for (var s = 0; s < n; s++) step(p, i);
+    });
+    return draw();
+  }
+  var lastT = 0;
+  function tick(t) {
+    if (!t0) t0 = t;
+    var dt = lastT ? Math.min(2, (t - lastT) / 16.67) : 1; lastT = t; // elapsed time in 60 Hz frames, capped so a paused tab does not jump
+    var k = caps(), bg = particles.filter(function (p) { return p.kind === 'bg'; }).length, first = t - t0 < intro;
+    if (bg < k.bg && Math.random() < 0.25 * dt) spawnBackground();
+    var cap = first ? k.logo : Math.max(1, Math.round(k.logo / 2.5)), gap = first ? 160 + Math.random() * 300 : 900 + Math.random() * 1400;
+    if (particles.length - bg < cap && t - lastLogo > gap) { spawnLogo(first); lastLogo = t; }
+    particles.forEach(function (p, i) { step(p, i, dt); });
+    draw();
+    E.raf = requestAnimationFrame(tick);
+  }
+  E.vis = function () { cancelAnimationFrame(E.raf); E.raf = document.hidden ? 0 : requestAnimationFrame(tick); };
+  document.addEventListener('visibilitychange', E.vis);
+  E.raf = requestAnimationFrame(tick);
 }
 function statCells(t) {
   var cells = [], seen = {};
@@ -1120,7 +1055,7 @@ function habitsCard(t) {
   if (!ticks) return head + '<p class="note warn">Your Habits tab is not showing ' + esc(shortDate(today)) + ' yet. ' + MESSAGE_ADAM + '.</p>';
   return head + '<div class="habits">' + hb.names.map(function (n, i) {
     return '<button class="hab" data-habit="' + i + '" data-today="1" role="switch" aria-checked="' + !!ticks[i] + '"><i class="tick' + (ticks[i] ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(n) + '</span></button>';
-  }).join('') + '</div><p class="meta" style="margin-top:var(--s-2)">Tick as you go. 85% or more counts the day as a habits day.</p>';
+  }).join('') + '</div><p class="meta" style="margin-top:var(--s-2)">Tick as you go.</p>';
 }
 var tickedNow = {};
 function tasksCard() {
@@ -1222,7 +1157,7 @@ function weekStrip(today) {
 function setSaveState(s) { window._saveState = s; var b = $('saveBtn'); if (b) b.dataset.state = s; if (s === 'saved' || s === 'failed') setTimeout(function () { if (window._saveState === s) { window._saveState = 'idle'; var b2 = $('saveBtn'); if (b2) b2.dataset.state = 'idle'; } }, 2400); }
 function saveLog() {
   var c = data.checkIn, date = ciState.date, day = ciDay(date), wf = weightField(); if (!day) return;
-  var errs = [], n = 0, pending = [], bad = null, pts = points(); window._ptsFrom = pts ? pts.n : null;
+  var errs = [], n = 0, pending = [], bad = null; window._runFrom = streak().n; // the Saved moment counts the run up from here
   if (wf) {
     var typed = $('ciVal').value, have = day.values[wf.id] || '';
     if (String(typed).trim() !== '' && String(typed).trim() !== String(have)) {
@@ -1290,7 +1225,6 @@ function switchSave(key, dateOverride) {
   // update in place: a full re-render would wipe numbers typed but not yet saved (Log) or restart the hero (Today)
   if (hm) {
     var refocus = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.habit === hm[1];
-    if (view.screen === 'today' && ctOn()) renderToday(); // the habit days row, verdict and target-days fact read these ticks
     var tk = data.checkIn.habits.days[date], hb = document.querySelector('[data-habit="' + hm[1] + '"]');
     if (hb) { var tkEl = hb.querySelector('.tick'); tkEl.classList.toggle('off', !tk[+hm[1]]); tkEl.classList.remove('pop'); void tkEl.offsetWidth; if (tk[+hm[1]]) { tkEl.classList.add('pop'); buzz(10); } hb.setAttribute('aria-checked', !!tk[+hm[1]]); if (refocus) hb.focus({ preventScroll: true }); }
     var done = tk.filter(Boolean).length, pill = $('habPill'); if (pill) { pill.textContent = done + ' of ' + tk.length; pill.className = done ? 'on' : ''; }
@@ -1306,9 +1240,9 @@ function checkInSaved(p, res) {
     if (!queue.some(function (q) { return q.type === 'ci'; })) {
       if (window._saveState === 'saving') setSaveState('saved'); // only a real Save press turns the button green
       if (!window._saveMoment) milestoneCheck(streak());
-      if (window._saveMoment) { window._saveMoment = false; buzz(20); var pts = points(), st = streak(), from = window._ptsFrom || 0; window._ptsFrom = null;
-        moment({ ring: pts ? pts.n / pts.of : 1, tick: true, huge: pts ? pts.n : st.n, from: pts ? from : 0, small: pts ? 'of ' + pts.of + ' points this week' : 'days in a row',
-          line: 'Saved to ' + SAVED_TO, sub: st.n ? st.n + (st.n === 1 ? ' day' : ' days') + ' in a row' : '', then: function () { if (view.screen === 'log') show('today'); milestoneCheck(st); } });
+      if (window._saveMoment) { window._saveMoment = false; buzz(20); var st = streak(), cd = coreDone(ciDay(p.date)), from = Math.min(window._runFrom || 0, st.n);
+        moment({ ring: cd.of ? cd.done / cd.of : 1, tick: true, huge: st.n, from: from, small: 'days in a row',
+          line: 'Saved.', sub: 'Everything saved to ' + SAVED_TO, then: function () { if (view.screen === 'log') show('today'); milestoneCheck(st); } });
       }
     }
   }
@@ -1440,10 +1374,7 @@ function loadPlan() {
     if (!p) return; var was = JSON.stringify((plan && plan.targets) || {}); plan = p; store('cw:plan', plan);
     if (['plan', 'shop', 'meals', 'mealplan', 'supps', 'cardio'].indexOf(view.screen) > -1) show(view.screen === 'mealplan' ? 'mealplan:' + (view.mealTab || 0) : view.screen);
     else if (view.screen === 'log' && !logDirty()) renderLog();
-    else if (view.screen === 'today' && data.checkIn && ctOn() && JSON.stringify(plan.targets || {}) !== was) { // after the first-render cascade, never over it
-      var wait = Math.max(0, (window._ctRendered || 0) + tok('--t-hero') + tok('--t-draw') - Date.now());
-      setTimeout(function () { if (view.screen === 'today') renderToday(); }, wait); // a moment on top is fine: it lives outside #app and never replays
-    }
+    else if (view.screen === 'today' && data.checkIn && JSON.stringify(plan.targets || {}) !== was) renderToday(); // calories and protein rows need plan targets; a re-render carries the cascade on (.again)
   }, function () {});
 }
 function planTargets() { var mp = plan && plan.plans && plan.plans[0]; return (mp && mp.targets) || (plan && plan.targets) || {}; }
@@ -1594,7 +1525,7 @@ function chartSvg() {
 function renderProgress() {
   var html = '<section class="screen"><h1 class="t l">Progress</h1>';
   if (!data.checkIn) { $('app').innerHTML = html + '<p class="meta">' + esc(weekLine()) + '.</p><p class="note">Your check in is not switched on in the app yet, so there is no weight trend here. ' + MESSAGE_ADAM + '.</p>' + weeklyLinks() + '</section>'; return; }
-  var c = data.checkIn, wf = weightField(), tw = c.thisWeek && wf && c.thisWeek.avg[wf.id], lw = c.lastWeek && wf && c.lastWeek.avg[wf.id], rs = readings(), pts = points();
+  var c = data.checkIn, wf = weightField(), tw = c.thisWeek && wf && c.thisWeek.avg[wf.id], lw = c.lastWeek && wf && c.lastWeek.avg[wf.id], rs = readings();
   var diff = tw && lw ? Math.round((num(tw) - num(lw)) * 10) / 10 : null;
   html += '<div class="hero" style="align-items:flex-start"><div><div class="big on">' + (tw ? esc(tw) : rs.length ? esc(rs[rs.length - 1].v) : '&ndash;') + '</div><p class="meta">' + (tw ? 'average this week' : rs.length ? 'last weigh-in' : 'no weigh-ins yet') + '</p></div>' +
     (diff !== null ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (diff > 0 ? '+' : '') + diff + '</div><p class="meta">vs week ' + c.lastWeek.week + '</p></div>' : data.startWeight && rs.length ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (function (d) { return (d > 0 ? '+' : '') + d; })(Math.round((rs[rs.length - 1].v - parseFloat(data.startWeight)) * 10) / 10) + '</div><p class="meta">since the start</p></div>' : '') + '</div>';
@@ -1602,7 +1533,7 @@ function renderProgress() {
   html += '<p class="meta" style="margin-top:var(--s-2)">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
     : 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
   html += '<div class="list two" style="margin-top:var(--s-4)">' +
-    (pts ? '<div class="row"><b>Points</b><div class="n on">' + pts.n + '<small>of ' + pts.of + '</small></div></div>' : '<div class="row"><b>Logged today</b><div class="n">' + coreDone(ciDay(localIso())).done + '<small>of ' + coreDone(ciDay(localIso())).of + '</small></div></div>') +
+    '<div class="row"><b>Logged today</b><div class="n">' + coreDone(ciDay(localIso())).done + '<small>of ' + coreDone(ciDay(localIso())).of + '</small></div></div>' +
     '<div class="row"><b>Sessions</b><div class="n">' + sessionsDone() + '<small>of ' + trainingTarget() + '</small></div></div>' +
     (data.roadmap && data.roadmap.phase ? '<div class="row wide"><b>Phase</b><div class="n">' + esc(cap(data.roadmap.phase)) + '<small>' + esc([data.roadmap.month ? cap(data.roadmap.month) : '', data.roadmap.calories ? cap(data.roadmap.calories) : '', 'week ' + data.week + (data.roadmap.totalWeeks ? ' of ' + data.roadmap.totalWeeks : '')].filter(Boolean).join(', ')) + '</small></div></div>' : '') + '</div>';
   html += averagesList();
@@ -1796,8 +1727,6 @@ document.addEventListener('click', function (e) {
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
   if (b.dataset.day) { view.tab = 'workout'; openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
-  if (b.dataset.ctWeek) return ctTileTap(+b.dataset.ctWeek);
-  if (b.dataset.ctGo) { if (b.dataset.ctGo === 'points') return ctHow(); if (b.dataset.ctGo !== 'habits') return show(b.dataset.ctGo); var hp = $('habPill'); if (hp) hp.parentNode.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); return; }
   if (b.dataset.go) return show(b.dataset.go);
   if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderLog(); }
   if (b.dataset.scale) return scaleSave(b.dataset.scale, +b.dataset.n);
