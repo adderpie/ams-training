@@ -125,7 +125,7 @@
 }
 /* tokens:end */
 /* ember colours for the Today hero, rgb triplets: read by its keyframes and its canvas */
-:root { --ember: 43, 168, 74; --amber: 255, 170, 90; --web-ink: 168, 176, 186; --web-slate: 222, 226, 232; } /* embers, and the recipes site's particle web greys */
+:root { --ember: 43, 168, 74; --amber: 255, 170, 90; } /* embers (the web uses --ember too) */
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -135,6 +135,8 @@ html, body { margin: 0; background: var(--canvas); color: var(--ink); }
 html { height: 100%; overflow: hidden; }
 body { position: fixed; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: none; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 #app { overflow-x: hidden; overflow-wrap: anywhere; }
+#web { position: fixed; inset: 0; z-index: 0; pointer-events: none; } /* the particle web, under everything */
+#app { position: relative; z-index: 1; }
 * { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
 body { font: var(--w-regular) var(--fs-16)/var(--lh-body) var(--font); font-variant-numeric: tabular-nums; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
@@ -303,7 +305,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .tlist { display: grid; gap: var(--s-2); background: none; border-radius: 0; overflow: visible; animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-hero); }
 .trow { box-shadow: 0 0 0 1px var(--line); } /* every target reads as a card; a hit one turns emerald */
 .trow.hit { box-shadow: 0 0 0 1px var(--accent); }
-.trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 12% 50%, rgba(var(--ember), .26) 0%, rgba(var(--ember), .08) 42%, transparent 70%); }
+.trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); } /* the Workout session card's pool, same size and stops, so every card glows the same */
 .trow > * { position: relative; z-index: 1; }
 /* The same card look on Habits, tasks and Plan: a card each with a faint outline; emerald outline and left glow once ticked (Plan cards always, nothing there completes) */
 .habits, .list.tasks { display: grid; gap: var(--s-2); background: none; box-shadow: none; border-radius: 0; padding: 0; overflow: visible; }
@@ -311,7 +313,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .entry, .planrow, .pcard { position: relative; overflow: hidden; }
 .habits .hab > *, .list.tasks .hab > *, .entry > *, .planrow > *, .pcard > * { position: relative; z-index: 1; }
 .habits .hab:has(.tick:not(.off)), .list.tasks .hab:has(.tick:not(.off)), .entry, .planrow, .pcard { box-shadow: 0 0 0 1px var(--accent); }
-.habits .hab:has(.tick:not(.off))::before, .list.tasks .hab:has(.tick:not(.off))::before, .entry::before, .planrow::before, .pcard::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 12% 50%, rgba(var(--ember), .26) 0%, rgba(var(--ember), .08) 42%, transparent 70%); }
+.habits .hab:has(.tick:not(.off))::before, .list.tasks .hab:has(.tick:not(.off))::before, .entry::before, .planrow::before, .pcard::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); } /* the Workout session card's pool, same size and stops, so every card glows the same */
 @keyframes appear { from { opacity: 0; } }
 .trow { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
 .trow:active { background: var(--surface-2); transform: none; }
@@ -914,6 +916,7 @@ var RENDER = { today: renderToday, log: renderLog, workout: renderWorkout, ex: r
   meals: renderMeals, mealplan: renderMealPlan, supps: renderSupps, cardio: renderCardio,
   progress: renderProgress, weekly: renderWeekly, measure: renderMeasure, photos: renderPhotos };
 function show(screen, day) {
+  webStart();
   if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
   view.screen = screen; if (day) view.day = day;
   if (screen !== 'today') emberStop();
@@ -1021,32 +1024,40 @@ function emberStop() {
   if (!EMB) return;
   cancelAnimationFrame(EMB.raf); window.removeEventListener('resize', EMB.resize); document.removeEventListener('visibilitychange', EMB.vis); EMB = null;
 }
+var WEB = null;
+function webStart() { // the recipes site's particle web, emerald, full screen, fixed behind every screen's content (cards cover it)
+  if (WEB) return;
+  var c = document.createElement('canvas'); c.id = 'web'; c.setAttribute('aria-hidden', 'true'); document.body.insertBefore(c, document.body.firstChild);
+  var ctx = c.getContext('2d'), EM = getComputedStyle(document.documentElement).getPropertyValue('--ember').trim();
+  var still = reduced() || !tok('--t-hero'), W = 0, H = 0, pts = [], raf = 0, lastT = 0, CONNECT = 100;
+  function seed() { pts = []; var n = Math.min(40, Math.round(W * H / 11000)); for (var i = 0; i < n; i++) pts.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.24, vy: (Math.random() - 0.5) * 0.24, r: Math.random() * 1.6 + 1, a: 0.3 + Math.random() * 0.4 }); }
+  function move(dt) { pts.forEach(function (p) { if (p.x > W || p.x < 0) p.vx = -p.vx; if (p.y > H || p.y < 0) p.vy = -p.vy; p.x += p.vx * dt; p.y += p.vy * dt; }); }
+  function draw() {
+    ctx.clearRect(0, 0, W, H); ctx.lineWidth = 1;
+    for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) {
+      var dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y, d2 = dx * dx + dy * dy;
+      if (d2 < CONNECT * CONNECT) { ctx.strokeStyle = 'rgba(' + EM + ',' + ((1 - Math.sqrt(d2) / CONNECT) * 0.22).toFixed(3) + ')'; ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke(); }
+    }
+    pts.forEach(function (p) { ctx.fillStyle = 'rgba(' + EM + ',' + p.a.toFixed(2) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); });
+  }
+  function resize() { var dpr = Math.min(window.devicePixelRatio || 1, 2); W = window.innerWidth; H = window.innerHeight; c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); seed(); if (still) draw(); }
+  function tick(t) { var dt = lastT ? Math.min(2, (t - lastT) / 16.67) : 1; lastT = t; move(dt); draw(); raf = requestAnimationFrame(tick); }
+  function vis() { cancelAnimationFrame(raf); lastT = 0; raf = document.hidden ? 0 : requestAnimationFrame(tick); }
+  WEB = { el: c, stop: function () { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', vis); c.remove(); WEB = null; } };
+  resize(); window.addEventListener('resize', resize);
+  if (still) return; // one still frame under reduced motion
+  document.addEventListener('visibilitychange', vis); raf = requestAnimationFrame(tick);
+}
 function embers(canvas, heat) {
   var ctx = canvas.getContext('2d'), cs = getComputedStyle(document.documentElement), EM = cs.getPropertyValue('--ember').trim(), AM = cs.getPropertyValue('--amber').trim();
   var still = reduced() || !tok('--t-hero'), intro = tok('--t-hero') * 7, W = 0, H = 0, particles = [], t0 = 0, lastLogo = 0;
   var E = EMB = { canvas: canvas, heat: heat, raf: 0, vis: null };
   // The particle web from the recipes site (ParticleField): slow dots, faint lines between near ones, drawn under the embers.
-  var INK = cs.getPropertyValue('--web-ink').trim(), SLATE = cs.getPropertyValue('--web-slate').trim(), web = [], CONNECT = 90;
-  function mixc(a, b, t) { a = a.split(','); b = b.split(','); return a.map(function (v, i) { return Math.round(+v + (+b[i] - v) * t); }).join(','); }
-  function seedWeb() { // ponytail: the web ignores heat; the embers carry the day
-    web = []; var n = Math.min(28, Math.round(W * H / 9000));
-    for (var i = 0; i < n; i++) web.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.24, vy: (Math.random() - 0.5) * 0.24, size: Math.random() * 1.6 + 1, tint: Math.random() });
-  }
-  function moveWeb(dt) { web.forEach(function (p) { if (p.x > W || p.x < 0) p.vx = -p.vx; if (p.y > H || p.y < 0) p.vy = -p.vy; p.x += p.vx * dt; p.y += p.vy * dt; }); }
-  function drawWeb() {
-    ctx.lineWidth = 1;
-    for (var a = 0; a < web.length; a++) for (var b = a + 1; b < web.length; b++) {
-      var dx = web[a].x - web[b].x, dy = web[a].y - web[b].y, d2 = dx * dx + dy * dy;
-      if (d2 < CONNECT * CONNECT) { ctx.strokeStyle = 'rgba(' + mixc(INK, SLATE, 0.5) + ',' + ((1 - Math.sqrt(d2) / CONNECT) * 0.28).toFixed(3) + ')'; ctx.beginPath(); ctx.moveTo(web[a].x, web[a].y); ctx.lineTo(web[b].x, web[b].y); ctx.stroke(); }
-    }
-    web.forEach(function (p) { ctx.fillStyle = 'rgba(' + mixc(INK, SLATE, p.tint) + ',0.55)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
-  }
   E.resize = function () {
     var z = canvas.parentNode, dpr = Math.min(window.devicePixelRatio || 1, 2); if (!z) return;
     W = z.clientWidth; H = z.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    seedWeb();
     if (still) draw(); // setting the width wipes the canvas: put the still back
   };
   function caps() { return { bg: Math.round(3 + 8 * E.heat), logo: Math.round(2 + 6 * E.heat) }; }
@@ -1065,7 +1076,6 @@ function embers(canvas, heat) {
   function draw() {
     var bright = 0.6 + 0.4 * E.heat;
     ctx.clearRect(0, 0, W, H);
-    drawWeb();
     for (var i = particles.length - 1; i >= 0; i--) {
       var p = particles[i], phase = p.life / p.maxLife;
       if (phase >= 1 || p.y < -12) { particles.splice(i, 1); continue; }
@@ -1101,7 +1111,6 @@ function embers(canvas, heat) {
     var cap = first ? k.logo : Math.max(1, Math.round(k.logo / 2.5)), gap = first ? 160 + Math.random() * 300 : 900 + Math.random() * 1400;
     if (particles.length - bg < cap && t - lastLogo > gap) { spawnLogo(first); lastLogo = t; }
     particles.forEach(function (p, i) { step(p, i, dt); });
-    moveWeb(dt);
     draw();
     E.raf = requestAnimationFrame(tick);
   }
