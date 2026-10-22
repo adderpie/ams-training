@@ -515,6 +515,11 @@ button.row:active { background: var(--surface-2); transform: none; }
 .comment input { width: 100%; height: 48px; padding: 0 var(--s-4); border-radius: var(--r-card); border: 0; background: var(--surface); color: var(--ink); }
 .comment input::placeholder { color: var(--ink-muted); }
 .hint { color: var(--warn); font-size: var(--fs-14); margin: var(--s-3) 0 0; }
+.confirm { position: fixed; inset: 0; z-index: 9; display: grid; align-items: end; background: rgba(26, 28, 26, .7); animation: fadein var(--t-screen) var(--ease) both; }
+.confirm .box { margin: 0 auto; width: 100%; max-width: 520px; padding: var(--s-5) var(--gutter) calc(var(--s-5) + env(safe-area-inset-bottom)); border-radius: var(--r-sheet) var(--r-sheet) 0 0; background: var(--surface); box-shadow: var(--elev-2); display: grid; gap: var(--s-3); animation: sheet-in var(--t-screen) var(--ease) both; }
+.confirm .box b { font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); }
+.confirm .box p { margin: 0; color: var(--ink-muted); }
+.confirm .btn.quiet { background: var(--surface-2); color: var(--ink); }
 .actbar { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 6; padding: var(--s-3) 0; background: linear-gradient(to top, var(--canvas) 70%, transparent); }
 .actbar .wrap { display: flex; gap: var(--s-2); }
 .actbar .btn.quiet { width: auto; padding: 0 20px; }
@@ -588,9 +593,12 @@ button.row:active { background: var(--surface-2); transform: none; }
 .targets div b { display: block; font-size: var(--fs-20); font-weight: var(--w-black); letter-spacing: var(--track-tight); color: var(--accent); }
 .targets div span { font-size: var(--fs-12); color: var(--ink-muted); }
 .shop { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-2); }
-.shop li button { width: 100%; display: flex; justify-content: space-between; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; }
-.shop li.got button { opacity: .45; }
-.shop li.got b { text-decoration: line-through; }
+.shop li button { position: relative; overflow: hidden; width: 100%; display: flex; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line); text-align: left; }
+.shop li button > * { position: relative; z-index: 1; }
+.shop li button b { flex: 1; min-width: 0; }
+.shop li.got button { box-shadow: 0 0 0 1px var(--accent); }
+.shop li.got button::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); }
+.shop li.got b { color: var(--ink-muted); font-weight: var(--w-regular); text-decoration: line-through; text-decoration-color: var(--line); }
 .shop li span { color: var(--ink-muted); max-width: 60%; overflow-wrap: normal; text-align: right; }
 .stepper { display: flex; align-items: center; gap: var(--s-2); }
 .stepper button { width: 40px; height: 40px; border-radius: var(--r-pill); background: var(--surface-2); font-size: var(--fs-20); display: grid; place-items: center; }
@@ -1489,6 +1497,8 @@ function renderEx(still) {
     '<div class="comment"><input data-f="comment" value="' + esc(d.comment) + '" placeholder="Note for Adam (optional)" aria-label="Note for Adam" enterkeyhint="done"></div><p class="hint" id="hint" hidden></p></section>';
   $('app').innerHTML = html;
   $('doneBtn').lastChild.textContent = 'Complete';
+  var allIn = true; for (var q = 0; q < n; q++) if (!setDone(d, q)) allIn = false;
+  $('doneBtn').className = 'btn ' + (allIn ? 'strong' : 'quiet'); // quiet until every set is logged: Log is the emerald button, Complete is not
   sess.confirmEmpty = false;
   renderSync();
   paintRest();
@@ -1723,7 +1733,7 @@ function renderShop() {
   var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
   var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return p.tab + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
   $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'meals', '<button class="pill" data-act="shop-change">Change</button>') +
-    '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
+    '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><i class="tick' + (st.got[i] ? '' : ' off') + '">' + icon('check') + '</i><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
 }
 function shopTick(i) { var st = shopState(); st.got[i] = !st.got[i]; saveShopState(); renderShop(); }
 
@@ -1987,17 +1997,24 @@ document.addEventListener('click', function (e) {
 });
 $('skipBtn').onclick = function () { var n = sess.current; sess.skipped.push(n); saveSess(); commit(n, true); next(); };
 $('doneBtn').onclick = function () {
-  var n = sess.current, d = draft(n);
-  var any = d.kg.concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
-  if (!any && !sess.confirmEmpty) {
-    sess.confirmEmpty = true;
-    $('hint').hidden = false; $('hint').textContent = 'No numbers entered. Tap Complete again to mark it done anyway, or Skip.';
-    this.lastChild.textContent = 'Complete anyway';
-    return;
+  var n = sess.current, d = draft(n), x = exByName(dayByName(sess.day), n), miss = [];
+  for (var i = 0; i < setCount(x); i++) if (!setDone(d, i)) miss.push(i + 1);
+  var lastOne = remaining().length === 1, skipped = sess.skipped.length;
+  if (miss.length && !sess.confirmEmpty) {
+    var what = miss.length === setCount(x) ? 'No sets logged for ' + x.name + '.' : (miss.length === 1 ? 'Set ' + miss[0] + ' is' : 'Sets ' + joinAnd(miss) + ' are') + ' not logged.';
+    var endLine = lastOne ? ' This is the last exercise, so Complete finishes ' + sess.day + (skipped ? ' with ' + skipped + (skipped === 1 ? ' exercise' : ' exercises') + ' skipped' : '') + '.' : '';
+    return confirmSheet({ title: 'Complete ' + x.name + '?', text: what + endLine, ok: 'Complete anyway', cancel: 'Finish the sets', onOk: function () { sess.confirmEmpty = true; $('doneBtn').onclick(); } });
   }
+  var any = d.kg.concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
   var now = Date.now(); if (!sess.startedAt) sess.startedAt = now; sess.lastAt = now; // typed-then-Complete still counts for duration and "done today"
   sess.done.push(n); if (!any) d.comment = 'Done'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
 };
+function confirmSheet(o) { // a bottom sheet with one question and two answers; the quiet one closes it
+  var el = document.createElement('div'); el.className = 'confirm'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+  el.innerHTML = '<div class="box"><b>' + esc(o.title) + '</b><p>' + esc(o.text) + '</p><button class="btn quiet" data-c="no">' + esc(o.cancel) + '</button><button class="btn coach" data-c="ok">' + esc(o.ok) + '</button></div>';
+  document.body.appendChild(el);
+  el.addEventListener('click', function (e) { var b = e.target.closest('[data-c]'); if (!b && e.target !== el) return; el.remove(); if (b && b.dataset.c === 'ok' && o.onOk) o.onOk(); });
+}
 document.addEventListener('change', function (e) {
   if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderLog(); }
 });
