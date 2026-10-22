@@ -308,6 +308,9 @@ button.row:active { background: var(--surface-2); transform: none; }
 .trow.hit { box-shadow: 0 0 0 1px var(--accent); }
 .trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); } /* the Workout session card's pool, same size and stops, so every card glows the same */
 .trow > * { position: relative; z-index: 1; }
+.trow a.tl { color: inherit; text-decoration: none; min-height: var(--tap); display: grid; align-content: center; }
+.trow .cit { width: var(--tap); height: var(--tap); display: grid; place-items: center; flex: none; }
+.pcard .dl { margin: 0; padding: var(--s-3) var(--s-4) var(--s-4); color: var(--ink-muted); line-height: var(--lh-body); }
 /* The same card look on Habits, tasks and Plan: a card each with a faint outline; emerald outline and left glow once ticked (Plan cards always, nothing there completes) */
 .habits, .list.tasks { display: grid; gap: var(--s-2); background: none; box-shadow: none; border-radius: 0; padding: 0; overflow: visible; }
 .habits .hab, .list.tasks .hab { position: relative; overflow: hidden; border-radius: var(--r-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line); padding: var(--s-2) var(--s-4); border-top: 0; }
@@ -556,7 +559,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 
 /* ---------- plan: a hub of three entries, then one screen per thing ---------- */
 .entries { display: grid; gap: var(--s-3); margin-top: var(--s-4); }
-.entry { display: flex; align-items: center; gap: var(--s-4); width: 100%; text-align: left; padding: var(--s-4); min-height: 88px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--elev-1); }
+.entry { color: inherit; text-decoration: none; display: flex; align-items: center; gap: var(--s-4); width: 100%; text-align: left; padding: var(--s-4); min-height: 88px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--elev-1); }
 .entry .ic { flex: none; width: 52px; height: 52px; border-radius: var(--r-card); display: grid; place-items: center; background: var(--surface-2); color: var(--accent); }
 .entry .ic svg { width: 26px; height: 26px; }
 .entry .tx { flex: 1; min-width: 0; }
@@ -615,7 +618,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 
 /* ---------- dock ---------- */
 .dock { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; bottom: 0; z-index: 7; border-radius: var(--r-sheet) var(--r-sheet) 0 0; height: calc(84px + env(safe-area-inset-bottom)); padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; align-items: flex-start; background: var(--surface); box-shadow: var(--elev-2); }
-.dock button { color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); display: grid; justify-items: center; gap: 4px; min-width: var(--tap); padding: 6px 12px; border-radius: var(--r-card); position: relative; }
+.dock button { color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); white-space: nowrap; display: grid; justify-items: center; gap: 4px; min-width: var(--tap); padding: 6px 8px; border-radius: var(--r-card); position: relative; }
 .dock button.on { color: var(--accent); }
 .dock button.on::before { content: ""; position: absolute; inset: 0; border-radius: var(--r-card); background: rgba(43, 168, 74, .12); box-shadow: var(--glow-soft); animation: pop var(--t-screen) var(--ease); }
 .dock button svg { position: relative; }
@@ -676,6 +679,7 @@ button.row:active { background: var(--surface-2); transform: none; }
   <button data-tab="today" class="on"><svg class="i"><use href="#i-home"/></svg>Today</button>
   <button data-tab="workout"><svg class="i"><use href="#i-bar"/></svg>Workout</button>
   <button data-tab="plan"><svg class="i"><use href="#i-plan"/></svg>Plan</button>
+  <button data-tab="checkin"><svg class="i"><use href="#i-note"/></svg>Check in</button>
   <button data-tab="progress"><svg class="i"><use href="#i-chart"/></svg>Progress</button>
 </nav>
 
@@ -921,10 +925,10 @@ function startRings() { // a timer, not requestAnimationFrame: frames do not run
 }
 
 /* ---------- navigation ---------- */
-var TABS = { today: 1, workout: 1, plan: 1, progress: 1 };
+var TABS = { today: 1, workout: 1, plan: 1, checkin: 1, progress: 1 };
 var RENDER = { today: renderToday, log: renderLog, workout: renderWorkout, ex: renderEx, ov: renderOv, fin: renderFin, plan: renderPlan, shop: renderShop,
   meals: renderMeals, mealplan: renderMealPlan, supps: renderSupps, cardio: renderCardio,
-  progress: renderProgress, weekly: renderWeekly, measure: renderMeasure, photos: renderPhotos };
+  progress: renderProgress, checkin: renderCheckin, weekly: renderWeekly, measure: renderMeasure, photos: renderPhotos };
 function show(screen, day) {
   webStart();
   if (screen.indexOf('mealplan:') === 0) { view.mealTab = +screen.slice(9); screen = 'mealplan'; }
@@ -1635,7 +1639,12 @@ function renderPlan() {
   if (ft.plan) html += entry('meals', 'meal', 'Meal plans', plans.length ? plans.length + (plans.length === 1 ? ' plan, ' : ' plans, ') + plans.reduce(function (n, p) { return n + p.meals.length; }, 0) + ' meals, plus your shopping list' : 'No meals in your sheet yet');
   if (ft.supps) html += entry('supps', 'supp', 'Supplements', supps.length ? supps.length + ' to take, with doses and timing' : 'Nothing listed yet');
   if (ft.plan) html += entry('cardio', 'steps', 'Cardio and steps', cardio.length ? cardio.map(function (r) { return r.duration; }).filter(Boolean).join(', ') : 'Nothing listed yet');
+  if (ft.plan) html += entryLink(WMF_URL, 'list', 'Weekend meal planner', 'Eating out this weekend? Pick the meal that fits your plan');
   $('app').innerHTML = html + '</div></section>';
+}
+var WMF_URL = 'https://weekendmealfinder.netlify.app/';
+function entryLink(href, ic, title, sub) {
+  return '<a class="entry" href="' + esc(href) + '" target="_blank" rel="noopener"><span class="ic"><svg class="i"><use href="#i-' + ic + '"/></svg></span><span class="tx"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' + icon('chev') + '</a>';
 }
 function entry(go, ic, title, sub) {
   return '<button class="entry" data-go="' + go + '"><span class="ic"><svg class="i"><use href="#i-' + ic + '"/></svg></span><span class="tx"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' + icon('chev') + '</button>';
@@ -1779,7 +1788,7 @@ function renderProgress() {
     '<div class="row"><b>Sessions</b><div class="n">' + sessionsDone() + '<small>of ' + trainingTarget() + '</small></div></div>' +
     (data.roadmap && data.roadmap.phase ? '<div class="row wide"><b>Phase</b><div class="n">' + esc(cap(data.roadmap.phase)) + '<small>' + esc([data.roadmap.month ? cap(data.roadmap.month) : '', data.roadmap.calories ? cap(data.roadmap.calories) : '', 'week ' + data.week + (data.roadmap.totalWeeks ? ' of ' + data.roadmap.totalWeeks : '')].filter(Boolean).join(', ')) + '</small></div></div>' : '') + '</div>';
   html += averagesList();
-  $('app').innerHTML = html + weeklyLinks() + '<p class="sync" id="sync"></p></section>';
+  $('app').innerHTML = html + '<p class="sync" id="sync"></p></section>';
   renderSync();
 }
 function cap(s) { s = String(s).toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -1791,6 +1800,27 @@ function averagesList() {
     rows.push('<div class="row"><span class="l">' + esc(f.label) + '<span>' + (lw ? 'week ' + c.lastWeek.week + ': ' + esc(fmtNum(lw)) : 'no last week') + '</span></span><span class="v' + (tw ? ' on' : ' empty') + '">' + (tw ? esc(fmtNum(tw)) + '<small>' + esc(f.unit || (f.kind === 'scale' ? 'of 5' : '')) + '</small>' : 'none yet') + '</span></div>');
   });
   return rows.length ? '<h2 class="sec">This week\'s averages</h2><div class="list">' + rows.join('') + '</div>' : '';
+}
+/* ---------- Check in tab (phase one): the form link with a manual tick, measurements and photos ticking themselves, the deadline ---------- */
+function ciCard(go, title, sub, done, href) {
+  var tick = '<i class="tick' + (done ? '' : ' off') + '">' + icon('check') + '</i>', chev = icon('chev').replace('<svg', '<svg aria-hidden="true"');
+  if (href) return '<div class="trow' + (done ? ' hit' : '') + '"><a class="tl" href="' + esc(href) + '" target="_blank" rel="noopener"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></a>' +
+    '<button class="cit" data-cisent="1" role="switch" aria-checked="' + !!done + '" aria-label="Mark the check-in form as sent">' + tick + '</button></div>';
+  return '<button class="trow' + (done ? ' hit' : '') + '" data-go="' + go + '" aria-label="' + esc(title + ', ' + sub) + '"><span class="tl"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></span>' + tick + chev + '</button>';
+}
+function renderCheckin() {
+  var ft = data.features || {}, m = data.measurements, wk = data.week, url = data.checkInForm || '';
+  var sent = load('cw:wsent:' + wk, false), mDone = !!(ft.measure && m && m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; }));
+  var pDone = !!(data.photosDone || load('cw:photos:' + wk, false)), n = [url ? sent : null, ft.measure ? mDone : null, ft.photos ? pDone : null].filter(function (v) { return v !== null; });
+  var done = n.filter(Boolean).length;
+  var html = '<section class="screen"><h1 class="t l">Check in</h1><p class="meta">Week ' + wk + '. ' + (n.length ? (done === n.length ? 'All in. Nice one.' : done + ' of ' + n.length + ' done.') : '') + (url && !sent ? ' Tap the tick on the form once it is sent.' : '') + '</p>';
+  html += '<div class="tlist">' +
+    (url ? ciCard('', 'Check-in form', sent ? 'Sent, week ' + wk : 'Open the form', sent, url) : '<div class="trow"><span class="tl"><span>Check-in form</span><b>Not linked yet. ' + MESSAGE_ADAM + '.</b></span></div>') +
+    (ft.measure ? ciCard('measure', 'Measurements', mDone ? 'Week ' + wk + ' logged' : 'Six measurements', mDone) : '') +
+    (ft.photos ? ciCard('photos', 'Progress photos', pDone ? 'Week ' + wk + ' uploaded' : 'Front, side and back', pDone) : '') + '</div>';
+  html += '<div class="pcard" style="margin-top:var(--s-5)"><div class="hd"><div><span class="tag">Deadline</span><b>Sunday, 12 noon</b></div></div>' +
+    '<p class="dl">Send your check in any time from Friday. Anything in by Sunday midday is guaranteed a place in Adam\'s Sunday review. Later than that and it may wait until the following week.</p></div>';
+  $('app').innerHTML = html + '<p class="sync" id="sync"></p></section>'; renderSync();
 }
 function weeklyLinks() {
   var ft = data.features || {}, m = data.measurements, rows = [];
@@ -1892,9 +1922,9 @@ function weeklySaved(p, res) {
 /* ---------- Measurements ---------- */
 var msMsg = '';
 function renderMeasure() {
-  var m = data.measurements; if (!m) return show('progress');
+  var m = data.measurements; if (!m) return show('checkin');
   var tw = m.thisWeek, lw = m.lastWeek;
-  var html = '<section class="screen">' + topBar('Measurements', tw ? 'Week ' + tw.week + (tw.date ? ', ' + tw.date : '') : 'Week ' + data.week, 'progress');
+  var html = '<section class="screen">' + topBar('Measurements', tw ? 'Week ' + tw.week + (tw.date ? ', ' + tw.date : '') : 'Week ' + data.week, 'checkin');
   if (!tw) { $('app').innerHTML = html + '<p class="note warn">Week ' + data.week + ' is not on your Measurements tab yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
   html += '<p class="meta">Sunday morning, before food, tape snug not tight, same spot each week.</p><div class="form"><div class="grid2">' + m.fields.map(function (x) {
     var last = lw && lw.values[x.id];
@@ -1926,7 +1956,7 @@ var photos = [];
 function renderPhotos() {
   if (view.screen !== 'photos') return;
   var done = photos.filter(function (p) { return p.status === 'done'; }).length;
-  $('app').innerHTML = '<section class="screen">' + topBar('Progress photos', 'Week ' + data.week, 'progress') +
+  $('app').innerHTML = '<section class="screen">' + topBar('Progress photos', 'Week ' + data.week, 'checkin') +
     '<p class="meta">Front, side and back, same light and spot each week. They go straight into your Week ' + data.week + ' photos folder.' + (done ? ' <b>' + done + ' uploaded.</b>' : '') + '</p>' +
     '<label class="pick">' + icon('plus') + '<span>Add photos</span><input type="file" id="photoIn" accept="image/*" multiple></label>' +
     (photos.length ? '<p class="meta" style="margin-top:var(--s-2)">Keep this screen open until each photo says Uploaded.</p>' : '') +
@@ -1958,7 +1988,7 @@ function pumpPhotos() {
   var x = photos.filter(function (p) { return p.status === 'waiting' && p.data; })[0]; if (!x) return;
   photoBusy = true; x.status = 'up'; x.label = 'Uploading…'; if (view.screen === 'photos') renderPhotos();
   api.uploadPhoto({ week: data.week, data: x.data }).then(function (res) {
-    if (res && res.ok) { x.status = 'done'; x.label = 'Uploaded'; x.data = ''; } else { x.status = 'failed'; x.label = (res && res.error) || 'Failed'; }
+    if (res && res.ok) { x.status = 'done'; x.label = 'Uploaded'; x.data = ''; store('cw:photos:' + data.week, true); } else { x.status = 'failed'; x.label = (res && res.error) || 'Failed'; }
   }, function () { x.status = 'failed'; x.label = 'No signal'; }).then(function () { photoBusy = false; if (view.screen === 'photos') renderPhotos(); pumpPhotos(); });
 }
 function retryPhoto(i) { var x = photos[i]; if (x && x.data) { x.status = 'waiting'; x.label = 'Waiting…'; pumpPhotos(); renderPhotos(); } }
@@ -1970,6 +2000,7 @@ document.addEventListener('click', function (e) {
   if (b.dataset.log !== undefined) return logSet(+b.dataset.log);
   if (b.dataset.tick !== undefined) return logSet(+b.dataset.tick);
   if (b.dataset.rest) return b.dataset.rest === 'skip' ? restEnd() : restNudge(+b.dataset.rest);
+  if (b.dataset.cisent) { store('cw:wsent:' + data.week, !load('cw:wsent:' + data.week, false)); return renderCheckin(); }
   if (b.dataset.same != null) { var ce = exNow(), si = +b.dataset.same, sl = ce && lastSet(ce.p, si); if (sl) { ce.d.kg[si] = trimNum(sl.kg); ce.d.reps[si] = trimNum(sl.reps); saveSess(); reEx(); } return; }
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
