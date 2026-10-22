@@ -282,12 +282,12 @@ button.row:active { background: var(--surface-2); transform: none; }
 .fire > .pool { -webkit-mask-image: linear-gradient(to bottom, var(--charcoal) 50%, transparent 78%); mask-image: linear-gradient(to bottom, var(--charcoal) 50%, transparent 78%); } /* the pool fades before the zone clips it: no hard edge under the hero */
 .logo-stage { width: calc(var(--s-7) * 3); height: calc(var(--s-7) * 3); margin: var(--s-3) auto 0; } /* air under the date; the png's own letterbox spaces it from the lines */
 .logo-icon { position: absolute; inset: 0; opacity: 0;
-  animation: logoIn calc(var(--t-hero) * 2) var(--ease) var(--t-screen) forwards, logoIgnite calc(var(--t-hero) * 4) var(--ease) calc(var(--t-hero) * 2) 1, logoGlow calc(var(--t-hero) * 6) var(--ease) calc(var(--t-hero) * 6) infinite;
+  animation: logoIn calc(var(--t-screen) * 2) var(--ease) 0s forwards, logoIgnite calc(var(--t-hero) * 2) var(--ease) calc(var(--t-screen) * 2) 1, logoGlow calc(var(--t-hero) * 6) var(--ease) calc(var(--t-screen) * 2 + var(--t-hero) * 2) infinite; /* in as fast as a card, then the ignite and the slow glow */
   will-change: opacity, filter; }
 .logo-icon img { width: 100%; height: 100%; display: block; object-fit: contain; }
 .logo-heat { position: absolute; inset: 0; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat;
   background: linear-gradient(115deg, transparent 20%, rgba(var(--ember), 0.77) 40%, rgba(var(--amber), 0.49) 50%, rgba(var(--ember), 0.77) 60%, transparent 80%);
-  background-size: 300% 100%; opacity: 0; animation: heatSweep calc(var(--t-hero) * 6) var(--ease) var(--t-hero) infinite; will-change: background-position, opacity; }
+  background-size: 300% 100%; opacity: 0; animation: heatSweep calc(var(--t-hero) * 6) var(--ease) calc(var(--t-screen) * 2) infinite; will-change: background-position, opacity; }
 @keyframes logoIn {
   from { opacity: 0; filter: drop-shadow(0 0 0 rgba(var(--ember), 0)); }
   to   { opacity: 1; filter: drop-shadow(0 0 calc(var(--s-1) * 4.5) rgba(var(--ember), 0.5)); }
@@ -315,14 +315,14 @@ button.row:active { background: var(--surface-2); transform: none; }
   100% { transform: translate3d(-4vw, 10vh, 0) scale(0.95); }
 }
 .lines { text-align: center; margin: 0; }
-.lines p { margin: 0; font-size: var(--fs-20); line-height: var(--lh-tight); letter-spacing: var(--track-tight); text-wrap: balance; animation: rise var(--t-draw) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro)); }
+.lines p { margin: 0; font-size: var(--fs-20); line-height: var(--lh-tight); letter-spacing: var(--track-tight); text-wrap: balance; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-screen) + var(--i) * var(--t-micro) / 2); } /* same clock as every other tab: 80 ms steps from the screen */
 .lines p + p { margin-top: var(--s-2); }
 .lines .well { font-weight: var(--w-bold); }
 .lines .focus b { color: var(--accent); font-weight: var(--w-bold); }
 .lines .streak { font-size: var(--fs-14); color: var(--ink-muted); letter-spacing: 0; margin-top: var(--s-3); }
 .sechead.first { margin-top: var(--s-2); }
 /* Target rows as cards, the Workout session-card look Adam liked: a card each, a hit one outlined in emerald with the pool glow from the left */
-.tlist { display: grid; gap: var(--s-2); background: none; border-radius: 0; overflow: visible; animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-hero); }
+.tlist { display: grid; gap: var(--s-2); background: none; border-radius: 0; overflow: visible; animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-screen); }
 .trow { box-shadow: 0 0 0 1px var(--line); } /* every target reads as a card; a hit one turns emerald */
 .trow.hit { box-shadow: 0 0 0 1px var(--accent); }
 .trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); } /* the Workout session card's pool, same size and stops, so every card glows the same */
@@ -338,7 +338,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .habits .hab:has(.tick:not(.off)), .list.tasks .hab:has(.tick:not(.off)), .entry, .planrow, .pcard { box-shadow: 0 0 0 1px var(--accent); }
 .habits .hab:has(.tick:not(.off))::before, .list.tasks .hab:has(.tick:not(.off))::before, .entry::before, .planrow::before, .pcard::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(circle calc(var(--s-7) * 2.5) at 18% 50%, rgba(var(--ember), .30) 0%, rgba(var(--ember), .11) 32%, rgba(var(--ember), .04) 52%, transparent 68%); } /* the Workout session card's pool, same size and stops, so every card glows the same */
 @keyframes appear { from { opacity: 0; } }
-.trow { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
+.trow { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-screen) + (var(--i) + 3) * var(--t-micro) / 2); } /* after the three lines */
 .trow:active { background: var(--surface-2); transform: none; }
 .trow .tl { flex: 1; min-width: 0; }
 .trow .tl span { display: block; font-size: var(--fs-14); color: var(--ink-muted); line-height: var(--lh-tight); }
@@ -348,12 +348,12 @@ button.row:active { background: var(--surface-2); transform: none; }
 .trow > svg.i { color: var(--ink-muted); }
 /* a re-render of Today (a tap, a save landing, the data or plan arriving) carries every animation on from where it was: mid-cascade it keeps rising, after it a still */
 .screen.again { animation-delay: var(--since); }
-.again .lines p { animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) + var(--since)); }
-.again .tlist { animation-delay: calc(var(--t-hero) + var(--since)); }
-.again .trow { animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2 + var(--since)); }
+.again .lines p { animation-delay: calc(var(--t-screen) + var(--i) * var(--t-micro) / 2 + var(--since)); }
+.again .tlist { animation-delay: calc(var(--t-screen) + var(--since)); }
+.again .trow { animation-delay: calc(var(--t-screen) + (var(--i) + 3) * var(--t-micro) / 2 + var(--since)); }
 .again .pool { animation-delay: var(--since); }
-.again .logo-icon { animation-delay: calc(var(--t-screen) + var(--since)), calc(var(--t-hero) * 2 + var(--since)), calc(var(--t-hero) * 6 + var(--since)); }
-.again .logo-heat { animation-delay: calc(var(--t-hero) + var(--since)); }
+.again .logo-icon { animation-delay: var(--since), calc(var(--t-screen) * 2 + var(--since)), calc(var(--t-screen) * 2 + var(--t-hero) * 2 + var(--since)); }
+.again .logo-heat { animation-delay: calc(var(--t-screen) * 2 + var(--since)); }
 @media (prefers-reduced-motion: reduce) { .again, .again * { animation-delay: var(--since) !important; } }
 .ci .tlist { animation-delay: 0s; } /* Check in has no hero: the cards come in one after the other from the start, the deadline last */
 .ci .trow { animation-delay: calc(var(--i, 0) * var(--t-micro)); }
@@ -1035,11 +1035,11 @@ function renderToday() {
   }).join('') + '</div>';
   if (!t) html += '<p class="note warn">' + esc(shortDate(today)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
   if (!tl.rows.length) html += '<div class="list two" style="margin-top:var(--s-4)">' + statCells(t) + '</div>'; // no targets at all: never a screen without numbers
-  html += '<div style="margin-top:var(--s-2)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' +
+  html += '<div class="seq-i" style="--i:11;margin-top:var(--s-2)"><button class="btn' + (core.done < core.of ? ' strong' : ' quiet') + '" data-go="log">' + // the button, Habits and tasks follow the target cards on the same clock
     (core.done === 0 ? 'Log today' : core.done < core.of ? 'Log the rest of today' : 'Logged for today, change something') + '</button></div>';
   html += '<p class="sync" id="sync"></p>';
-  html += habitsCard(t);
-  html += tasksCard();
+  html += '<div class="seq-i" style="--i:12">' + habitsCard(t) + '</div>';
+  html += '<div class="seq-i" style="--i:13">' + tasksCard() + '</div>';
   $('app').innerHTML = html + '</section>';
   var fire = document.querySelector('#app .fire'), sweep = fire.querySelector('.logo-heat');
   sweep.style.webkitMaskImage = sweep.style.maskImage = 'url(data:image/png;base64,' + LOGO + ')';
