@@ -260,6 +260,7 @@ button.row:active { background: var(--surface-2); transform: none; }
   background: radial-gradient(circle, rgba(var(--ember), 0.38) 0%, rgba(var(--ember), 0.14) 32%, rgba(var(--ember), 0.05) 52%, transparent 68%);
   opacity: calc(0.45 + 0.55 * var(--heat)); will-change: transform; animation: drift1 calc(var(--t-hero) * 48) var(--ease) infinite alternate; }
 .fire > .embers { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+.fire > .pool { -webkit-mask-image: linear-gradient(to bottom, var(--charcoal) 50%, transparent 78%); mask-image: linear-gradient(to bottom, var(--charcoal) 50%, transparent 78%); } /* the pool fades before the zone clips it: no hard edge under the hero */
 .logo-stage { width: calc(var(--s-7) * 3); height: calc(var(--s-7) * 3); margin: var(--s-3) auto 0; } /* air under the date; the png's own letterbox spaces it from the lines */
 .logo-icon { position: absolute; inset: 0; opacity: 0;
   animation: logoIn calc(var(--t-hero) * 2) var(--ease) var(--t-screen) forwards, logoIgnite calc(var(--t-hero) * 4) var(--ease) calc(var(--t-hero) * 2) 1, logoGlow calc(var(--t-hero) * 6) var(--ease) calc(var(--t-hero) * 6) infinite;
