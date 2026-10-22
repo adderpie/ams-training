@@ -365,7 +365,8 @@ button.row:active { background: var(--surface-2); transform: none; }
 .seq-i .chart .area { animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
 .seq-i .chart .dot, .seq-i .chart .trend, .seq-i .chart text { opacity: 0; animation: fadein var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
 .seq-i .chart .halo { opacity: 0; animation: fadein var(--t-screen) var(--ease) both, halo 1.8s var(--ease) infinite; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
-.again .seq-i, .again .seq-i .chart .line, .again .seq-i .chart .area, .again .seq-i .chart .dot, .again .seq-i .chart .trend, .again .seq-i .chart text { animation: none; opacity: 1; stroke-dashoffset: 0; }
+.again .seq-i { animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--since)); } /* a re-render carries each block on from where it was (Today mid-cascade); Progress and Plan set --since far back, so theirs are stills */
+.again .seq-i .chart .line, .again .seq-i .chart .area, .again .seq-i .chart .dot, .again .seq-i .chart .trend, .again .seq-i .chart text { animation: none; opacity: 1; stroke-dashoffset: 0; }
 .again .seq-i .chart .halo { opacity: 1; animation: halo 1.8s var(--ease) infinite; }
 .again .seq-i .chart .area.c { opacity: .18; }
 /* Progress chart modes: a segmented switch, one coloured line per series, the legend as chips that hide or show a line */
