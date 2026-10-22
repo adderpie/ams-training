@@ -305,6 +305,13 @@ button.row:active { background: var(--surface-2); transform: none; }
 .trow.hit { box-shadow: 0 0 0 1px var(--accent); }
 .trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 12% 50%, rgba(var(--ember), .26) 0%, rgba(var(--ember), .08) 42%, transparent 70%); }
 .trow > * { position: relative; z-index: 1; }
+/* The same card look on Habits, tasks and Plan: a card each with a faint outline; emerald outline and left glow once ticked (Plan cards always, nothing there completes) */
+.habits, .list.tasks { display: grid; gap: var(--s-2); background: none; box-shadow: none; border-radius: 0; padding: 0; overflow: visible; }
+.habits .hab, .list.tasks .hab { position: relative; overflow: hidden; border-radius: var(--r-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line); padding: var(--s-2) var(--s-4); border-top: 0; }
+.entry, .planrow, .pcard { position: relative; overflow: hidden; }
+.habits .hab > *, .list.tasks .hab > *, .entry > *, .planrow > *, .pcard > * { position: relative; z-index: 1; }
+.habits .hab:has(.tick:not(.off)), .list.tasks .hab:has(.tick:not(.off)), .entry, .planrow, .pcard { box-shadow: 0 0 0 1px var(--accent); }
+.habits .hab:has(.tick:not(.off))::before, .list.tasks .hab:has(.tick:not(.off))::before, .entry::before, .planrow::before, .pcard::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 12% 50%, rgba(var(--ember), .26) 0%, rgba(var(--ember), .08) 42%, transparent 70%); }
 @keyframes appear { from { opacity: 0; } }
 .trow { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
 .trow:active { background: var(--surface-2); transform: none; }
@@ -1152,7 +1159,7 @@ function tasksCard() {
   var show = t.tasks.filter(function (x) { return !x.done || tickedNow[t.week + '|' + x.idx]; });
   if (!show.length) return '';
   var left = t.tasks.filter(function (x) { return !x.done; }).length;
-  return '<div class="sechead"><b>This week\'s tasks</b><span>' + (left ? left + ' to do' : 'All done') + '</span></div><div class="list">' + show.map(function (x) {
+  return '<div class="sechead"><b>This week\'s tasks</b><span>' + (left ? left + ' to do' : 'All done') + '</span></div><div class="list tasks">' + show.map(function (x) {
     return '<button class="hab" data-task="' + x.idx + '" role="switch" aria-checked="' + x.done + '"><i class="tick' + (x.done ? '' : ' off') + '">' + icon('check') + '</i><span>' + esc(x.text) + '</span></button>';
   }).join('') + '</div>';
 }
