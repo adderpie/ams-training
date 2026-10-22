@@ -92,6 +92,16 @@
   --glow: 0 0 28px rgba(43, 168, 74, 0.45);
   --glow-soft: 0 0 60px rgba(43, 168, 74, 0.18);
 
+  /* Chart lines: up to eight series on one chart; each is readable as a chip label on its theme's surface (4.5:1 checked) */
+  --chart-1: var(--forest);
+  --chart-2: #8A5A00;
+  --chart-3: #1F5FA8;
+  --chart-4: #6B3FB5;
+  --chart-5: #B8332F;
+  --chart-6: #0E7A63;
+  --chart-7: #7A5A00;
+  --chart-8: #A3256E;
+
   /* Motion: one easing family, four durations */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t-micro: 160ms;                 /* taps, ticks, toggles, chips */
@@ -116,6 +126,14 @@
   --coach: #E8A9B1;                 /* burgundy tint 8.9:1; raw #6B2D34 fails on dark */
   --on-coach: var(--charcoal);
   --warn: #E8C15A;                  /* 9.3:1 */
+  --chart-1: var(--emerald);
+  --chart-2: #F2B134;
+  --chart-3: #5FB0F0;
+  --chart-4: #B48BF2;
+  --chart-5: #F27A7A;
+  --chart-6: #5FD8B8;
+  --chart-7: #E8D55C;
+  --chart-8: #EE9FD0;
   --elev-1: 0 0 0 1px var(--line);
   --elev-2: 0 -1px 0 var(--line);   /* no shadows in the dark: tone does the lifting */
 }
@@ -343,12 +361,32 @@ button.row:active { background: var(--surface-2); transform: none; }
 /* staged entrance (Progress, Plan): stage() numbers the blocks and each rises in turn; the chart line draws once its block is up,
    then the points, labels and area arrive. A re-render of the same screen (.again) shows everything still, no replay. */
 .seq-i { animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2); }
-.seq-i.chart .line { animation-duration: var(--t-hero); animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen)); }
-.seq-i.chart .area { animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
-.seq-i.chart .dot, .seq-i.chart .trend, .seq-i.chart text { opacity: 0; animation: fadein var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
-.seq-i.chart .halo { opacity: 0; animation: fadein var(--t-screen) var(--ease) both, halo 1.8s var(--ease) infinite; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
-.again .seq-i, .again .seq-i.chart .line, .again .seq-i.chart .area, .again .seq-i.chart .dot, .again .seq-i.chart .trend, .again .seq-i.chart text { animation: none; opacity: 1; stroke-dashoffset: 0; }
-.again .seq-i.chart .halo { opacity: 1; animation: halo 1.8s var(--ease) infinite; } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
+.seq-i .chart .line { animation-duration: var(--t-hero); animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen)); }
+.seq-i .chart .area { animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.seq-i .chart .dot, .seq-i .chart .trend, .seq-i .chart text { opacity: 0; animation: fadein var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.seq-i .chart .halo { opacity: 0; animation: fadein var(--t-screen) var(--ease) both, halo 1.8s var(--ease) infinite; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.again .seq-i, .again .seq-i .chart .line, .again .seq-i .chart .area, .again .seq-i .chart .dot, .again .seq-i .chart .trend, .again .seq-i .chart text { animation: none; opacity: 1; stroke-dashoffset: 0; }
+.again .seq-i .chart .halo { opacity: 1; animation: halo 1.8s var(--ease) infinite; }
+.again .seq-i .chart .area.c { opacity: .18; }
+/* Progress chart modes: a segmented switch, one coloured line per series, the legend as chips that hide or show a line */
+.seg { display: flex; gap: 4px; padding: 4px; margin-top: var(--s-4); border-radius: var(--r-pill); background: var(--surface-2); }
+.seg button { flex: 1 1 auto; min-height: 36px; padding: 0 10px; white-space: nowrap; border-radius: var(--r-pill); font-size: var(--fs-14); font-weight: var(--w-bold); color: var(--ink-muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.lchip { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border-radius: var(--r-pill); background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: var(--fs-14); font-weight: var(--w-bold); color: var(--ink); }
+.lchip i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); flex: none; }
+.lchip b { color: var(--c); font-weight: var(--w-black); }
+.lchip[aria-pressed="false"] { color: var(--ink-muted); }
+.lchip[aria-pressed="false"] i { background: transparent; box-shadow: inset 0 0 0 2px var(--c); }
+.lchip[aria-pressed="false"] b { color: var(--ink-muted); }
+.lchip.all { color: var(--accent); }
+.chart .line.c { stroke: var(--c); filter: drop-shadow(0 0 6px var(--c)); }
+.chart .dot.c { fill: var(--c); }
+.chart .halo.c { stroke: var(--c); }
+.chart .area.c { fill: var(--c); animation-name: fadein-soft; }
+@keyframes fadein-soft { to { opacity: .18; } }
+.chart .zero { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; }
+.pchart .cap { margin: var(--s-2) 0 0; font-size: var(--fs-14); color: var(--ink-muted); } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
 
 /* ---------- week strip ---------- */
 .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--s-3); }
@@ -1793,6 +1831,88 @@ function chartSvg() {
   svg += '<text x="0" y="' + (H - 4) + '">' + esc(shortDate(first).replace(/^\w+ /, '')) + '</text><text x="' + (W - 52) + '" y="' + (H - 4) + '">' + esc(shortDate(last).replace(/^\w+ /, '')) + '</text></svg>';
   return svg;
 }
+/* ---------- Progress chart modes. Weight is the chart above. Measurements: one line per tape site, every measured week.
+   Strength: one exercise per body part, picked from the client's own plan by name (the one with the most logged weeks),
+   its heaviest set each week. Chips are the legend: tap one to hide or show its line. With several lines on, every line is
+   drawn as change since its own first week on one shared scale, with the real latest number in its chip. ---------- */
+var PCHART = load('cw:pchart', { mode: 'weight', off: {} });
+var BODY = [['Calves', /calf|calves|tibia/i], ['Hamstrings and glutes', /ham|rdl|romanian|hyperext|good.?morning|glute|hip thrust|bridge|abduct|adduct/i],
+  ['Quads', /squat|leg press|leg ext|hack|lunge|pendulum|quad|step.?up|sissy/i], ['Back', /\brow|pull.?down|pulldown|pull.?up|pullover|\blat\b|chin|deadlift/i],
+  ['Shoulders', /shoulder|lateral|raise|delt|overhead|reverse fl|rear|face pull|upright/i], ['Triceps', /tricep|pushdown|skull|kickback/i],
+  ['Biceps', /curl|bicep/i], ['Chest', /press|fly|flye|dip|push.?up|pec|crossover/i]];
+function bodyPart(name) { for (var i = 0; i < BODY.length; i++) if (BODY[i][1].test(name)) return BODY[i][0]; return null; }
+function measureSeries() {
+  var m = data.measurements; if (!m || !m.fields) return [];
+  var weeks = m.weeks || [m.lastWeek, m.thisWeek].filter(Boolean); // older payloads carry two weeks only
+  return m.fields.map(function (f, i) {
+    var pts = []; weeks.forEach(function (w) { var v = num(w.values[f.id]); if (v > 0) pts.push({ x: w.week, v: v }); });
+    return { key: f.id, label: f.label, unit: 'cm', color: 'var(--chart-' + (i % 8 + 1) + ')', pts: pts };
+  }).filter(function (s) { return s.pts.length; });
+}
+function strengthSeries() {
+  var best = {};
+  (data.days || []).forEach(function (day) { (day.exercises || []).forEach(function (x) {
+    var part = bodyPart(x.name); if (!part) return;
+    var pts = []; Object.keys(x.history).map(Number).sort(function (a, b) { return a - b; }).forEach(function (w) {
+      var e = x.history[w], top = 0; if (!hasNums(e)) return;
+      e.kg.forEach(function (k, i) { var kg = parseFloat(k), r = parseFloat(e.reps[i]); if (kg > top && (r > 0 || !/\d/.test(String(e.reps[i])))) top = kg; });
+      if (top > 0) pts.push({ x: w, v: top });
+    });
+    if (pts.length && (!best[part] || pts.length > best[part].pts.length)) best[part] = { key: x.id || x.name, label: x.name, part: part, unit: 'kg', pts: pts };
+  }); });
+  return BODY.map(function (b) { return best[b[0]]; }).filter(Boolean).map(function (s, i) { s.color = 'var(--chart-' + (i % 8 + 1) + ')'; return s; });
+}
+function chartModes(rs) { var m = []; if (rs.length) m.push(['weight', 'Weight']); if (measureSeries().length) m.push(['measure', 'Measurements']); if (strengthSeries().length) m.push(['strength', 'Strength']); return m; }
+function linesSvg(series, on) {
+  var W = 343, H = 150, bottom = 128, pct = on.length > 1, xs = [];
+  series.forEach(function (s) { s.pts.forEach(function (p) { xs.push(p.x); }); });
+  var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), span = Math.max(1, x1 - x0);
+  var val = function (s, p) { return pct ? (p.v / s.pts[0].v - 1) * 100 : p.v; }, vals = [];
+  on.forEach(function (s) { s.pts.forEach(function (p) { vals.push(val(s, p)); }); });
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = pct ? 2 : 1; if (pct) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); } if (hi - lo < pad * 2) { lo -= pad; hi += pad; }
+  var x = function (w) { return (w - x0) / span * (W - 16) + 8; }, y = function (v) { return bottom - (v - lo) / (hi - lo) * 100 - 8; };
+  var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(on.map(function (s) { return s.label; }).join(', ')) + ' by week"><line class="axis" x1="0" y1="' + bottom + '" x2="' + W + '" y2="' + bottom + '"/>';
+  if (pct) svg += '<line class="zero" x1="0" y1="' + y(0).toFixed(1) + '" x2="' + W + '" y2="' + y(0).toFixed(1) + '"/><text x="0" y="' + (y(0) - 5).toFixed(1) + '">start</text>';
+  on.forEach(function (s) {
+    var pts = s.pts.map(function (p) { return x(p.x).toFixed(1) + ',' + y(val(s, p)).toFixed(1); }), st = ' style="--c:' + s.color + '"';
+    if (s.pts.length > 1) {
+      if (!pct) svg += '<path class="area c"' + st + ' d="M' + x(s.pts[0].x).toFixed(1) + ',' + bottom + ' L' + pts.join(' L') + ' L' + x(s.pts[s.pts.length - 1].x).toFixed(1) + ',' + bottom + ' Z"/>';
+      svg += '<polyline class="line c"' + st + ' pathLength="1" points="' + pts.join(' ') + '"/>';
+    }
+    s.pts.forEach(function (p, i) {
+      var last = i === s.pts.length - 1, cx = x(p.x).toFixed(1), cy = y(val(s, p)).toFixed(1);
+      if (last) svg += '<circle class="halo c"' + st + ' cx="' + cx + '" cy="' + cy + '" r="5"/>';
+      svg += '<circle class="dot c' + (last ? ' last' : '') + '"' + st + ' cx="' + cx + '" cy="' + cy + '" r="' + (last ? 5 : 3.5) + '"/>';
+    });
+  });
+  svg += '<text x="0" y="' + (H - 4) + '">week ' + x0 + '</text>' + (x1 > x0 ? '<text x="' + (W - 48) + '" y="' + (H - 4) + '">week ' + x1 + '</text>' : '') + '</svg>';
+  return svg;
+}
+function chartBlock(rs) {
+  var modes = chartModes(rs), c = data.checkIn, wf = weightField();
+  if (!modes.length) return '';
+  if (!modes.some(function (m) { return m[0] === PCHART.mode; })) PCHART.mode = modes[0][0];
+  var html = modes.length > 1 ? '<div class="seg" role="tablist">' + modes.map(function (m) { return '<button role="tab" data-pmode="' + m[0] + '" aria-pressed="' + (m[0] === PCHART.mode) + '">' + m[1] + '</button>'; }).join('') + '</div>' : '';
+  if (PCHART.mode === 'weight') {
+    return html + chartSvg() + '<p class="cap">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
+      : 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
+  }
+  var series = PCHART.mode === 'measure' ? measureSeries() : strengthSeries(), off = PCHART.off[PCHART.mode] || {}, on = series.filter(function (s) { return !off[s.key]; });
+  var fmt = function (v) { return String(Math.round(v * 10) / 10); };
+  html += on.length ? linesSvg(series, on) : '<p class="note">Every line is hidden. Tap a name below to show it.</p>';
+  html += '<div class="legend"><button class="lchip all" data-pall="1" aria-pressed="' + (on.length === series.length) + '">All</button>' + series.map(function (s) {
+    var last = s.pts[s.pts.length - 1];
+    return '<button class="lchip" data-pline="' + esc(s.key) + '" aria-pressed="' + !off[s.key] + '" style="--c:' + s.color + '"><i aria-hidden="true"></i>' + esc(s.part ? s.part : s.label) + ' <b>' + fmt(last.v) + '</b>' + (s.part ? '' : ' ' + s.unit) + '</button>';
+  }).join('') + '</div>';
+  if (on.length === 1) { var s = on[0], d = Math.round((s.pts[s.pts.length - 1].v - s.pts[0].v) * 10) / 10; html += '<p class="cap">' + esc(s.label) + ', ' + fmt(s.pts[s.pts.length - 1].v) + ' ' + s.unit + ' in week ' + s.pts[s.pts.length - 1].x + (s.pts.length > 1 ? ', ' + (d === 0 ? 'the same as' : (d > 0 ? 'up ' : 'down ') + Math.abs(d) + ' ' + s.unit + ' since') + ' week ' + s.pts[0].x : '') + '.</p>'; }
+  else if (on.length > 1) html += '<p class="cap">Change since each line\'s first week, on one scale. Tap a name to hide its line.' + (PCHART.mode === 'strength' ? ' Strength is the heaviest set each week of one exercise per body part; leave one line on to see which exercise.' : '') + '</p>';
+  return html;
+}
+function pchartSet(fn) { // mode or line change: redraw the chart block only, with the quick draw, never the whole screen
+  fn(); store('cw:pchart', PCHART);
+  var el = $('pchart'); if (!el) return renderProgress();
+  el.classList.remove('seq-i'); el.innerHTML = chartBlock(readings());
+}
 function renderProgress() {
   var again = !!document.querySelector('#app .screen.prog'), html = '<section class="screen prog"><h1 class="t l">Progress</h1>';
   if (!data.checkIn) { $('app').innerHTML = html + '<p class="meta">' + esc(weekLine()) + '.</p><p class="note">Your check in is not switched on in the app yet, so there is no weight trend here. ' + MESSAGE_ADAM + '.</p>' + weeklyLinks() + '</section>'; stage(document.querySelector('#app .screen'), again); return; }
@@ -1800,9 +1920,7 @@ function renderProgress() {
   var diff = tw && lw ? Math.round((num(tw) - num(lw)) * 10) / 10 : null;
   html += '<div class="hero" style="align-items:flex-start"><div><div class="big on">' + (tw ? esc(tw) : rs.length ? esc(rs[rs.length - 1].v) : '&ndash;') + '</div><p class="meta">' + (tw ? 'average this week' : rs.length ? 'last weigh-in' : 'no weigh-ins yet') + '</p></div>' +
     (diff !== null ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (diff > 0 ? '+' : '') + diff + '</div><p class="meta">vs week ' + c.lastWeek.week + '</p></div>' : data.startWeight && rs.length ? '<div style="margin-left:auto;text-align:right"><div class="big">' + (function (d) { return (d > 0 ? '+' : '') + d; })(Math.round((rs[rs.length - 1].v - parseFloat(data.startWeight)) * 10) / 10) + '</div><p class="meta">since the start</p></div>' : '') + '</div>';
-  html += rs.length ? chartSvg() : '';
-  html += '<p class="meta" style="margin-top:var(--s-2)">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
-    : 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
+  html += '<div class="pchart" id="pchart">' + chartBlock(rs) + '</div>';
   html += '<div class="list two" style="margin-top:var(--s-4)">' +
     '<div class="row"><b>Logged today</b><div class="n">' + coreDone(ciDay(localIso())).done + '<small>of ' + coreDone(ciDay(localIso())).of + '</small></div></div>' +
     '<div class="row"><b>Sessions</b><div class="n">' + sessionsDone() + '<small>of ' + trainingTarget() + '</small></div></div>' +
@@ -2042,6 +2160,9 @@ document.addEventListener('click', function (e) {
   if (b.dataset.task) return taskToggle(+b.dataset.task);
   if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
+  if (b.dataset.pmode) return pchartSet(function () { PCHART.mode = b.dataset.pmode; });
+  if (b.dataset.pline) return pchartSet(function () { var o = PCHART.off[PCHART.mode] || (PCHART.off[PCHART.mode] = {}); if (o[b.dataset.pline]) delete o[b.dataset.pline]; else o[b.dataset.pline] = true; });
+  if (b.dataset.pall) return pchartSet(function () { PCHART.off[PCHART.mode] = {}; });
   if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
   var act = b.dataset.act, n = b.dataset.n;
