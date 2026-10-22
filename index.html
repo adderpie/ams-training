@@ -380,6 +380,8 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lchip[aria-pressed="false"] i { background: transparent; box-shadow: inset 0 0 0 2px var(--c); }
 .lchip[aria-pressed="false"] b { color: var(--ink-muted); }
 .lchip.all { color: var(--accent); }
+.lchip small { font-weight: var(--w-regular); color: var(--ink-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lchip:disabled { opacity: .55; }
 .chart .line.c { stroke: var(--c); filter: drop-shadow(0 0 6px var(--c)); }
 .chart .dot.c { fill: var(--c); }
 .chart .halo.c { stroke: var(--c); }
@@ -1835,8 +1837,8 @@ function chartSvg() {
    Strength: one exercise per body part, picked from the client's own plan by name (the one with the most logged weeks),
    its heaviest set each week. Chips are the legend: tap one to hide or show its line. With several lines on, every line is
    drawn as change since its own first week on one shared scale, with the real latest number in its chip. ---------- */
-var PCHART = load('cw:pchart', { mode: 'weight', off: {} });
-var BODY = [['Calves', /calf|calves|tibia/i], ['Hamstrings and glutes', /ham|rdl|romanian|hyperext|good.?morning|glute|hip thrust|bridge|abduct|adduct/i],
+var PCHART = load('cw:pchart', { mode: 'weight', on: {} }); if (!PCHART.on) PCHART.on = {}; // on: { measure: {id: true}, strength: {key: true} }; nothing on until the client picks
+var BODY = [['Calves', /calf|calves|tibia/i], ['Hamstrings and glutes', /ham|leg curl|lying curl|seated curl|nordic|rdl|romanian|hyperext|good.?morning|glute|hip thrust|bridge|abduct|adduct/i],
   ['Quads', /squat|leg press|leg ext|hack|lunge|pendulum|quad|step.?up|sissy/i], ['Back', /\brow|pull.?down|pulldown|pull.?up|pullover|\blat\b|chin|deadlift/i],
   ['Shoulders', /shoulder|lateral|raise|delt|overhead|reverse fl|rear|face pull|upright/i], ['Triceps', /tricep|pushdown|skull|kickback/i],
   ['Biceps', /curl|bicep/i], ['Chest', /press|fly|flye|dip|push.?up|pec|crossover/i]];
@@ -1846,8 +1848,8 @@ function measureSeries() {
   var weeks = m.weeks || [m.lastWeek, m.thisWeek].filter(Boolean); // older payloads carry two weeks only
   return m.fields.map(function (f, i) {
     var pts = []; weeks.forEach(function (w) { var v = num(w.values[f.id]); if (v > 0) pts.push({ x: w.week, v: v }); });
-    return { key: f.id, label: f.label, unit: 'cm', color: 'var(--chart-' + (i % 8 + 1) + ')', pts: pts };
-  }).filter(function (s) { return s.pts.length; });
+    return { key: f.id, label: f.label, unit: 'cm', color: 'var(--chart-' + (i % 8 + 1) + ')', pts: pts }; // a field with no entries still gets a chip, waiting
+  });
 }
 function strengthSeries() {
   var best = {};
@@ -1858,11 +1860,11 @@ function strengthSeries() {
       e.kg.forEach(function (k, i) { var kg = parseFloat(k), r = parseFloat(e.reps[i]); if (kg > top && (r > 0 || !/\d/.test(String(e.reps[i])))) top = kg; });
       if (top > 0) pts.push({ x: w, v: top });
     });
-    if (pts.length && (!best[part] || pts.length > best[part].pts.length)) best[part] = { key: x.id || x.name, label: x.name, part: part, unit: 'kg', pts: pts };
+    if (!best[part] || pts.length > best[part].pts.length) best[part] = { key: x.id || x.name, label: x.name, part: part, unit: 'kg', pts: pts }; // the exercise with the most logged weeks stands for the body part
   }); });
   return BODY.map(function (b) { return best[b[0]]; }).filter(Boolean).map(function (s, i) { s.color = 'var(--chart-' + (i % 8 + 1) + ')'; return s; });
 }
-function chartModes(rs) { var m = []; if (rs.length) m.push(['weight', 'Weight']); if (measureSeries().length) m.push(['measure', 'Measurements']); if (strengthSeries().length) m.push(['strength', 'Strength']); return m; }
+function chartModes(rs) { var m = []; if (weightField()) m.push(['weight', 'Weight']); if (data.measurements && data.measurements.fields && data.measurements.fields.length) m.push(['measure', 'Measurements']); if (strengthSeries().length) m.push(['strength', 'Strength']); return m; } // a mode shows as soon as the sheet has the tab, data or not
 function linesSvg(series, on) {
   var W = 343, H = 150, bottom = 128, pct = on.length > 1, xs = [];
   series.forEach(function (s) { s.pts.forEach(function (p) { xs.push(p.x); }); });
@@ -1894,18 +1896,20 @@ function chartBlock(rs) {
   if (!modes.some(function (m) { return m[0] === PCHART.mode; })) PCHART.mode = modes[0][0];
   var html = modes.length > 1 ? '<div class="seg" role="tablist">' + modes.map(function (m) { return '<button role="tab" data-pmode="' + m[0] + '" aria-pressed="' + (m[0] === PCHART.mode) + '">' + m[1] + '</button>'; }).join('') + '</div>' : '';
   if (PCHART.mode === 'weight') {
-    return html + chartSvg() + '<p class="cap">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
-      : 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
+    return html + (rs.length ? chartSvg() : '') + '<p class="cap">' + (c.trend ? 'Trend <b>' + c.trend.value + ' ' + esc(wf.unit) + '</b>, ' + (c.trend.steady ? 'holding steady.' : (c.trend.perWeek < 0 ? 'coming down' : 'going up') + ' about ' + Math.abs(c.trend.perWeek) + ' ' + esc(wf.unit) + ' a week.')
+      : rs.length ? 'Your trend line appears after 2 weeks of weigh-ins. ' + Math.min(rs.length, 6) + ' of 6 so far.' : 'Your weight line starts with your first weigh-in on Log.') + (data.startWeight ? ' Started at ' + esc(data.startWeight) + ' ' + esc(wf ? wf.unit : '') + '.' : '') + '</p>';
   }
-  var series = PCHART.mode === 'measure' ? measureSeries() : strengthSeries(), off = PCHART.off[PCHART.mode] || {}, on = series.filter(function (s) { return !off[s.key]; });
+  var series = PCHART.mode === 'measure' ? measureSeries() : strengthSeries(), onSet = PCHART.on[PCHART.mode] || {};
+  var withData = series.filter(function (s) { return s.pts.length; }), on = withData.filter(function (s) { return onSet[s.key]; }), allOn = withData.length > 0 && on.length === withData.length;
   var fmt = function (v) { return String(Math.round(v * 10) / 10); };
-  html += on.length ? linesSvg(series, on) : '<p class="note">Every line is hidden. Tap a name below to show it.</p>';
-  html += '<div class="legend"><button class="lchip all" data-pall="1" aria-pressed="' + (on.length === series.length) + '">All</button>' + series.map(function (s) {
+  if (on.length) html += linesSvg(series, on);
+  else html += '<p class="note">' + (withData.length ? 'Tap a name below to draw its line, or All for every line.' : PCHART.mode === 'measure' ? 'No measurements logged yet. Log this week\'s from the Check in tab and the lines start here.' : 'No sets logged yet. Lines appear as your sessions are logged.') + '</p>';
+  html += '<div class="legend"><button class="lchip all" data-pall="1" aria-pressed="' + allOn + '"' + (withData.length ? '' : ' disabled') + '>' + (allOn ? 'None' : 'All') + '</button>' + series.map(function (s) {
     var last = s.pts[s.pts.length - 1];
-    return '<button class="lchip" data-pline="' + esc(s.key) + '" aria-pressed="' + !off[s.key] + '" style="--c:' + s.color + '"><i aria-hidden="true"></i>' + esc(s.part ? s.part : s.label) + ' <b>' + fmt(last.v) + '</b>' + (s.part ? '' : ' ' + s.unit) + '</button>';
+    return '<button class="lchip" data-pline="' + esc(s.key) + '" aria-pressed="' + !!(last && onSet[s.key]) + '" style="--c:' + s.color + '"' + (last ? '' : ' disabled') + '><i aria-hidden="true"></i>' + esc(s.part ? s.part : s.label) + (s.part ? ' <small>' + esc(s.label) + '</small>' : '') + (last ? ' <b>' + fmt(last.v) + '</b>' + (s.part ? '' : ' ' + s.unit) : ' <small>none yet</small>') + '</button>';
   }).join('') + '</div>';
   if (on.length === 1) { var s = on[0], d = Math.round((s.pts[s.pts.length - 1].v - s.pts[0].v) * 10) / 10; html += '<p class="cap">' + esc(s.label) + ', ' + fmt(s.pts[s.pts.length - 1].v) + ' ' + s.unit + ' in week ' + s.pts[s.pts.length - 1].x + (s.pts.length > 1 ? ', ' + (d === 0 ? 'the same as' : (d > 0 ? 'up ' : 'down ') + Math.abs(d) + ' ' + s.unit + ' since') + ' week ' + s.pts[0].x : '') + '.</p>'; }
-  else if (on.length > 1) html += '<p class="cap">Change since each line\'s first week, on one scale. Tap a name to hide its line.' + (PCHART.mode === 'strength' ? ' Strength is the heaviest set each week of one exercise per body part; leave one line on to see which exercise.' : '') + '</p>';
+  else if (on.length > 1) html += '<p class="cap">Change since each line\'s first week, on one scale. Tap a name to hide its line.' + (PCHART.mode === 'strength' ? ' Strength is the heaviest set each week of one exercise per body part, named on its chip.' : '') + '</p>';
   return html;
 }
 function pchartSet(fn) { // mode or line change: redraw the chart block only, with the quick draw, never the whole screen
@@ -2161,8 +2165,11 @@ document.addEventListener('click', function (e) {
   if (b.dataset.wq) return weeklyAnswer(b.dataset.wq, b.dataset.v, !!b.dataset.multi);
   if (b.dataset.shop) return shopTick(b.dataset.shop);
   if (b.dataset.pmode) return pchartSet(function () { PCHART.mode = b.dataset.pmode; });
-  if (b.dataset.pline) return pchartSet(function () { var o = PCHART.off[PCHART.mode] || (PCHART.off[PCHART.mode] = {}); if (o[b.dataset.pline]) delete o[b.dataset.pline]; else o[b.dataset.pline] = true; });
-  if (b.dataset.pall) return pchartSet(function () { PCHART.off[PCHART.mode] = {}; });
+  if (b.dataset.pline) return pchartSet(function () { var o = PCHART.on[PCHART.mode] || (PCHART.on[PCHART.mode] = {}); if (o[b.dataset.pline]) delete o[b.dataset.pline]; else o[b.dataset.pline] = true; });
+  if (b.dataset.pall) return pchartSet(function () { // All draws every line that has data; pressed again (None) clears them
+    var series = PCHART.mode === 'measure' ? measureSeries() : strengthSeries(), withData = series.filter(function (s) { return s.pts.length; }), o = PCHART.on[PCHART.mode] || {};
+    var allOn = withData.length && withData.every(function (s) { return o[s.key]; }), next = {}; if (!allOn) withData.forEach(function (s) { next[s.key] = true; }); PCHART.on[PCHART.mode] = next;
+  });
   if (b.dataset.plan) return planDays(b.dataset.plan, +b.dataset.step);
   if (b.dataset.retry) return retryPhoto(+b.dataset.retry);
   var act = b.dataset.act, n = b.dataset.n;
