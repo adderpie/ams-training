@@ -1837,6 +1837,7 @@ function chartSvg() {
    Strength: one exercise per body part, picked from the client's own plan by name (the one with the most logged weeks),
    its heaviest set each week. Chips are the legend: tap one to hide or show its line. With several lines on, every line is
    drawn as change since its own first week on one shared scale, with the real latest number in its chip. ---------- */
+var STRENGTH_CHART = false; // phase two: the body-part guesses need a proper exercise list first (Adam, 22 Oct); the mode, series and chips stay below
 var PCHART = load('cw:pchart', { mode: 'weight', on: {} }); if (!PCHART.on) PCHART.on = {}; // on: { measure: {id: true}, strength: {key: true} }; nothing on until the client picks
 var BODY = [['Calves', /calf|calves|tibia/i], ['Hamstrings and glutes', /ham|leg curl|lying curl|seated curl|nordic|rdl|romanian|hyperext|good.?morning|glute|hip thrust|bridge|abduct|adduct/i],
   ['Quads', /squat|leg press|leg ext|hack|lunge|pendulum|quad|step.?up|sissy/i], ['Back', /\brow|pull.?down|pulldown|pull.?up|pullover|\blat\b|chin|deadlift/i],
@@ -1864,7 +1865,7 @@ function strengthSeries() {
   }); });
   return BODY.map(function (b) { return best[b[0]]; }).filter(Boolean).map(function (s, i) { s.color = 'var(--chart-' + (i % 8 + 1) + ')'; return s; });
 }
-function chartModes(rs) { var m = []; if (weightField()) m.push(['weight', 'Weight']); if (data.measurements && data.measurements.fields && data.measurements.fields.length) m.push(['measure', 'Measurements']); if (strengthSeries().length) m.push(['strength', 'Strength']); return m; } // a mode shows as soon as the sheet has the tab, data or not
+function chartModes(rs) { var m = []; if (weightField()) m.push(['weight', 'Weight']); if (data.measurements && data.measurements.fields && data.measurements.fields.length) m.push(['measure', 'Measurements']); if (STRENGTH_CHART && strengthSeries().length) m.push(['strength', 'Strength']); return m; } // a mode shows as soon as the sheet has the tab, data or not
 function linesSvg(series, on) {
   var W = 343, H = 150, bottom = 128, pct = on.length > 1, xs = [];
   series.forEach(function (s) { s.pts.forEach(function (p) { xs.push(p.x); }); });
