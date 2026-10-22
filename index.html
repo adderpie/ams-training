@@ -339,7 +339,16 @@ button.row:active { background: var(--surface-2); transform: none; }
 @media (prefers-reduced-motion: reduce) { .again, .again * { animation-delay: var(--since) !important; } }
 .ci .tlist { animation-delay: 0s; } /* Check in has no hero: the cards come in one after the other from the start, the deadline last */
 .ci .trow { animation-delay: calc(var(--i, 0) * var(--t-micro)); }
-.ci .pcard { animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 3) * var(--t-micro)); } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
+.ci .pcard { animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 3) * var(--t-micro)); }
+/* staged entrance (Progress, Plan): stage() numbers the blocks and each rises in turn; the chart line draws once its block is up,
+   then the points, labels and area arrive. A re-render of the same screen (.again) shows everything still, no replay. */
+.seq-i { animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2); }
+.seq-i.chart .line { animation-duration: var(--t-hero); animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen)); }
+.seq-i.chart .area { animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.seq-i.chart .dot, .seq-i.chart .trend, .seq-i.chart text { opacity: 0; animation: fadein var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.seq-i.chart .halo { opacity: 0; animation: fadein var(--t-screen) var(--ease) both, halo 1.8s var(--ease) infinite; animation-delay: calc(var(--i, 0) * var(--t-micro) / 2 + var(--t-screen) + var(--t-hero)); }
+.again .seq-i, .again .seq-i.chart .line, .again .seq-i.chart .area, .again .seq-i.chart .dot, .again .seq-i.chart .trend, .again .seq-i.chart text { animation: none; opacity: 1; stroke-dashoffset: 0; }
+.again .seq-i.chart .halo { opacity: 1; animation: halo 1.8s var(--ease) infinite; } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
 
 /* ---------- week strip ---------- */
 .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--s-3); }
@@ -1633,7 +1642,7 @@ function mealKcal(m) { return m.totals ? num0(m.totals.calories) : m.foods.reduc
 function planKcal(p) { return p.meals.reduce(function (n, m) { return n + mealKcal(m); }, 0); }
 // Plan hub: three doors. Each opens its own screen, so a client with six meal plans never scrolls a wall.
 function renderPlan() {
-  var ft = data.features || {}, html = '<section class="screen"><h1 class="t l">Plan</h1>';
+  var ft = data.features || {}, again = !!document.querySelector('#app .screen.planhub'), html = '<section class="screen"><h1 class="t l">Plan</h1>';
   if (!(ft.plan || ft.supps)) { $('app').innerHTML = html + '<p class="note">Your meal plan and supplements are not switched on in the app yet. ' + MESSAGE_ADAM + '.</p></section>'; return; }
   if (!plan) { $('app').innerHTML = html + '<div class="skel"><i style="height:88px"></i><i style="height:88px"></i><i style="height:88px"></i></div></section>'; return; }
   var t = planTargets(), plans = plan.plans || [], supps = plan.supplements || [], cardio = plan.cardio || [];
@@ -1645,6 +1654,7 @@ function renderPlan() {
   if (ft.plan) html += entry('cardio', 'steps', 'Cardio and steps', cardio.length ? cardio.map(function (r) { return r.duration; }).filter(Boolean).join(', ') : 'Nothing listed yet');
   if (ft.plan) html += entryLink(WMF_URL, 'list', 'Weekend meal planner', 'Eating out this weekend? Pick the meal that fits your plan');
   $('app').innerHTML = html + '</div></section>';
+  var sec = document.querySelector('#app .screen'); sec.classList.add('planhub'); stage(sec, again); // the skeleton above is not .planhub, so the real hub still cascades in
 }
 var WMF_URL = 'https://weekendmealfinder.netlify.app/';
 function entryLink(href, ic, title, sub) {
@@ -1784,8 +1794,8 @@ function chartSvg() {
   return svg;
 }
 function renderProgress() {
-  var html = '<section class="screen"><h1 class="t l">Progress</h1>';
-  if (!data.checkIn) { $('app').innerHTML = html + '<p class="meta">' + esc(weekLine()) + '.</p><p class="note">Your check in is not switched on in the app yet, so there is no weight trend here. ' + MESSAGE_ADAM + '.</p>' + weeklyLinks() + '</section>'; return; }
+  var again = !!document.querySelector('#app .screen.prog'), html = '<section class="screen prog"><h1 class="t l">Progress</h1>';
+  if (!data.checkIn) { $('app').innerHTML = html + '<p class="meta">' + esc(weekLine()) + '.</p><p class="note">Your check in is not switched on in the app yet, so there is no weight trend here. ' + MESSAGE_ADAM + '.</p>' + weeklyLinks() + '</section>'; stage(document.querySelector('#app .screen'), again); return; }
   var c = data.checkIn, wf = weightField(), tw = c.thisWeek && wf && c.thisWeek.avg[wf.id], lw = c.lastWeek && wf && c.lastWeek.avg[wf.id], rs = readings();
   var diff = tw && lw ? Math.round((num(tw) - num(lw)) * 10) / 10 : null;
   html += '<div class="hero" style="align-items:flex-start"><div><div class="big on">' + (tw ? esc(tw) : rs.length ? esc(rs[rs.length - 1].v) : '&ndash;') + '</div><p class="meta">' + (tw ? 'average this week' : rs.length ? 'last weigh-in' : 'no weigh-ins yet') + '</p></div>' +
@@ -1799,9 +1809,15 @@ function renderProgress() {
     (data.roadmap && data.roadmap.phase ? '<div class="row wide"><b>Phase</b><div class="n">' + esc(cap(data.roadmap.phase)) + '<small>' + esc([data.roadmap.month ? cap(data.roadmap.month) : '', data.roadmap.calories ? cap(data.roadmap.calories) : '', 'week ' + data.week + (data.roadmap.totalWeeks ? ' of ' + data.roadmap.totalWeeks : '')].filter(Boolean).join(', ')) + '</small></div></div>' : '') + '</div>';
   html += averagesList();
   $('app').innerHTML = html + '<p class="sync" id="sync"></p></section>';
+  stage(document.querySelector('#app .screen'), again);
   renderSync();
 }
 function cap(s) { s = String(s).toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
+function stage(sec, again) { // number the blocks so .seq-i rises them in turn; .entries is a container, its children take the numbers
+  var i = 0, mark = function (el) { el.classList.add('seq-i'); el.style.setProperty('--i', i++); };
+  Array.prototype.forEach.call(sec.children, function (el) { if (el.classList.contains('entries')) Array.prototype.forEach.call(el.children, mark); else mark(el); });
+  if (again) { sec.classList.add('again'); sec.style.setProperty('--since', '-9999ms'); } // same screen re-rendered under the reader: a still
+}
 function averagesList() {
   var c = data.checkIn, tw = [], lw = [];
   function row(f, v, on) { return '<div class="row"><span class="l">' + esc(f.label) + '</span><span class="v' + (v ? (on ? ' on' : '') : ' empty') + '">' + (v ? esc(fmtNum(v)) + '<small>' + esc(f.unit || (f.kind === 'scale' ? 'of 5' : '')) + '</small>' : 'none yet') + '</span></div>'; }
