@@ -299,10 +299,13 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lines .focus b { color: var(--accent); font-weight: var(--w-bold); }
 .lines .streak { font-size: var(--fs-14); color: var(--ink-muted); letter-spacing: 0; margin-top: var(--s-3); }
 .sechead.first { margin-top: var(--s-2); }
-.tlist { animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-hero); } /* the card arrives with its first row: never an empty box while the rows wait */
+/* Target rows as cards, the Workout session-card look Adam liked: a card each, a hit one outlined in emerald with the pool glow from the left */
+.tlist { display: grid; gap: var(--s-2); background: none; border-radius: 0; overflow: visible; animation: appear var(--t-screen) var(--ease) both; animation-delay: var(--t-hero); }
+.trow.hit { box-shadow: 0 0 0 1px var(--accent); }
+.trow.hit::before { content: ""; position: absolute; z-index: 0; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 12% 50%, rgba(var(--ember), .26) 0%, rgba(var(--ember), .08) 42%, transparent 70%); }
+.trow > * { position: relative; z-index: 1; }
 @keyframes appear { from { opacity: 0; } }
-.trow { display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-2) var(--s-4); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
-.trow + .trow { border-top: 1px solid var(--line); }
+.trow { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap); padding: var(--s-3) var(--s-4); border-radius: var(--r-card); background: var(--surface); text-align: left; animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--t-hero) + var(--i) * var(--t-micro) / 2); }
 .trow:active { background: var(--surface-2); transform: none; }
 .trow .tl { flex: 1; min-width: 0; }
 .trow .tl span { display: block; font-size: var(--fs-14); color: var(--ink-muted); line-height: var(--lh-tight); }
@@ -949,7 +952,7 @@ function renderToday() {
     (tl.rows.length ? '<p class="focus" style="--i:1">' + (tl.focus.length ? 'Focus today: <b>' + esc(joinAnd(tl.focus)) + '</b>.' : 'All hit today.') + '</p>' : '') +
     '<p class="streak" style="--i:2">' + esc(streakLine(st)) + '</p></div></div>';
   if (tl.rows.length) html += '<div class="sechead first"><b>This week\'s targets</b></div><div class="list tlist">' + tl.rows.map(function (r, i) {
-    return '<button class="trow" data-go="' + r.go + '" style="--i:' + i + '" aria-label="' + esc(r.name + ', ' + r.text + ', ' + (r.hit ? 'hit' : 'not yet')) + '"><span class="tl"><span>' + esc(r.name) + '</span><b>' + esc(r.text) + '</b></span>' +
+    return '<button class="trow' + (r.hit ? ' hit' : '') + '" data-go="' + r.go + '" style="--i:' + i + '" aria-label="' + esc(r.name + ', ' + r.text + ', ' + (r.hit ? 'hit' : 'not yet')) + '"><span class="tl"><span>' + esc(r.name) + '</span><b>' + esc(r.text) + '</b></span>' +
       '<i class="tick' + (r.hit ? '' : ' off') + '">' + icon('check') + '</i>' + icon('chev').replace('<svg', '<svg aria-hidden="true"') + '</button>';
   }).join('') + '</div>';
   if (!t) html += '<p class="note warn">' + esc(shortDate(today)) + ' is not in your Check In tab yet. ' + MESSAGE_ADAM + '.</p>';
@@ -1416,7 +1419,9 @@ function trimNum(v) { var n = parseFloat(v); return isNaN(n) ? String(v) : Strin
 function mmss(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
 function filled(v) { return String(v == null ? '' : v).trim() !== ''; }
 function lastSet(p, i) { return p && /\d/.test(p.kg[i]) && /\d/.test(p.reps[i]) ? { kg: p.kg[i], reps: p.reps[i] } : null; }
-function setTarget(x, p, i) { var r = parseRanges(x.reps, setCount(x)); return targetFor(lastSet(p, i), r && r[i]); }
+// PHASE TWO: the progression rule (parseRanges and targetFor, tested in Logic.js) is switched off until Adam has researched the
+// volume and effective-rep formulas he wants behind it. Until then the row shows last week's set and Log copies it on one tap.
+function setTarget(x, p, i) { return null; }
 // A set is done when both numbers are in, or when Log marked it (the draft's doneSets).
 function setDone(d, i) { return (filled(d.kg[i]) && filled(d.reps[i])) || (d.doneSets || []).indexOf(i) > -1; }
 var exUi = { name: '', cur: null }; // the set on stage: the row the client tapped, else the first set not done
