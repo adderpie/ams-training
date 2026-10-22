@@ -1990,7 +1990,7 @@ function renderPhotos() {
     '<label class="pick">' + icon('plus') + '<span>Add photos</span><input type="file" id="photoIn" accept="image/*" multiple></label>' +
     (photos.length ? '<p class="meta" style="margin-top:var(--s-2)">Keep this screen open until each photo says Uploaded.</p>' : '') +
     '<div class="thumbs">' + photos.map(function (x, i) {
-      return '<figure><img src="' + x.url + '" alt="Photo ' + (i + 1) + '"><figcaption>' + (x.status === 'failed' ? '<button class="chip skip" data-retry="' + i + '">Try again</button>' : esc(x.label)) + '</figcaption></figure>';
+      return '<figure><img src="' + x.url + '" alt="Photo ' + (i + 1) + '"><figcaption>' + esc(x.label) + (x.status === 'failed' ? '<br><button class="chip skip" data-retry="' + i + '">Try again</button>' : '') + '</figcaption></figure>';
     }).join('') + '</div></section>';
   $('photoIn').onchange = function () { Array.prototype.forEach.call(this.files, addPhoto); this.value = ''; };
 }
