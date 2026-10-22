@@ -174,6 +174,7 @@ h1.t.l { font-size: var(--fs-32); }
 .meta { font-size: var(--fs-14); color: var(--ink-muted); margin: 0; }
 .meta b { color: var(--ink); font-weight: var(--w-bold); }
 .sec { font-size: var(--fs-14); font-weight: var(--w-bold); margin: var(--s-5) 0 var(--s-2); }
+.sec span { font-weight: var(--w-regular); color: var(--ink-muted); margin-left: 8px; }
 .big { font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); line-height: 1; }
 .big small, .n small { font-size: var(--fs-14); font-weight: var(--w-regular); color: var(--ink-muted); letter-spacing: 0; margin-left: 4px; }
 .on { color: var(--accent); }
@@ -195,7 +196,7 @@ h1.t.l { font-size: var(--fs-32); }
 .btn.strong { background: var(--accent-strong); color: var(--on-accent-strong); box-shadow: var(--glow-soft); }
 .btn.strong:active { box-shadow: var(--glow); }
 .btn.quiet { background: var(--surface); color: var(--ink-muted); }
-.btn.coach { background: var(--coach); color: var(--on-coach); }
+.btn.warm { background: var(--coach); color: var(--on-coach); } /* not .coach: that is the note card, whose padding and text size pushed this button's label off centre */
 .btn:disabled { opacity: .5; cursor: default; transform: none; }
 .btn.auto { width: auto; padding: 0 20px; height: 44px; }
 /* save button states: idle, saving (bar sweeps), saved (tick draws), failed (shake). One element morphs, nothing jumps. */
@@ -335,7 +336,10 @@ button.row:active { background: var(--surface-2); transform: none; }
 .again .pool { animation-delay: var(--since); }
 .again .logo-icon { animation-delay: calc(var(--t-screen) + var(--since)), calc(var(--t-hero) * 2 + var(--since)), calc(var(--t-hero) * 6 + var(--since)); }
 .again .logo-heat { animation-delay: calc(var(--t-hero) + var(--since)); }
-@media (prefers-reduced-motion: reduce) { .again, .again * { animation-delay: var(--since) !important; } } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
+@media (prefers-reduced-motion: reduce) { .again, .again * { animation-delay: var(--since) !important; } }
+.ci .tlist { animation-delay: 0s; } /* Check in has no hero: the cards come in one after the other from the start, the deadline last */
+.ci .trow { animation-delay: calc(var(--i, 0) * var(--t-micro)); }
+.ci .pcard { animation: rise var(--t-screen) var(--ease) both; animation-delay: calc(var(--i, 3) * var(--t-micro)); } /* the global 0ms delay would restart every 0.01ms animation from its first frame: a one-frame blink per tap */
 
 /* ---------- week strip ---------- */
 .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: var(--s-3); }
@@ -1564,7 +1568,7 @@ function renderOv() {
     var p = prevOf(x);
     html += '<li class="item' + (isDone ? ' is-done' : isSkip ? ' is-skipped' : isCur ? ' is-current' : '') + '">' +
       '<i class="tick' + (isDone ? '' : ' off') + '">' + icon('check') + '</i><span class="info"><b>' + esc(name) + '</b><span>' +
-      esc(x.sets) + ' x ' + esc(x.reps) + (isDone ? (hasNums(sess.drafts[name] || { kg: [], reps: [] }) ? ', logged' : ', completed, no sets logged') : isSkip ? ', skipped' : p ? ', last week ' + p.week : '') + '</span></span>' +
+      (isDone && !hasNums(sess.drafts[name] || { kg: [], reps: [] }) ? 'Completed, no sets logged' : esc(x.sets) + ' x ' + esc(x.reps) + (isDone ? ', logged' : isSkip ? ', skipped' : p ? ', last week ' + p.week : '')) + '</span></span>' +
       (isSkip ? '<button class="chip go" data-act="unskip" data-n="' + esc(name) + '">Undo skip</button>'
         : isDone ? '<button class="chip" data-act="edit" data-n="' + esc(name) + '">Edit</button>'
         : '<button class="chip go" data-act="go" data-n="' + esc(name) + '">' + (isCur ? 'Resume' : 'Do now') + '</button><button class="chip skip" data-act="skip" data-n="' + esc(name) + '">Skip</button>') + '</li>';
@@ -1739,12 +1743,18 @@ function renderShop() {
     }).join('') + '</div><div style="margin-top:var(--s-3)"><button class="btn strong"' + (total ? '' : ' disabled') + ' data-act="shop-make">' + (total ? 'Make my list for ' + total + (total === 1 ? ' day' : ' days') : 'Pick at least one day') + '</button></div></section>';
     return;
   }
-  var items = shopItems(), left = items.filter(function (x, i) { return !st.got[i]; }).length;
-  var what = plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return p.tab + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', ');
-  $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', what + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'), 'meals', '<button class="pill" data-act="shop-change">Change</button>') +
+  var items = shopItems();
+  $('app').innerHTML = '<section class="screen">' + topBar('Shopping list', shopSub(st, items), 'meals', '<button class="pill" data-act="shop-change">Change</button>') +
     '<ul class="shop">' + items.map(function (x, i) { return '<li class="' + (st.got[i] ? 'got' : '') + '"><button data-shop="' + i + '" aria-pressed="' + !!st.got[i] + '"><i class="tick' + (st.got[i] ? '' : ' off') + '">' + icon('check') + '</i><b>' + esc(x.food) + '</b><span>' + esc(x.text) + '</span></button></li>'; }).join('') + '</ul><p class="meta" style="margin-top:var(--s-3)">Amounts are rounded up so you do not run short.</p></section>';
 }
-function shopTick(i) { var st = shopState(); st.got[i] = !st.got[i]; saveShopState(); renderShop(); }
+function shopWhat(st) { return plan.plans.filter(function (p) { return st.days[p.tab]; }).map(function (p) { return p.tab + ' x ' + st.days[p.tab] + (st.days[p.tab] === 1 ? ' day' : ' days'); }).join(', '); }
+function shopSub(st, items) { var left = items.filter(function (x, i) { return !st.got[i]; }).length; return shopWhat(st) + '. ' + (left ? left + ' of ' + items.length + ' left.' : 'All in the basket.'); }
+function shopTick(i) { // in place: a re-render would blink the whole screen
+  var st = shopState(); st.got[i] = !st.got[i]; saveShopState();
+  var b = document.querySelector('#app [data-shop="' + i + '"]'); if (!b) return renderShop();
+  b.closest('li').classList.toggle('got', !!st.got[i]); b.setAttribute('aria-pressed', String(!!st.got[i])); b.querySelector('.tick').classList.toggle('off', !st.got[i]);
+  var sub = document.querySelector('#app .top .title span'); if (sub) sub.textContent = shopSub(st, shopItems());
+}
 
 /* ---------- Progress ---------- */
 function readings() { var wf = weightField(), out = []; if (!wf) return out; data.checkIn.days.forEach(function (d) { var v = parseFloat(String(d.values[wf.id] || '').replace(/,/g, '')); if (v > 0 && d.date <= localIso()) out.push({ date: d.date, v: v }); }); return out; }
@@ -1793,32 +1803,35 @@ function renderProgress() {
 }
 function cap(s) { s = String(s).toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
 function averagesList() {
-  var c = data.checkIn, rows = [];
+  var c = data.checkIn, tw = [], lw = [];
+  function row(f, v, on) { return '<div class="row"><span class="l">' + esc(f.label) + '</span><span class="v' + (v ? (on ? ' on' : '') : ' empty') + '">' + (v ? esc(fmtNum(v)) + '<small>' + esc(f.unit || (f.kind === 'scale' ? 'of 5' : '')) + '</small>' : 'none yet') + '</span></div>'; }
   c.fields.forEach(function (f) {
     if (f.kind === 'weight' || f.kind === 'readonly' || f.kind === 'training' || f.kind === 'toggle' || f.kind === 'text' || f.kind === 'habits') return;
-    var tw = c.thisWeek && c.thisWeek.avg[f.id], lw = c.lastWeek && c.lastWeek.avg[f.id]; if (!tw && !lw) return;
-    rows.push('<div class="row"><span class="l">' + esc(f.label) + '<span>' + (lw ? 'week ' + c.lastWeek.week + ': ' + esc(fmtNum(lw)) : 'no last week') + '</span></span><span class="v' + (tw ? ' on' : ' empty') + '">' + (tw ? esc(fmtNum(tw)) + '<small>' + esc(f.unit || (f.kind === 'scale' ? 'of 5' : '')) + '</small>' : 'none yet') + '</span></div>');
+    var a = c.thisWeek && c.thisWeek.avg[f.id], b = c.lastWeek && c.lastWeek.avg[f.id]; if (!a && !b) return;
+    tw.push(row(f, a, true)); if (b) lw.push(row(f, b, false));
   });
-  return rows.length ? '<h2 class="sec">This week\'s averages</h2><div class="list">' + rows.join('') + '</div>' : '';
+  if (!tw.length) return '';
+  return '<h2 class="sec">This week\'s averages</h2><div class="list">' + tw.join('') + '</div>' +
+    (lw.length ? '<h2 class="sec">Last week\'s averages<span>week ' + c.lastWeek.week + '</span></h2><div class="list">' + lw.join('') + '</div>' : '');
 }
 /* ---------- Check in tab (phase one): the form link with a manual tick, measurements and photos ticking themselves, the deadline ---------- */
-function ciCard(go, title, sub, done, href) {
+function ciCard(i, go, title, sub, done, href) {
   var tick = '<i class="tick' + (done ? '' : ' off') + '">' + icon('check') + '</i>', chev = icon('chev').replace('<svg', '<svg aria-hidden="true"');
-  if (href) return '<div class="trow' + (done ? ' hit' : '') + '"><a class="tl" href="' + esc(href) + '" target="_blank" rel="noopener"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></a>' +
+  if (href) return '<div class="trow' + (done ? ' hit' : '') + '" style="--i:' + i + '"><a class="tl" href="' + esc(href) + '" target="_blank" rel="noopener"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></a>' +
     '<button class="cit" data-cisent="1" role="switch" aria-checked="' + !!done + '" aria-label="Mark the check-in form as sent">' + tick + '</button></div>';
-  return '<button class="trow' + (done ? ' hit' : '') + '" data-go="' + go + '" aria-label="' + esc(title + ', ' + sub) + '"><span class="tl"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></span>' + tick + chev + '</button>';
+  return '<button class="trow' + (done ? ' hit' : '') + '" data-go="' + go + '" style="--i:' + i + '" aria-label="' + esc(title + ', ' + sub) + '"><span class="tl"><span>' + esc(title) + '</span><b>' + esc(sub) + '</b></span>' + tick + chev + '</button>';
 }
 function renderCheckin() {
   var ft = data.features || {}, m = data.measurements, wk = data.week, url = data.checkInForm || '';
   var sent = load('cw:wsent:' + wk, false), mDone = !!(ft.measure && m && m.thisWeek && m.fields.some(function (x) { return m.thisWeek.values[x.id]; }));
   var pDone = !!(data.photosDone || load('cw:photos:' + wk, false)), n = [url ? sent : null, ft.measure ? mDone : null, ft.photos ? pDone : null].filter(function (v) { return v !== null; });
   var done = n.filter(Boolean).length;
-  var html = '<section class="screen"><h1 class="t l">Check in</h1><p class="meta">Week ' + wk + '. ' + (n.length ? (done === n.length ? 'All in. Nice one.' : done + ' of ' + n.length + ' done.') : '') + (url && !sent ? ' Tap the tick on the form once it is sent.' : '') + '</p>';
+  var html = '<section class="screen ci"><h1 class="t l">Check in</h1><p class="meta">Week ' + wk + '. ' + (n.length ? (done === n.length ? 'All in. Nice one.' : done + ' of ' + n.length + ' done.') : '') + (url && !sent ? ' Tap the tick on the form once it is sent.' : '') + '</p>';
   html += '<div class="tlist">' +
-    (url ? ciCard('', 'Check-in form', sent ? 'Sent, week ' + wk : 'Open the form', sent, url) : '<div class="trow"><span class="tl"><span>Check-in form</span><b>Not linked yet. ' + MESSAGE_ADAM + '.</b></span></div>') +
-    (ft.measure ? ciCard('measure', 'Measurements', mDone ? 'Week ' + wk + ' logged' : 'Six measurements', mDone) : '') +
-    (ft.photos ? ciCard('photos', 'Progress photos', pDone ? 'Week ' + wk + ' uploaded' : 'Front, side and back', pDone) : '') + '</div>';
-  html += '<div class="pcard" style="margin-top:var(--s-5)"><div class="hd"><div><span class="tag">Deadline</span><b>Sunday, 12 noon</b></div></div>' +
+    (url ? ciCard(0, '', 'Check-in form', sent ? 'Sent, week ' + wk : 'Open the form', sent, url) : '<div class="trow" style="--i:0"><span class="tl"><span>Check-in form</span><b>Not linked yet. ' + MESSAGE_ADAM + '.</b></span></div>') +
+    (ft.measure ? ciCard(1, 'measure', 'Measurements', mDone ? 'Week ' + wk + ' logged' : 'Six measurements', mDone) : '') +
+    (ft.photos ? ciCard(2, 'photos', 'Progress photos', pDone ? 'Week ' + wk + ' uploaded' : 'Front, side and back', pDone) : '') + '</div>';
+  html += '<div class="pcard" style="--i:3;margin-top:var(--s-5)"><div class="hd"><div><span class="tag">Deadline</span><b>Sunday, 12 noon</b></div></div>' +
     '<p class="dl">Send your check in any time from Friday. Anything in by Sunday midday is guaranteed a place in Adam\'s Sunday review. Later than that and it may wait until the following week.</p></div>';
   $('app').innerHTML = html + '<p class="sync" id="sync"></p></section>'; renderSync();
 }
@@ -2039,11 +2052,11 @@ $('doneBtn').onclick = function () {
   }
   var any = d.kg.concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
   var now = Date.now(); if (!sess.startedAt) sess.startedAt = now; sess.lastAt = now; // typed-then-Complete still counts for duration and "done today"
-  sess.done.push(n); if (!any) d.comment = 'Done'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
+  sess.done.push(n); if (!any) d.comment = 'Completed, no sets logged'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
 };
 function confirmSheet(o) { // a bottom sheet with one question and two answers; the quiet one closes it
   var el = document.createElement('div'); el.className = 'confirm'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
-  el.innerHTML = '<div class="box"><b>' + esc(o.title) + '</b><p>' + esc(o.text) + '</p><button class="btn quiet" data-c="no">' + esc(o.cancel) + '</button><button class="btn coach" data-c="ok">' + esc(o.ok) + '</button></div>';
+  el.innerHTML = '<div class="box"><b>' + esc(o.title) + '</b><p>' + esc(o.text) + '</p><button class="btn quiet" data-c="no">' + esc(o.cancel) + '</button><button class="btn warm" data-c="ok">' + esc(o.ok) + '</button></div>';
   document.body.appendChild(el);
   el.addEventListener('click', function (e) { var b = e.target.closest('[data-c]'); if (!b && e.target !== el) return; el.remove(); if (b && b.dataset.c === 'ok' && o.onOk) o.onOk(); });
 }
