@@ -480,6 +480,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow .ok i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--line); color: var(--on-accent-strong); transition: background-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
 .lrow .ok svg { width: 18px; height: 18px; stroke-width: 3; opacity: 0; }
 .lrow .log { grid-area: log; display: none; }
+.lrow .use { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink); font-size: var(--fs-12); font-weight: var(--w-bold); }
 .lrow .edit { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); }
 .lrow.done { box-shadow: inset 3px 0 0 var(--accent-strong); cursor: pointer; }
 .lrow.done .no { color: var(--accent); }
@@ -495,7 +496,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow.cur .ok { display: none; }
 .lrow.cur input { height: 88px; padding: 0 var(--s-2) var(--s-4); text-align: center; font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); border-radius: var(--r-card); box-shadow: var(--elev-1); }
 .lrow.cur .box.reps input { padding-right: var(--s-2); }
-.lrow.cur input::placeholder { color: var(--ink-faint); font-weight: var(--w-bold); }
+.lrow.cur input::placeholder { color: var(--ink-faint); font-weight: var(--w-regular); font-size: var(--fs-24); } /* a ghost, not a logged number */
 .lrow.cur input:focus { box-shadow: 0 0 0 2px var(--focus), var(--glow-soft); }
 .lrow.cur .unit { top: auto; bottom: var(--s-2); left: 0; right: 0; transform: none; text-align: center; font-weight: var(--w-bold); }
 .lrow.cur .tgt { justify-content: center; text-align: center; font-size: var(--fs-16); }
@@ -1385,7 +1386,7 @@ function sessionList() {
   return '<ul class="days">' + data.days.map(function (d, i) {
     var s = load(sessKey(d.name), null), n = d.exercises.length;
     var names = d.exercises.map(function (x) { return x.name; });
-    var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1); }).length;
+    var doneN = d.exercises.filter(function (x) { return hasNums(x.history[data.week]) || (s && s.done.indexOf(x.name) > -1 && hasNums(s.drafts[x.name])); }).length; // numbers in the sheet or in the draft: a Complete with no sets is not logged
     var skipped = s ? s.skipped.filter(function (nm) { return names.indexOf(nm) > -1; }).length : 0;
     var finished = dayDone(d), isNext = d === nextDay; // every exercise logged or skipped: the session is done, the tick says so
     var last = 0; d.exercises.forEach(function (x) { var p = prevOf(x); if (p && p.week > last) last = p.week; });
@@ -1459,10 +1460,9 @@ function curSet(x, d) {
 function toLog(x, p, d, i) { // what Log writes, as a whole set: the typed numbers (one box typed: nothing to log yet), else the target, else last week's set
   var k = filled(d.kg[i]), r = filled(d.reps[i]);
   if (k || r) return { kg: k ? String(d.kg[i]).trim() : '', reps: r ? String(d.reps[i]).trim() : '' };
-  var f = setTarget(x, p, i) || lastSet(p, i);
-  return f ? { kg: trimNum(f.kg), reps: trimNum(f.reps) } : { kg: '', reps: '' };
+  return { kg: '', reps: '' }; // nothing typed: nothing to log. Last week's set is a ghost and a Copy chip, never an automatic entry
 }
-function logLabel(v) { return v.kg && v.reps ? 'Log ' + trimNum(v.kg) + ' kg x ' + trimNum(v.reps) : 'Log what you did'; }
+function logLabel(v) { return v.kg && v.reps ? 'Log ' + trimNum(v.kg) + ' kg x ' + trimNum(v.reps) : 'Enter kg and reps'; }
 function doneCount(x, d, cur) { var c = 0; for (var i = 0; i < setCount(x); i++) if (i !== cur && setDone(d, i)) c++; return c + ' of ' + setCount(x) + ' done'; }
 function setRow(x, p, d, i, cur) {
   var isCur = i === cur, done = !isCur && setDone(d, i), l = lastSet(p, i), t = setTarget(x, p, i), ph = phaseNow();
@@ -1477,7 +1477,7 @@ function setRow(x, p, d, i, cur) {
   return '<div class="lrow' + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
     box('kg', 'decimal', l ? trimNum(l.kg) : '') + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
     (done ? '<span class="ok" aria-hidden="true"><i>' + icon('check') + '</i></span><span class="tgt">' + line + '</span>'
-      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + '</span>' +
+      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + (isCur && l && !(v.kg && v.reps) ? '<button class="use" data-same="' + i + '">Copy last week</button>' : '') + '</span>' +
         '<button class="btn strong log" data-log="' + i + '"' + (v.kg && v.reps ? '' : ' disabled') + '>' + icon('check') + '<span>' + esc(logLabel(v)) + '</span></button>') + '</div>';
 }
 function renderEx(still) {
@@ -1560,7 +1560,7 @@ function renderOv() {
     var p = prevOf(x);
     html += '<li class="item' + (isDone ? ' is-done' : isSkip ? ' is-skipped' : isCur ? ' is-current' : '') + '">' +
       '<i class="tick' + (isDone ? '' : ' off') + '">' + icon('check') + '</i><span class="info"><b>' + esc(name) + '</b><span>' +
-      esc(x.sets) + ' x ' + esc(x.reps) + (isDone ? ', logged' : isSkip ? ', skipped' : p ? ', last week ' + p.week : '') + '</span></span>' +
+      esc(x.sets) + ' x ' + esc(x.reps) + (isDone ? (hasNums(sess.drafts[name] || { kg: [], reps: [] }) ? ', logged' : ', completed, no sets logged') : isSkip ? ', skipped' : p ? ', last week ' + p.week : '') + '</span></span>' +
       (isSkip ? '<button class="chip go" data-act="unskip" data-n="' + esc(name) + '">Undo skip</button>'
         : isDone ? '<button class="chip" data-act="edit" data-n="' + esc(name) + '">Edit</button>'
         : '<button class="chip go" data-act="go" data-n="' + esc(name) + '">' + (isCur ? 'Resume' : 'Do now') + '</button><button class="chip skip" data-act="skip" data-n="' + esc(name) + '">Skip</button>') + '</li>';
@@ -1585,7 +1585,7 @@ function renderFin() {
     var b = bestSet(d.kg, d.reps), w = b && p ? resultOf(bestSet(p.kg, p.reps), b, ph) : '', on = resultLit(w, ph);
     if (w === 'beat') beat++;
     if (w === 'held') held++;
-    return '<li class="' + (w === 'beat' ? 'lit' : '') + '" style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>' + (b ? esc(trimNum(b.kg)) + ' kg x ' + esc(trimNum(b.reps)) : 'Done') + '</span></span>' +
+    return '<li class="' + (w === 'beat' ? 'lit' : '') + '" style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>' + (b ? esc(trimNum(b.kg)) + ' kg x ' + esc(trimNum(b.reps)) : 'No sets logged') + '</span></span>' +
       (w ? '<i class="rchip' + (on ? ' lit' : '') + '">' + w + '</i>' : '') + '</li>';
   }).join('');
   var done = sessionsDone(), of = trainingTarget(), trained = sess.done.length > 0, n = sess.order.length;
@@ -1970,6 +1970,7 @@ document.addEventListener('click', function (e) {
   if (b.dataset.log !== undefined) return logSet(+b.dataset.log);
   if (b.dataset.tick !== undefined) return logSet(+b.dataset.tick);
   if (b.dataset.rest) return b.dataset.rest === 'skip' ? restEnd() : restNudge(+b.dataset.rest);
+  if (b.dataset.same != null) { var ce = exNow(), si = +b.dataset.same, sl = ce && lastSet(ce.p, si); if (sl) { ce.d.kg[si] = trimNum(sl.kg); ce.d.reps[si] = trimNum(sl.reps); saveSess(); reEx(); } return; }
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
   if (b.dataset.day) { view.tab = 'workout'; openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
