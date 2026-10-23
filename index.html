@@ -935,9 +935,22 @@ function weightField() { return fieldsOfKind('weight')[0]; }
 function ciDay(date) { return data.checkIn ? data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null : null; }
 function ciPrev(date, id) { var p = null; data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; }); return p; }
 function numK(s) { var m = /(\d[\d,]*(?:\.\d+)?)\s*(k)?/i.exec(String(s)); if (!m) return 0; var v = parseFloat(m[1].replace(/,/g, '')); return Math.round(m[2] ? v * 1000 : v); } // "10k /d" is 10000, "12000/d AVG" is 12000
-function targetOf(f) { // the block menu, then the sheet's own "9,942 / 10000" average (its denominator is the target), then the Cardio tab text, then the meal plan
+/* Weekday and weekend plans: a client with a plan tab named "Weekend ..." (or "(WE)") eats to that tab's targets on Saturday and
+   Sunday and to the other tab's targets Monday to Friday. Calories and macros then follow the day; the week block menu keeps the
+   weekly figure the sheet's own averages and points use. ponytail: weekend = Sat and Sun for everyone, a per-client setting if a
+   client's weekend starts on Friday. */
+function isWeekend(date) { var w = new Date(date + 'T12:00:00').getDay(); return w === 0 || w === 6; }
+function dayPlan(date) {
+  var ps = plan && plan.plans || []; if (ps.length < 2) return null;
+  var we = ps.filter(function (p) { return /weekend|\(we\)/i.test(p.tab); }), wd = ps.filter(function (p) { return we.indexOf(p) < 0; });
+  if (!we.length || !wd.length) return null;
+  var p = isWeekend(date) ? we[0] : wd[0]; return p.targets && num(p.targets.calories) ? p : null;
+}
+function targetOf(f, date) { // the day's plan (weekday or weekend tab) for food, then the block menu, then the sheet's own "9,942 / 10000" average (its denominator is the target), then the Cardio tab text, then the meal plan
   var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
   var plain = function (v) { return { n: v, text: fmtNum(v) + ' ' + f.unit + (f.weekly ? ' a week' : '') }; };
+  var dp = f.group === 'nutrition' ? dayPlan(date || localIso()) : null;
+  if (dp && num(dp.targets[f.id])) return plain(num(dp.targets[f.id]));
   if (n) return plain(n);
   var den = /\/\s*(\d[\d,]*(?:\.\d+)?\s*k?)\s*$/i.exec(String((c.thisWeek && c.thisWeek.avg[f.id]) || (c.lastWeek && c.lastWeek.avg[f.id]) || ''));
   if (den && numK(den[1])) return plain(numK(den[1]));
@@ -1065,10 +1078,11 @@ function todayLines(today) {
   var DAILY = { calories: ['Calories', 'kcal'], protein: ['Protein', 'g'], steps: ['Steps', 'steps'] };
   var rows = [], well = [], unlogged = [], under = [], behind = [], hits = 0, daily = 0;
   Object.keys(DAILY).forEach(function (id) {
-    var f = fieldById(id), tg = f && targetOf(f); if (!tg || !tg.n) return;
-    var hit = function (d) { // a deficit is hit at or under target, a surplus at or over, anything else within 5 percent; protein and steps at or over
+    var f = fieldById(id), tg = f && targetOf(f, today); if (!tg || !tg.n) return;
+    var hit = function (d) { // a deficit is hit at or under target, a surplus at or over, anything else within 5 percent; protein and steps at or over. Each day against its own target (weekday or weekend plan)
       var v = d ? num(d.values[id]) : 0; if (!(v > 0)) return false;
-      return id !== 'calories' ? v >= tg.n : dir === 'DEFICIT' ? v <= tg.n : dir === 'SURPLUS' ? v >= tg.n : Math.abs(v - tg.n) <= tg.n * 0.05;
+      var n = targetOf(f, d.date).n;
+      return id !== 'calories' ? v >= n : dir === 'DEFICIT' ? v <= n : dir === 'SURPLUS' ? v >= n : Math.abs(v - n) <= n * 0.05;
     };
     var logged = !!t && num(t.values[id]) > 0, now = hit(t), so = past.concat(logged ? [t] : []), h = so.filter(hit).length; // an unlogged today is not a missed day
     daily++; if (now) hits++;
@@ -1199,8 +1213,8 @@ function statCells(t) {
     var v = t ? t.values[f.id] || '' : '', tg;
     if (f.group) {
       var g = groupFields(f.group), cal = g.filter(function (x) { return x.id === 'calories'; })[0] || g[0], pro = g.filter(function (x) { return x.id === 'protein'; })[0];
-      cells.push(cell(cal.label, t && t.values[cal.id], cal.unit, targetOf(cal)));
-      if (pro) cells.push(cell(pro.label, t && t.values[pro.id], pro.unit, targetOf(pro)));
+      cells.push(cell(cal.label, t && t.values[cal.id], cal.unit, targetOf(cal, t && t.date)));
+      if (pro) cells.push(cell(pro.label, t && t.values[pro.id], pro.unit, targetOf(pro, t && t.date)));
       return;
     }
     if (f.kind === 'habits') {
@@ -1300,7 +1314,7 @@ function renderLog() {
     moveFields.map(function (f) { return numberField(f, day); }).join(''), moveFields.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
   var groups = []; data.checkIn.fields.forEach(function (f) { if (f.group && groups.indexOf(f.group) < 0) groups.push(f.group); });
   groups.forEach(function (g) {
-    var gf = groupFields(g), tg = targetOf(gf[0]);
+    var gf = groupFields(g), tg = targetOf(gf[0], day.date);
     html += sec('var(--coach)', 'meal', 'Food', tg ? 'Totals from your food app, target ' + tg.text : 'Totals from your food app',
       '<div class="grid2">' + gf.map(function (f) { return numberField(f, day, true); }).join('') + '</div>', gf.every(function (f) { return day.values[f.id]; }) ? 'Logged' : '');
   });
@@ -1322,7 +1336,7 @@ function renderLog() {
   renderSync();
 }
 function numberField(f, day, compact) {
-  var tg = targetOf(f), v = day.values[f.id] || '', hint = f.weekly ? fmtNum(weekTotal(f)) + ' ' + f.unit + ' so far this week' + (tg ? ', target ' + tg.text : '') : tg ? 'Target ' + tg.text : '';
+  var tg = targetOf(f, day.date), v = day.values[f.id] || '', hint = f.weekly ? fmtNum(weekTotal(f)) + ' ' + f.unit + ' so far this week' + (tg ? ', target ' + tg.text : '') : tg ? 'Target ' + tg.text : '';
   return '<label class="field"><span>' + esc(f.label) + '</span><div class="box"><input data-entry="' + f.id + '" inputmode="numeric" enterkeyhint="next" autocomplete="off" value="' + esc(v) + '" placeholder="' + esc(tg && tg.n ? fmtNum(tg.n) + (compact ? '' : ' target') : '0') + '" aria-label="' + esc(f.label + ' in ' + f.unit) + '"><span class="unit">' + esc(f.unit) + '</span></div>' + (hint && !compact ? '<small>' + esc(hint) + '</small>' : '') + '</label>';
 }
 function weekStrip(today) {
@@ -1706,7 +1720,7 @@ function loadPlan() {
     else if (view.screen === 'today' && data.checkIn && JSON.stringify(plan.targets || {}) !== was) renderToday(); // calories and protein rows need plan targets; a re-render carries the cascade on (.again)
   }, function () {});
 }
-function planTargets() { var mp = plan && plan.plans && plan.plans[0]; return (mp && mp.targets) || (plan && plan.targets) || {}; }
+function planTargets() { var mp = dayPlan(localIso()) || (plan && plan.plans && plan.plans[0]); return (mp && mp.targets) || (plan && plan.targets) || {}; } // today's plan: the weekend tab at the weekend
 function num0(v) { return Math.round(num(v)); }
 function mealKcal(m) { return m.totals ? num0(m.totals.calories) : m.foods.reduce(function (n, f) { return n + num(f.calories); }, 0); }
 function planKcal(p) { return p.meals.reduce(function (n, m) { return n + mealKcal(m); }, 0); }
