@@ -934,10 +934,14 @@ function groupFields(g) { return data.checkIn.fields.filter(function (f) { retur
 function weightField() { return fieldsOfKind('weight')[0]; }
 function ciDay(date) { return data.checkIn ? data.checkIn.days.filter(function (d) { return d.date === date; })[0] || null : null; }
 function ciPrev(date, id) { var p = null; data.checkIn.days.forEach(function (d) { var v = parseFloat(d.values[id]); if (d.date < date && v > 0) p = v; }); return p; }
-function targetOf(f) { // the block menu, then the Cardio tab text, then the meal plan
+function numK(s) { var m = /(\d[\d,]*(?:\.\d+)?)\s*(k)?/i.exec(String(s)); if (!m) return 0; var v = parseFloat(m[1].replace(/,/g, '')); return Math.round(m[2] ? v * 1000 : v); } // "10k /d" is 10000, "12000/d AVG" is 12000
+function targetOf(f) { // the block menu, then the sheet's own "9,942 / 10000" average (its denominator is the target), then the Cardio tab text, then the meal plan
   var c = data.checkIn, n = c.thisWeek && c.thisWeek.targets && c.thisWeek.targets[f.id], txt = c.targetText && c.targetText[f.id];
-  if (n) return { n: n, text: fmtNum(n) + ' ' + f.unit + (f.weekly ? ' a week' : '') };
-  if (txt) return { n: parseInt(String(txt).replace(/,/g, ''), 10) || 0, text: txt };
+  var plain = function (v) { return { n: v, text: fmtNum(v) + ' ' + f.unit + (f.weekly ? ' a week' : '') }; };
+  if (n) return plain(n);
+  var den = /\/\s*(\d[\d,]*(?:\.\d+)?\s*k?)\s*$/i.exec(String((c.thisWeek && c.thisWeek.avg[f.id]) || (c.lastWeek && c.lastWeek.avg[f.id]) || ''));
+  if (den && numK(den[1])) return plain(numK(den[1]));
+  if (txt) return { n: numK(txt), text: txt };
   var pt = plan && plan.targets && plan.targets[f.id];
   return pt ? { n: pt, text: fmtNum(pt) + ' ' + f.unit } : null;
 }
