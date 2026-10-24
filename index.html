@@ -524,7 +524,9 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow > * { position: relative; z-index: 1; }
 .lrow .no { grid-area: no; font-weight: var(--w-bold); color: var(--ink-muted); }
 .lrow .box { position: relative; display: block; min-width: 0; }
-.lrow .box.kg { grid-area: kg; } .lrow .box.reps { grid-area: reps; }
+.lrow .box.kg { grid-area: kg; } .lrow .box.reps { grid-area: reps; } .lrow .box.lb { grid-area: lb; }
+.lrow.plus { grid-template-columns: 20px 5fr 4fr 4fr var(--tap); grid-template-areas: "no kg lb reps ok" "no tgt tgt tgt ok"; } /* plusLb clients: kg pin + lb dial */
+.lrow.plus input { padding-right: 26px; font-size: var(--fs-16); } .lrow.plus .box.reps input { padding-right: 36px; }
 .lrow input { width: 100%; height: var(--tap); padding: 0 32px 0 10px; text-align: right; font-size: var(--fs-20); font-weight: var(--w-bold); border-radius: var(--r-chip); border: 0; background: var(--canvas); color: var(--ink); caret-color: var(--accent);
   transition: height var(--t-micro) var(--ease), font-size var(--t-micro) var(--ease), background-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
 .lrow input::placeholder { color: var(--ink-muted); font-weight: var(--w-regular); }
@@ -553,6 +555,8 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow.cur .ok { display: none; }
 .lrow.cur input { height: 88px; padding: 0 var(--s-2) var(--s-4); text-align: center; font-size: var(--fs-44); font-weight: var(--w-black); letter-spacing: var(--track-tight); border-radius: var(--r-card); box-shadow: var(--elev-1); }
 .lrow.cur .box.reps input { padding-right: var(--s-2); }
+.lrow.cur.plus { grid-template-columns: 20px 3fr 2fr 2fr; grid-template-areas: "no kg lb reps" "tgt tgt tgt tgt" "log log log log"; }
+.lrow.cur.plus input { padding: 0 var(--s-1) var(--s-4); font-size: var(--fs-32); } .lrow.cur.plus .box.reps input { padding-right: var(--s-1); }
 .lrow.cur input::placeholder { color: var(--ink-faint); font-weight: var(--w-regular); font-size: var(--fs-24); } /* a ghost, not a logged number */
 .lrow.cur input:focus { box-shadow: 0 0 0 2px var(--focus), var(--glow-soft); }
 .lrow.cur .unit { top: auto; bottom: var(--s-2); left: 0; right: 0; transform: none; text-align: center; font-weight: var(--w-bold); }
@@ -1532,9 +1536,12 @@ function resultOf(last, logged, phase) {
   if (!last || !logged) return '';
   var lk = parseFloat(last.kg), lr = parseFloat(last.reps), k = parseFloat(logged.kg), r = parseFloat(logged.reps);
   if (isNaN(lk) || isNaN(lr) || isNaN(k) || isNaN(r)) return '';
-  if (k > lk || (k === lk && r > lr)) return 'beat';
-  return k === lk && r === lr ? 'held' : '';
+  var lp = plusLb(last.kg), p = plusLb(logged.kg); // the lb dial only breaks a kg tie
+  if (k > lk || (k === lk && (p > lp || (p === lp && r > lr)))) return 'beat';
+  return k === lk && p === lp && r === lr ? 'held' : '';
 }
+// Pin-and-dial machines: "150+10" is the 150 kg pin plus 10 lb on the dial. The lb part, else 0.
+function plusLb(v) { var m = /\+\s*\(?\s*(\d+(?:\.\d+)?)/.exec(String(v == null ? '' : v)); return m ? +m[1] : 0; }
 // Which words are lit: a beat always, a held set only while dieting (holding strength in a deficit is a win).
 function resultLit(word, phase) { return word === 'beat' || (word === 'held' && /DIET/i.test(String(phase || ''))); }
 (function selfCheck() { // the smallest thing that fails if a copy drifts: the brief's own numbers
@@ -1543,7 +1550,7 @@ function resultLit(word, phase) { return word === 'beat' || (word === 'held' && 
   console.assert(resultOf({ kg: '100', reps: '9' }, { kg: '100', reps: '9' }) === 'held' && resultLit('held', 'DIETING') && !resultLit('held', 'LEAN BULKING'), 'workout words');
 })();
 function phaseNow() { return (data.roadmap && data.roadmap.phase) || ''; }
-function trimNum(v) { var n = parseFloat(v); return isNaN(n) ? String(v) : String(Math.round(n * 100) / 100); }
+function trimNum(v) { if (data && data.plusLb && /\+/.test(v)) return String(v).trim(); var n = parseFloat(v); return isNaN(n) ? String(v) : String(Math.round(n * 100) / 100); }
 function mmss(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
 function filled(v) { return String(v == null ? '' : v).trim() !== ''; }
 function lastSet(p, i) { return p && /\d/.test(p.kg[i]) && /\d/.test(p.reps[i]) ? { kg: p.kg[i], reps: p.reps[i] } : null; }
@@ -1563,7 +1570,9 @@ function toLog(x, p, d, i) { // what Log writes, as a whole set: the typed numbe
   if (k || r) return { kg: k ? String(d.kg[i]).trim() : '', reps: r ? String(d.reps[i]).trim() : '' };
   return { kg: '', reps: '' }; // nothing typed: nothing to log. Last week's set is a ghost and a Copy chip, never an automatic entry
 }
-function logLabel(v) { return v.kg && v.reps ? 'Log ' + trimNum(v.kg) + ' kg x ' + trimNum(v.reps) : 'Enter kg and reps'; }
+function logLabel(v) { var s = lbSplit(v.kg); return v.kg && v.reps ? 'Log ' + trimNum(s.kg) + ' kg' + (s.lb ? ' + ' + s.lb + ' lb' : '') + ' x ' + trimNum(v.reps) : 'Enter kg and reps'; }
+// Pin-and-dial machines (SHEETS plusLb): the kg box and the small lb box share one cell, "150+10", the way the client writes it in the sheet.
+function lbSplit(v) { var s = String(v == null ? '' : v), i = s.indexOf('+'); return i < 0 ? { kg: s, lb: '' } : { kg: s.slice(0, i).trim(), lb: s.slice(i + 1).replace(/[^\d.,]/g, '') }; }
 function doneCount(x, d, cur) { var c = 0; for (var i = 0; i < setCount(x); i++) if (i !== cur && setDone(d, i)) c++; return c + ' of ' + setCount(x) + ' done'; }
 function setRow(x, p, d, i, cur) {
   var isCur = i === cur, done = !isCur && setDone(d, i), l = lastSet(p, i), t = setTarget(x, p, i), ph = phaseNow();
@@ -1571,12 +1580,13 @@ function setRow(x, p, d, i, cur) {
   var line = done ? '<span>' + (word ? '<span class="word">' + word + '</span> ' : '') + (l ? 'last week\'s ' + lastTxt : 'Logged') + '</span><button class="edit" aria-label="Edit set ' + (i + 1) + '">Edit</button>'
     : t ? '<span>Beat ' + lastTxt + ': go <b>' + trimNum(t.kg) + ' x ' + trimNum(t.reps) + '</b></span>'
     : l ? '<span>Last week <b>' + lastTxt + '</b></span>' : '<span>First time, log what you do</span>';
-  var box = function (f, mode, ghost) {
-    return '<label class="box ' + f + '"><input inputmode="' + mode + '" enterkeyhint="next" data-f="' + f + '" data-i="' + i + '" value="' + esc(d[f][i]) + '" placeholder="' + esc(ghost) + '" aria-label="Set ' + (i + 1) + ' ' + f + '"' + (done ? ' readonly' : '') + '><span class="unit">' + f + '</span></label>';
+  var plus = !!data.plusLb, lv = lbSplit(d.kg[i]), ll = lbSplit(l ? l.kg : '');
+  var box = function (f, mode, ghost, val) {
+    return '<label class="box ' + f + '"><input inputmode="' + mode + '" enterkeyhint="next" data-f="' + f + '" data-i="' + i + '" value="' + esc(val != null ? val : d[f][i]) + '" placeholder="' + esc(ghost) + '" aria-label="Set ' + (i + 1) + ' ' + f + '"' + (done ? ' readonly' : '') + '><span class="unit">' + f + '</span></label>';
   };
   var v = toLog(x, p, d, i);
-  return '<div class="lrow' + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
-    box('kg', 'decimal', l ? trimNum(l.kg) : '') + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
+  return '<div class="lrow' + (plus ? ' plus' : '') + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
+    (plus ? box('kg', 'decimal', l ? ll.kg : '', lv.kg) + box('lb', 'decimal', ll.lb, lv.lb) : box('kg', 'decimal', l ? trimNum(l.kg) : '')) + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
     (done ? '<span class="ok" aria-hidden="true"><i>' + icon('check') + '</i></span><span class="tgt">' + line + '</span>'
       : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + (isCur && l && !(v.kg && v.reps) ? '<button class="use" data-same="' + i + '">Copy last week</button>' : '') + '</span>' +
         '<button class="btn strong log" data-log="' + i + '"' + (v.kg && v.reps ? '' : ' disabled') + '>' + icon('check') + '<span>' + esc(logLabel(v)) + '</span></button>') + '</div>';
@@ -2258,7 +2268,10 @@ document.addEventListener('input', function (e) {
   var f = e.target.dataset && e.target.dataset.f; if (!f || !sess || !sess.current) return;
   var d = draft(sess.current);
   var val = e.target.value; if (f === 'kg') val = val.replace(/^(\d+),(\d+)$/, '$1.$2');
-  if (f === 'comment') d.comment = val; else d[f][+e.target.dataset.i] = val;
+  if (f === 'comment') d.comment = val;
+  else if (data.plusLb && (f === 'kg' || f === 'lb')) { var pr = e.target.closest('.lrow'), pk = pr.querySelector('[data-f="kg"]').value.replace(/^(\d+),(\d+)$/, '$1.$2').trim(), pl = pr.querySelector('[data-f="lb"]').value.replace(',', '.').trim();
+    d.kg[+e.target.dataset.i] = pk ? pk + (pl ? '+' + pl : '') : ''; } // no kg, nothing to log yet
+  else d[f][+e.target.dataset.i] = val;
   saveSess();
   if (f !== 'comment') { var ex = exNow(), i = +e.target.dataset.i, btn = document.querySelector('#set' + i + ' .log'); // the Log button says what it will log, as you type
     if (ex && btn) { var v = toLog(ex.x, ex.p, ex.d, i); btn.disabled = !(v.kg && v.reps); btn.lastChild.textContent = logLabel(v); } }
