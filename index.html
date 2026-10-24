@@ -1572,7 +1572,7 @@ function toLog(x, p, d, i) { // what Log writes, as a whole set: the typed numbe
 }
 function logLabel(v) { var s = lbSplit(v.kg); return v.kg && v.reps ? 'Log ' + trimNum(s.kg) + ' kg' + (s.lb ? ' + ' + s.lb + ' lb' : '') + ' x ' + trimNum(v.reps) : 'Enter kg and reps'; }
 // Pin-and-dial machines (SHEETS plusLb): the kg box and the small lb box share one cell, "150+10", the way the client writes it in the sheet.
-function lbSplit(v) { var s = String(v == null ? '' : v), i = s.indexOf('+'); return i < 0 ? { kg: s, lb: '' } : { kg: s.slice(0, i).trim(), lb: s.slice(i + 1).replace(/[^\d.,]/g, '') }; }
+function lbSplit(v) { var s = String(v == null ? '' : v), i = s.indexOf('+'); return i < 0 ? { kg: s, lb: '' } : { kg: s.slice(0, i).trim(), lb: (/\d+(?:[.,]\d+)?/.exec(s.slice(i + 1)) || [''])[0] }; } // first number only: "+(10)", "+5lbs", "+10/115+10"
 function doneCount(x, d, cur) { var c = 0; for (var i = 0; i < setCount(x); i++) if (i !== cur && setDone(d, i)) c++; return c + ' of ' + setCount(x) + ' done'; }
 function setRow(x, p, d, i, cur) {
   var isCur = i === cur, done = !isCur && setDone(d, i), l = lastSet(p, i), t = setTarget(x, p, i), ph = phaseNow();
