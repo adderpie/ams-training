@@ -829,6 +829,7 @@ function qKey(q) {
   if (q.type === 'wc') return 'wc|' + q.week;
   return q.day + '|' + q.exercise + '|' + q.week;
 }
+function ciPending() { return queue.some(function (q) { return q.type === 'ci'; }); }
 function enqueue(p) {
   queue = queue.filter(function (q) { return qKey(q) !== qKey(p); });
   queue.push(p); store('cw:q', queue); flush();
@@ -1433,7 +1434,9 @@ function switchSave(key, dateOverride) {
 function checkInSaved(p, res) {
   if (!data || !data.checkIn) return;
   if (res.ok && res.checkIn) {
-    data.checkIn = res.checkIn; lastWrite = Date.now();
+    lastWrite = Date.now();
+    if (ciPending()) { store('cw:data', data); return; } // more taps still waiting: the phone's ticks are newer than this reply, keep them; the last reply brings the sheet's full picture
+    data.checkIn = res.checkIn;
     if (!queue.some(function (q) { return q.type === 'ci'; })) {
       if (window._saveState === 'saving') setSaveState('saved'); // only a real Save press turns the button green
       if (!window._saveMoment) milestoneCheck(streak());
@@ -2302,7 +2305,7 @@ function refresh() {
   var bootAt = Date.now();
   api.getData().then(function (fresh) {
     refreshing = false;
-    if (data && lastWrite > bootAt) { fresh.checkIn = data.checkIn; fresh.tasks = data.tasks; fresh.measurements = data.measurements; } // a save landed after this snapshot was taken
+    if (data && (lastWrite > bootAt || ciPending())) { fresh.checkIn = data.checkIn; fresh.tasks = data.tasks; fresh.measurements = data.measurements; } // a save landed after this snapshot was taken
     var first = !data; data = fresh; store('cw:data', data); fetchedOn = localIso(); fetchedAt = Date.now();
     if (data.savedTo) SAVED_TO = data.savedTo;
     if (data.title) document.title = data.title;
