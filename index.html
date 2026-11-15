@@ -541,6 +541,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow .ok svg { width: 18px; height: 18px; stroke-width: 3; opacity: 0; }
 .lrow .log { grid-area: log; display: none; }
 .lrow .use { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink); font-size: var(--fs-12); font-weight: var(--w-bold); }
+.lrow .use + .use { margin-left: 0; }
 .lrow .edit { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-muted); font-size: var(--fs-12); font-weight: var(--w-bold); }
 .lrow.done { box-shadow: inset 3px 0 0 var(--accent-strong); cursor: pointer; }
 .lrow.done .no { color: var(--accent); }
@@ -1242,7 +1243,7 @@ function nextSession(t) {
   var trained = t && /^train/i.test(t.values.training || ''), done = sessionsDone(), nxt = data.days.filter(function (d) { return !dayDone(d); })[0];
   var html = '<h2 class="sec">Training</h2>';
   if (!nxt) return html + '<div class="session"><div><b>All ' + data.days.length + ' sessions logged</b><p class="meta">Week ' + data.week + ' done.</p></div>' + '<button class="btn auto quiet" data-go="workout">See them</button></div>';
-  var beat = ''; nxt.exercises.some(function (x) { var p = prevOf(x); if (p && p.kg[0]) { beat = 'To beat: ' + esc(x.name) + ' ' + esc(p.kg[0]) + ' kg x ' + esc(p.reps[0] || '?'); return true; } return false; });
+  var beat = ''; nxt.exercises.some(function (x) { var l = lastSet(prevOf(x), 0); if (l) { beat = 'To beat: ' + esc(x.name) + ' ' + esc(kgTxt(l.kg)) + ' x ' + esc(trimNum(l.reps)); return true; } return false; });
   return html + '<div class="session"><div><b>' + esc(nxt.name) + '</b><p class="meta">' + (beat || (nxt.exercises.length + ' exercises, first time logging')) + '</p><p class="meta">' + (trained ? 'Trained today. ' : '') + done + ' of ' + trainingTarget() + ' this week.</p></div>' +
     '<button class="btn auto strong" data-day="' + esc(nxt.name) + '">Start</button></div>';
 }
@@ -1541,26 +1542,33 @@ function targetFor(last, range, step) {
 // 'beat' (more load, or same load more reps), 'held' (the same set) or '' (below, or nothing to compare).
 function resultOf(last, logged, phase) {
   if (!last || !logged) return '';
-  var lk = parseFloat(last.kg), lr = parseFloat(last.reps), k = parseFloat(logged.kg), r = parseFloat(logged.reps);
+  var lb = bwKg(last.kg), b = bwKg(logged.kg);
+  if ((lb === null) !== (b === null)) return ''; // bodyweight against a loaded set: nothing to compare
+  var lk = lb !== null ? lb : parseFloat(last.kg), lr = parseFloat(last.reps), k = b !== null ? b : parseFloat(logged.kg), r = parseFloat(logged.reps);
   if (isNaN(lk) || isNaN(lr) || isNaN(k) || isNaN(r)) return '';
-  var lp = plusLb(last.kg), p = plusLb(logged.kg); // the lb dial only breaks a kg tie
+  var lp = lb !== null ? 0 : plusLb(last.kg), p = b !== null ? 0 : plusLb(logged.kg); // the lb dial only breaks a kg tie
   if (k > lk || (k === lk && (p > lp || (p === lp && r > lr)))) return 'beat';
   return k === lk && p === lp && r === lr ? 'held' : '';
 }
 // Pin-and-dial machines: "150+10" is the 150 kg pin plus 10 lb on the dial. The lb part, else 0.
 function plusLb(v) { var m = /\+\s*\(?\s*(\d+(?:\.\d+)?)/.exec(String(v == null ? '' : v)); return m ? +m[1] : 0; }
+// Bodyweight sets: "BW" is 0 kg added, "BW+10" is a 10 kg belt or vest. Anything else gives null (a loaded set).
+// ponytail: an assisted dip machine (less kg = harder) is not handled; add a rule when a client uses one.
+function bwKg(v) { var m = /^\s*bw\s*(?:\+\s*(\d+(?:[.,]\d+)?))?\s*(?:kg)?\s*$/i.exec(String(v == null ? '' : v)); return m ? (m[1] ? parseFloat(m[1].replace(',', '.')) : 0) : null; }
+function kgTxt(v) { var b = bwKg(v); return b === null ? trimNum(v) + ' kg' : 'BW' + (b ? ' + ' + trimNum(b) + ' kg' : ''); } // "80 kg", "BW", "BW + 10 kg"
 // Which words are lit: a beat always, a held set only while dieting (holding strength in a deficit is a win).
 function resultLit(word, phase) { return word === 'beat' || (word === 'held' && /DIET/i.test(String(phase || ''))); }
 (function selfCheck() { // the smallest thing that fails if a copy drifts: the brief's own numbers
   var r = parseRanges('8-10, 10-12', 2), t = targetFor({ kg: '49.5', reps: '10' }, r[0]);
   console.assert(t.kg === 52 && t.reps === 8 && targetFor({ kg: '49.5', reps: '9' }, r[0]).reps === 10 && parseRanges('amrap', 1) === null, 'workout targets');
+  console.assert(resultOf({ kg: 'BW', reps: '12' }, { kg: 'BW', reps: '13' }) === 'beat' && resultOf({ kg: 'BW', reps: '12' }, { kg: '10', reps: '12' }) === '', 'bodyweight sets');
   console.assert(resultOf({ kg: '100', reps: '9' }, { kg: '100', reps: '9' }) === 'held' && resultLit('held', 'DIETING') && !resultLit('held', 'LEAN BULKING'), 'workout words');
 })();
 function phaseNow() { return (data.roadmap && data.roadmap.phase) || ''; }
 function trimNum(v) { if (data && data.plusLb && /\+/.test(v)) return String(v).trim(); var n = parseFloat(v); return isNaN(n) ? String(v) : String(Math.round(n * 100) / 100); }
 function mmss(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
 function filled(v) { return String(v == null ? '' : v).trim() !== ''; }
-function lastSet(p, i) { return p && /\d/.test(p.kg[i]) && /\d/.test(p.reps[i]) ? { kg: p.kg[i], reps: p.reps[i] } : null; }
+function lastSet(p, i) { return p && (/\d/.test(p.kg[i]) || bwKg(p.kg[i]) !== null) && /\d/.test(p.reps[i]) ? { kg: p.kg[i], reps: p.reps[i] } : null; }
 // PHASE TWO: the progression rule (parseRanges and targetFor, tested in Logic.js) is switched off until Adam has researched the
 // volume and effective-rep formulas he wants behind it. Until then the row shows last week's set and Log copies it on one tap.
 function setTarget(x, p, i) { return null; }
@@ -1577,7 +1585,7 @@ function toLog(x, p, d, i) { // what Log writes, as a whole set: the typed numbe
   if (k || r) return { kg: k ? String(d.kg[i]).trim() : '', reps: r ? String(d.reps[i]).trim() : '' };
   return { kg: '', reps: '' }; // nothing typed: nothing to log. Last week's set is a ghost and a Copy chip, never an automatic entry
 }
-function logLabel(v) { var s = lbSplit(v.kg); return v.kg && v.reps ? 'Log ' + trimNum(s.kg) + ' kg' + (s.lb ? ' + ' + s.lb + ' lb' : '') + ' x ' + trimNum(v.reps) : 'Enter kg and reps'; }
+function logLabel(v) { var s = lbSplit(v.kg); return v.kg && v.reps ? 'Log ' + (bwKg(v.kg) !== null ? kgTxt(v.kg) : trimNum(s.kg) + ' kg' + (s.lb ? ' + ' + s.lb + ' lb' : '')) + ' x ' + trimNum(v.reps) : 'Enter kg and reps'; }
 // Pin-and-dial machines (SHEETS plusLb): the kg box and the small lb box share one cell, "150+10", the way the client writes it in the sheet.
 function lbSplit(v) { var s = String(v == null ? '' : v), i = s.indexOf('+'); return i < 0 ? { kg: s, lb: '' } : { kg: s.slice(0, i).trim(), lb: (/\d+(?:[.,]\d+)?/.exec(s.slice(i + 1)) || [''])[0] }; } // first number only: "+(10)", "+5lbs", "+10/115+10"
 function doneCount(x, d, cur) { var c = 0; for (var i = 0; i < setCount(x); i++) if (i !== cur && setDone(d, i)) c++; return c + ' of ' + setCount(x) + ' done'; }
@@ -1589,13 +1597,15 @@ function setRow(x, p, d, i, cur) {
     : l ? '<span>Last week <b>' + lastTxt + '</b></span>' : '<span>First time, log what you do</span>';
   var plus = !!data.plusLb, lv = lbSplit(d.kg[i]), ll = lbSplit(l ? l.kg : '');
   var box = function (f, mode, ghost, val) {
-    return '<label class="box ' + f + '"><input inputmode="' + mode + '" enterkeyhint="next" data-f="' + f + '" data-i="' + i + '" value="' + esc(val != null ? val : d[f][i]) + '" placeholder="' + esc(ghost) + '" aria-label="Set ' + (i + 1) + ' ' + f + '"' + (done ? ' readonly' : '') + '><span class="unit">' + f + '</span></label>';
+    var vv = val != null ? val : d[f][i];
+    return '<label class="box ' + f + '"><input inputmode="' + mode + '" enterkeyhint="next" data-f="' + f + '" data-i="' + i + '" value="' + esc(vv) + '" placeholder="' + esc(ghost) + '" aria-label="Set ' + (i + 1) + ' ' + f + '"' + (done ? ' readonly' : '') + '><span class="unit">' + (f === 'kg' && bwKg(vv) !== null ? '' : f) + '</span></label>';
   };
   var v = toLog(x, p, d, i);
   return '<div class="lrow' + (plus ? ' plus' : '') + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
     (plus ? box('kg', 'decimal', l ? ll.kg : '', lv.kg) + box('lb', 'decimal', ll.lb, lv.lb) : box('kg', 'decimal', l ? trimNum(l.kg) : '')) + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
     (done ? '<span class="ok" aria-hidden="true"><i>' + icon('check') + '</i></span><span class="tgt">' + line + '</span>'
-      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + (isCur && l && !(v.kg && v.reps) ? '<button class="use" data-same="' + i + '">Copy last week</button>' : '') + '</span>' +
+      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + (isCur && l && !(v.kg && v.reps) ? '<button class="use" data-same="' + i + '">Copy last week</button>' : '') +
+        (isCur && !filled(d.kg[i]) ? '<button class="use bw" data-bw="' + i + '" aria-label="Bodyweight, no kg">BW</button>' : '') + '</span>' +
         '<button class="btn strong log" data-log="' + i + '"' + (v.kg && v.reps ? '' : ' disabled') + '>' + icon('check') + '<span>' + esc(logLabel(v)) + '</span></button>') + '</div>';
 }
 function renderEx(still) {
@@ -1687,9 +1697,9 @@ function renderOv() {
   $('app').innerHTML = html;
   renderSync();
 }
-function bestSet(kg, reps) { // the highest kg, then the most reps
+function bestSet(kg, reps) { // the highest kg, then the most reps; BW counts as its added kg
   var b = null;
-  (kg || []).forEach(function (k, i) { var kk = parseFloat(k), rr = parseFloat(reps[i]); if (isNaN(kk) || isNaN(rr)) return; if (!b || kk > b.k || (kk === b.k && rr > b.r)) b = { k: kk, r: rr, kg: k, reps: reps[i] }; });
+  (kg || []).forEach(function (k, i) { var bw = bwKg(k), kk = bw !== null ? bw : parseFloat(k), rr = parseFloat(reps[i]); if (isNaN(kk) || isNaN(rr)) return; if (!b || kk > b.k || (kk === b.k && rr > b.r)) b = { k: kk, r: rr, kg: k, reps: reps[i] }; });
   return b;
 }
 function renderFin() {
@@ -1703,7 +1713,7 @@ function renderFin() {
     var b = bestSet(d.kg, d.reps), w = b && p ? resultOf(bestSet(p.kg, p.reps), b, ph) : '', on = resultLit(w, ph);
     if (w === 'beat') beat++;
     if (w === 'held') held++;
-    return '<li class="' + (w === 'beat' ? 'lit' : '') + '" style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>' + (b ? esc(trimNum(b.kg)) + ' kg x ' + esc(trimNum(b.reps)) : 'No sets logged') + '</span></span>' +
+    return '<li class="' + (w === 'beat' ? 'lit' : '') + '" style="--i:' + idx + '"><span class="nm">' + esc(name) + '<span>' + (b ? esc(kgTxt(b.kg)) + ' x ' + esc(trimNum(b.reps)) : 'No sets logged') + '</span></span>' +
       (w ? '<i class="rchip' + (on ? ' lit' : '') + '">' + w + '</i>' : '') + '</li>';
   }).join('');
   var done = sessionsDone(), of = trainingTarget(), trained = sess.done.length > 0, n = sess.order.length;
@@ -1719,9 +1729,10 @@ function renderFin() {
   countUp($('finDone'), Math.max(0, done - 1), done);
   countUp($('finKg'), 0, Math.round(moved), '', tok('--t-hero'));
 }
+function sentKg(d) { return d.kg.map(function (k, i) { return bwKg(k) !== null && !filled(d.reps[i]) ? '' : k; }); } // a BW set with no reps is not a set
 function commit(name, skip) {
   var d = draft(name), today = localIso();
-  enqueue({ day: sess.day, exercise: name, week: data.week, kg: d.kg, reps: d.reps, comment: d.comment, skip: !!skip, date: today });
+  enqueue({ day: sess.day, exercise: name, week: data.week, kg: sentKg(d), reps: d.reps, comment: d.comment, skip: !!skip, date: today });
   var t = !skip && data.checkIn && ciDay(today);
   if (t && 'training' in t.values) { t.values.training = 'Training'; store('cw:data', data); }
 }
@@ -2215,6 +2226,7 @@ document.addEventListener('click', function (e) {
   if (b.dataset.tick !== undefined) return logSet(+b.dataset.tick);
   if (b.dataset.rest) return b.dataset.rest === 'skip' ? restEnd() : restNudge(+b.dataset.rest);
   if (b.dataset.cisent) { store('cw:wsent:' + data.week, !load('cw:wsent:' + data.week, false)); return renderCheckin(); }
+  if (b.dataset.bw != null) { var be = exNow(), bi = +b.dataset.bw; if (be) { for (var j = bi; j < setCount(be.x); j++) if (j === bi || (!setDone(be.d, j) && !filled(be.d.kg[j]))) be.d.kg[j] = 'BW'; saveSess(); reEx(); var rb = document.querySelector('#set' + bi + ' input[data-f="reps"]'); if (rb) rb.focus(); } return; } // this set and the empty ones after it
   if (b.dataset.same != null) { var ce = exNow(), si = +b.dataset.same, sl = ce && lastSet(ce.p, si); if (sl) { ce.d.kg[si] = trimNum(sl.kg); ce.d.reps[si] = trimNum(sl.reps); saveSess(); reEx(); } return; }
   if (b.dataset.tab) return show(b.dataset.tab);
   if (b.dataset.back) return show(b.dataset.back);
@@ -2258,7 +2270,7 @@ $('doneBtn').onclick = function () {
     var endLine = lastOne ? ' This is the last exercise, so Complete finishes ' + sess.day + (skipped ? ' with ' + skipped + (skipped === 1 ? ' exercise' : ' exercises') + ' skipped' : '') + '.' : '';
     return confirmSheet({ title: 'Complete ' + x.name + '?', text: what + endLine, ok: 'Complete anyway', cancel: 'Finish the sets', onOk: function () { sess.confirmEmpty = true; $('doneBtn').onclick(); } });
   }
-  var any = d.kg.concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
+  var any = sentKg(d).concat(d.reps, [d.comment]).some(function (v) { return String(v).trim() !== ''; });
   var now = Date.now(); if (!sess.startedAt) sess.startedAt = now; sess.lastAt = now; // typed-then-Complete still counts for duration and "done today"
   sess.done.push(n); if (!any) d.comment = 'Completed, no sets logged'; commit(n, false); next(); // a confirmed complete always reaches the sheet, so the training day is marked
 };
@@ -2275,11 +2287,16 @@ document.addEventListener('input', function (e) {
   if (e.target.id === 'ciVal' && ciState.confirm) { ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false; var sb = $('saveBtn'); if (sb) sb.querySelector('.st-idle').textContent = 'Save'; if ($('ciMsg')) { $('ciMsg').textContent = ''; $('ciMsg').className = ''; } }
   var f = e.target.dataset && e.target.dataset.f; if (!f || !sess || !sess.current) return;
   var d = draft(sess.current);
+  if (f === 'kg' && /[a-z]/i.test(e.target.value) && bwKg(e.target.value) === null) { e.target.value = e.target.value.replace(/[^\d.,+]/g, ''); e.target.nextSibling.textContent = 'kg'; } // typing into "BW" (or a backspace on it) means kg again
   var val = e.target.value; if (f === 'kg') val = val.replace(/^(\d+),(\d+)$/, '$1.$2');
   if (f === 'comment') d.comment = val;
   else if (data.plusLb && (f === 'kg' || f === 'lb')) { var pr = e.target.closest('.lrow'), pk = pr.querySelector('[data-f="kg"]').value.replace(/^(\d+),(\d+)$/, '$1.$2').trim(), pl = pr.querySelector('[data-f="lb"]').value.replace(',', '.').trim();
-    d.kg[+e.target.dataset.i] = pk ? pk + (pl ? '+' + pl : '') : ''; } // no kg, nothing to log yet
+    d.kg[+e.target.dataset.i] = bwKg(pk) !== null ? pk : pk ? pk + (pl ? '+' + pl : '') : ''; } // no kg, nothing to log yet; BW ignores the lb dial
   else d[f][+e.target.dataset.i] = val;
+  if (f === 'reps' && filled(val)) { // the one exception to "last week is never an automatic entry": bodyweight carries over, from last week's set or the set before
+    var bi = +e.target.dataset.i, bx = exNow(), bl = bx && lastSet(bx.p, bi), bk = bx && e.target.closest('.lrow').querySelector('[data-f="kg"]');
+    if (bx && !filled(d.kg[bi]) && ((bl && bwKg(bl.kg) !== null) || (bi > 0 && bwKg(d.kg[bi - 1]) !== null))) { d.kg[bi] = 'BW'; if (bk) { bk.value = 'BW'; bk.nextSibling.textContent = ''; } }
+  }
   saveSess();
   if (f !== 'comment') { var ex = exNow(), i = +e.target.dataset.i, btn = document.querySelector('#set' + i + ' .log'); // the Log button says what it will log, as you type
     if (ex && btn) { var v = toLog(ex.x, ex.p, ex.d, i); btn.disabled = !(v.kg && v.reps); btn.lastChild.textContent = logLabel(v); } }
