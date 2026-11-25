@@ -541,8 +541,9 @@ button.row:active { background: var(--surface-2); transform: none; }
 .lrow .ok svg { width: 18px; height: 18px; stroke-width: 3; opacity: 0; }
 .lrow .log { grid-area: log; display: none; }
 .lrow .use { margin-left: auto; flex: none; height: 32px; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink); font-size: var(--fs-12); font-weight: var(--w-bold); }
-.lrow .use + .use { margin-left: 0; }
+.lrow .use, .top .pill { position: relative; } .lrow .use::after, .top .pill::after { content: ""; position: absolute; inset: calc(var(--s-2) * -1) 0; } /* invisible hit area: 32 px to 48 px and 29 px to 45 px tall, look unchanged */
 .lrow .box.wide input { padding-right: 52px; }
+@media (max-width: 389px) { .lrow:not(.cur) .box input, .lrow.plus:not(.cur) .box input { padding: 0 var(--s-1) var(--s-3); text-align: center; } .lrow:not(.cur) .unit { top: auto; bottom: var(--s-1); left: 0; right: 0; transform: none; text-align: center; } }
 .ledger .hd .unitsw { height: 32px; margin: -8px 0; padding: 0 var(--s-3); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink); font-size: var(--fs-12); font-weight: var(--w-bold); }
 .ex .setup { display: block; width: 100%; text-align: left; margin-top: var(--s-3); font-size: var(--fs-14); line-height: var(--lh-body); color: var(--ink-muted); }
 .ex .setup b { color: var(--ink); font-weight: var(--w-bold); }
@@ -597,7 +598,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .ov .item .info { flex: 1; min-width: 0; }
 .ov .item b { display: block; }
 .ov .item span { font-size: var(--fs-14); color: var(--ink-muted); }
-.ov .item.is-done { opacity: .6; }
+.ov .item.is-done { opacity: .8; }
 .ov .item.is-skipped b { text-decoration: line-through; color: var(--ink-muted); }
 .ov .item.is-current { box-shadow: 0 0 0 2px var(--accent); }
 .chip { height: 36px; padding: 0 12px; border-radius: var(--r-pill); font-size: var(--fs-14); font-weight: var(--w-bold); background: var(--surface-2); }
@@ -1233,7 +1234,7 @@ function renderSync() {
   el.className = 'sync' + (syncState.error ? ' error' : queue.length ? ' pending' : '');
   el.textContent = syncState.error && !queue.length ? 'Offline. Showing what you last loaded.'
     : syncState.error ? 'Saved on your phone, will send when you are back online (' + queue.length + ' waiting).'
-    : queue.length ? 'Saving to ' + SAVED_TO + '…' : 'Everything saved to ' + SAVED_TO;
+    : queue.length ? 'Saving to ' + SAVED_TO + '…' : view.screen === 'ex' && sess && hasNums(sess.drafts[sess.current]) ? 'Tap Complete to send these sets to ' + SAVED_TO : 'Everything saved to ' + SAVED_TO; // sets logged with Log stay on the phone until Complete
   var k = syncState.error ? (queue.length ? 'held' : 'offline') : ''; if (k && k !== saidSync) say(el.textContent); saidSync = k || (queue.length ? saidSync : ''); // spoken once when the connection drops, not on every save or 30 s retry
 }
 var saidSync = '';
@@ -1689,6 +1690,14 @@ function logDirty() { // anything on Log focused or typed but not yet in day.val
     return (num ? typed.replace(/,/g, '') : typed) !== (num ? have.replace(/,/g, '') : have.trim());
   });
 }
+function logLeave(go, stay) { // typed but unsaved numbers on Log: ask before a tap throws them away
+  if (view.screen !== 'log') return go();
+  var a = document.activeElement; if (a && (a.id === 'ciVal' || (a.dataset && a.dataset.entry))) a.blur(); // a box that is only focused is not unsaved work
+  if (!logDirty()) return go();
+  if (stay) stay();
+  if (document.querySelector('.confirm')) return;
+  confirmSheet({ title: 'Leave without saving?', text: 'The numbers you typed are not saved yet. Tap Save first to keep them.', ok: 'Leave', cancel: 'Stay', onOk: go });
+}
 function renderLog() {
   var c = data.checkIn, today = localIso();
   if (!ciState.date || ciState.date > today || ciState.date < c.firstDate) ciState.date = today;
@@ -2048,7 +2057,7 @@ function setRow(x, p, d, i, cur) {
   return '<div class="lrow' + (plus ? ' plus' : '') + (done ? ' done' : '') + (done && resultLit(word, ph) ? ' lit' : '') + (isCur ? ' cur' : '') + '" id="set' + i + '" data-i="' + i + '"><span class="no">' + (i + 1) + '</span>' +
     (plus ? box('kg', 'decimal', l ? ll.kg : '', lv.kg) + box('lb', 'decimal', ll.lb, lv.lb) : box('kg', u === 'plates' ? 'numeric' : 'decimal', l ? shownNum(l.kg, u) : '', shownNum(d.kg[i], u), unitWord(d.kg[i], u))) + box('reps', 'numeric', l ? trimNum(l.reps) : '') +
     (done ? '<span class="ok" aria-hidden="true"><i>' + icon('check') + '</i></span><span class="tgt">' + line + '</span>'
-      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line + (isCur && l && !(v.kg && v.reps) ? '<button class="use" data-same="' + i + '">' + (gap ? 'Copy week ' + p.week : 'Copy last week') + '</button>' : '') +
+      : '<button class="ok" data-tick="' + i + '" aria-label="Log set ' + (i + 1) + '"><i>' + icon('check') + '</i></button><span class="tgt">' + line +
         (isCur && !filled(d.kg[i]) ? '<button class="use bw" data-bw="' + i + '" aria-label="Bodyweight, no kg">BW</button>' : '') + '</span>' +
         '<button class="btn strong log" data-log="' + i + '"' + (v.kg && v.reps ? '' : ' disabled') + '>' + icon('check') + '<span>' + esc(logLabel(v, u)) + '</span></button>') + '</div>';
 }
@@ -2180,9 +2189,9 @@ function renderFin() {
 }
 function sentKg(d) { return d.kg.map(function (k, i) { return bwKg(k) !== null && !filled(d.reps[i]) ? '' : k; }); } // a BW set with no reps is not a set
 function commit(name, skip) {
-  var d = draft(name), today = localIso();
-  enqueue({ day: sess.day, exercise: name, week: data.week, kg: sentKg(d), reps: d.reps.slice(), comment: sentComment(d), skip: !!skip, date: today });
-  var t = !skip && data.checkIn && ciDay(today);
+  var d = draft(name), today = localIso(), dy = dayByName(sess.day), x = dy && exByName(dy, name), again = !skip && !!x && !!x.history && hasNums(x.history[data.week]); // an edit of numbers already in the sheet this week is not a new training day
+  enqueue({ day: sess.day, exercise: name, week: data.week, kg: sentKg(d), reps: d.reps.slice(), comment: sentComment(d), skip: !!skip, date: again ? '' : today });
+  var t = !skip && !again && data.checkIn && ciDay(today);
   if (t && 'training' in t.values) { t.values.training = 'Training'; store('cw:data', data); }
 }
 function next() { var left = remaining(); sess.current = left[0] || null; saveSess(); show(left.length ? 'ex' : 'fin'); }
@@ -2691,12 +2700,11 @@ document.addEventListener('click', function (e) {
   if (b.dataset.unit != null) { var ue = exNow(); if (ue) setUnit(ue, { kg: 'lb', lb: 'plates', plates: 'kg' }[unitOf(ue.x)]); return; }
   if (b.dataset.setup != null) { var se = exNow(); if (se) { if (se.d.setup == null) se.d.setup = setupOf(se.x); exUi.setupOpen = true; saveSess(); reEx(); var si = document.querySelector('.ex input[data-f="setup"]'); if (si) si.focus(); } return; }
   if (b.dataset.bw != null) { var be = exNow(), bi = +b.dataset.bw; if (be) { for (var j = bi; j < setCount(be.x); j++) if (j === bi || (!setDone(be.d, j) && !filled(be.d.kg[j]))) be.d.kg[j] = 'BW'; saveSess(); reEx(); var rb = document.querySelector('#set' + bi + ' input[data-f="reps"]'); if (rb) rb.focus(); } return; } // this set and the empty ones after it
-  if (b.dataset.same != null) { var ce = exNow(), si = +b.dataset.same, sl = ce && lastSet(ce.p, si); if (sl) { ce.d.kg[si] = trimNum(sl.kg); ce.d.reps[si] = trimNum(sl.reps); logSet(si); } return; }
-  if (b.dataset.tab) return show(b.dataset.tab);
-  if (b.dataset.back) return show(b.dataset.back);
+  if (b.dataset.tab) return logLeave(function () { show(b.dataset.tab); });
+  if (b.dataset.back) return logLeave(function () { show(b.dataset.back); });
   if (b.dataset.day) { view.tab = 'workout'; openSession(b.dataset.day); return show(sess.current ? 'ex' : 'ov'); }
   if (b.dataset.go) return show(b.dataset.go);
-  if (b.dataset.ciDate) { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; return renderLog(); }
+  if (b.dataset.ciDate) { if (b.dataset.ciDate === ciState.date) return; return logLeave(function () { ciState = { date: b.dataset.ciDate, confirm: '', msg: '', warn: false }; renderLog(); }); }
   if (b.dataset.scale) return scaleSave(b.dataset.scale, +b.dataset.n);
   if (b.dataset.habit) return switchSave('habit:' + b.dataset.habit, b.dataset.today ? localIso() : undefined);
   if (b.dataset.sw) return switchSave(b.dataset.sw);
@@ -2748,7 +2756,7 @@ function confirmSheet(o) { // a bottom sheet with one question and two answers; 
   if (back && back.tagName === 'BUTTON') el.querySelector('[data-c="no"]').focus({ preventScroll: true }); // only when a button had focus (keyboard, Android): a box keeps its keyboard, an iPhone tap changes nothing
 }
 document.addEventListener('change', function (e) {
-  if (e.target.id === 'ciDate' && e.target.value) { ciState = { date: e.target.value, confirm: '', msg: '', warn: false }; renderLog(); }
+  if (e.target.id === 'ciDate' && e.target.value) { var nd = e.target.value; logLeave(function () { ciState = { date: nd, confirm: '', msg: '', warn: false }; renderLog(); }, function () { e.target.value = ciState.date; }); }
 });
 document.addEventListener('input', function (e) {
   if (e.target.id === 'ciVal' && ciState.confirm) { ciState.confirm = ''; ciState.replace = false; ciState.msg = ''; ciState.warn = false; var sb = $('saveBtn'); if (sb) sb.querySelector('.st-idle').textContent = 'Save'; if ($('ciMsg')) { $('ciMsg').textContent = ''; $('ciMsg').className = ''; } }
