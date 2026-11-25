@@ -709,6 +709,7 @@ button.row:active { background: var(--surface-2); transform: none; }
 .err b { color: var(--ink); display: block; font-size: var(--fs-20); margin-bottom: 8px; }
 .toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--accent); color: var(--on-accent); padding: 10px 16px; border-radius: var(--r-pill); font-weight: var(--w-bold); font-size: var(--fs-14); z-index: 8; animation: screen-in var(--t-screen) var(--ease) both; }
 /* ---------- trial features: written by test/lab-assemble.js from lab-build/modules, never by hand ---------- */
+@media (max-width: 359px) { /* 320 px phones: stop words and numbers splitting mid-token */ .ov .item { flex-wrap: wrap; } .ov .item .info { flex-basis: calc(100% - 40px); } .day { gap: var(--s-2); padding: var(--s-3); } .day .go { padding: 0 var(--s-3); } .targets div { padding-left: var(--s-1); padding-right: var(--s-1); } .targets div b { font-size: var(--fs-16); } }
 /* lab:css:start */
 /* trial: miss */
 .lines .lab-miss-line { color: var(--ink); }
@@ -1414,7 +1415,7 @@ function show(screen, day) {
 }
 function topBar(title, sub, backTo, pill) {
   return '<div class="top">' + (backTo ? '<button class="back" data-back="' + backTo + '" aria-label="Back">' + icon('back') + '</button>' : '') +
-    '<div class="title"><b>' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div>' + (pill || '') + '</div>';
+    '<div class="title"><b role="heading" aria-level="1">' + esc(title) + '</b>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div>' + (pill || '') + '</div>';
 }
 function weekLine() { var r = data.roadmap; return 'Week ' + data.week + (r && r.phase ? ', ' + r.phase.toLowerCase() : ''); } // no "of 48": nobody needs reminding how long they have paid
 
